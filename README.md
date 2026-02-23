@@ -79,18 +79,29 @@ php artisan key:generate
 Start in dummy mode (recommended for local):
 
 ```bash
-./scripts/switch-env.sh dummy
-php artisan app:init-dummy
+./start.sh dummy
+```
+
+Start in real mode (PostgreSQL via Docker):
+
+```bash
+./start.sh real
+```
+
+Start with current mode (no switch):
+
+```bash
 ./start.sh
 ```
 
-App URL: `http://127.0.0.1:8001`
+App URL: `http://127.0.0.1:8002`
 
-Alternative run:
+Switch database without starting server:
 
 ```bash
-php artisan serve --host=127.0.0.1 --port=8001
-npm run dev
+./scripts/switch-env.sh dummy
+./scripts/switch-env.sh real
+./scripts/switch-env.sh          # show current mode
 ```
 
 ### Database Profiles and Safety
@@ -109,15 +120,17 @@ Safety rules:
 Switch profiles:
 
 ```bash
-./scripts/switch-env.sh dummy
-./scripts/switch-env.sh real
+./start.sh dummy          # switch + start server
+./start.sh real           # switch + start server
+./scripts/switch-env.sh dummy   # switch only
+./scripts/switch-env.sh real    # switch only
+./scripts/switch-env.sh         # show current mode
 ```
 
 Script behavior:
 
-- Backs up current `.env` to `storage/env-backups/`
-- Validates `APP_ENV` and `DB_SAKUMI_MODE`
-- Requires typing `REAL` before switching to real
+- Edits `.env` in-place (preserves `APP_KEY` across switches)
+- No confirmation prompt required
 - Clears Laravel config/cache
 - **Switching to `real`**: auto-starts the Docker PostgreSQL container (`sakumi_db`) and runs migrations
 - **Switching to `dummy`**: auto-migrates and seeds the SQLite dummy database
@@ -222,7 +235,7 @@ Production scheduler cron:
 
 ### Troubleshooting
 
-- Port `8001` already used:
+- Port `8002` already used:
 
 ```bash
 ./stop.sh
@@ -459,18 +472,29 @@ php artisan key:generate
 Jalankan mode dummy (disarankan untuk lokal):
 
 ```bash
-./scripts/switch-env.sh dummy
-php artisan app:init-dummy
+./start.sh dummy
+```
+
+Jalankan mode real (PostgreSQL via Docker):
+
+```bash
+./start.sh real
+```
+
+Jalankan dengan mode saat ini (tanpa switch):
+
+```bash
 ./start.sh
 ```
 
-URL aplikasi: `http://127.0.0.1:8001`
+URL aplikasi: `http://127.0.0.1:8002`
 
-Alternatif menjalankan:
+Switch database tanpa start server:
 
 ```bash
-php artisan serve --host=127.0.0.1 --port=8001
-npm run dev
+./scripts/switch-env.sh dummy
+./scripts/switch-env.sh real
+./scripts/switch-env.sh          # lihat mode saat ini
 ```
 
 ### Profil Database dan Keamanan
@@ -489,15 +513,17 @@ Aturan keamanan:
 Ganti profil environment:
 
 ```bash
-./scripts/switch-env.sh dummy
-./scripts/switch-env.sh real
+./start.sh dummy          # switch + start server
+./start.sh real           # switch + start server
+./scripts/switch-env.sh dummy   # switch saja
+./scripts/switch-env.sh real    # switch saja
+./scripts/switch-env.sh         # lihat mode saat ini
 ```
 
 Perilaku script:
 
-- Backup `.env` saat ini ke `storage/env-backups/`
-- Validasi `APP_ENV` dan `DB_SAKUMI_MODE`
-- Wajib ketik `REAL` saat pindah ke mode real
+- Edit `.env` langsung (APP_KEY tetap terjaga saat switch)
+- Tidak perlu konfirmasi ketik apapun
 - Membersihkan cache/config Laravel
 - **Pindah ke `real`**: otomatis start container Docker PostgreSQL (`sakumi_db`) dan jalankan migration
 - **Pindah ke `dummy`**: otomatis migrate + seed database SQLite dummy
@@ -594,7 +620,7 @@ Cron scheduler production:
 
 ### Troubleshooting
 
-- Port `8001` sudah dipakai:
+- Port `8002` sudah dipakai:
 
 ```bash
 ./stop.sh

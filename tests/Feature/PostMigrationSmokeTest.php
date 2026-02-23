@@ -103,7 +103,6 @@ class PostMigrationSmokeTest extends TestCase
 
         $this->actAsUnit($this->miAdmin, $this->mi)
             ->post(route('transactions.store'), [
-                'student_id' => $student->id,
                 'transaction_date' => today()->toDateString(),
                 'payment_method' => 'cash',
                 'items' => [
@@ -134,7 +133,6 @@ class PostMigrationSmokeTest extends TestCase
 
         $this->actAsUnit($this->miAdmin, $this->mi)
             ->post(route('transactions.store'), [
-                'student_id' => $miStudent->id,
                 'transaction_date' => today()->toDateString(),
                 'payment_method' => 'cash',
                 'items' => [
@@ -155,7 +153,6 @@ class PostMigrationSmokeTest extends TestCase
 
         $this->actAsUnit($this->raAdmin, $this->ra)
             ->post(route('transactions.store'), [
-                'student_id' => $raStudent->id,
                 'transaction_date' => today()->toDateString(),
                 'payment_method' => 'cash',
                 'items' => [

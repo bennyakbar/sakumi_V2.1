@@ -11,7 +11,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-20 w-auto" />
                     </a>
                 </div>
 
@@ -41,9 +41,9 @@
 
                     {{-- Master Data Dropdown --}}
                     @if(
-                        (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
-                        || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
-                    )
+                            (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
+                            || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
+                        )
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
@@ -138,7 +138,9 @@
                 <form method="POST" action="{{ route('locale.switch') }}">
                     @csrf
                     <input type="hidden" name="locale" value="{{ app()->getLocale() === 'id' ? 'en' : 'id' }}">
-                    <button type="submit" class="inline-flex items-center px-2 py-1 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50 hover:bg-gray-100 focus:outline-none transition ease-in-out duration-150" title="{{ app()->getLocale() === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia' }}">
+                    <button type="submit"
+                        class="inline-flex items-center px-2 py-1 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50 hover:bg-gray-100 focus:outline-none transition ease-in-out duration-150"
+                        title="{{ app()->getLocale() === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia' }}">
                         {{ app()->getLocale() === 'id' ? 'EN' : 'ID' }}
                     </button>
                 </form>
@@ -148,11 +150,15 @@
                     @if(isset($switchableUnits) && $switchableUnits->count() > 1)
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
-                                <button class="inline-flex items-center px-3 py-1.5 border border-indigo-200 text-xs font-semibold rounded-full text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none transition ease-in-out duration-150">
+                                <button
+                                    class="inline-flex items-center px-3 py-1.5 border border-indigo-200 text-xs font-semibold rounded-full text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none transition ease-in-out duration-150">
                                     <div>{{ $currentUnit->code }}</div>
                                     <div class="ms-1">
-                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </div>
                                 </button>
@@ -162,7 +168,8 @@
                                     <form method="POST" action="{{ route('unit.switch') }}">
                                         @csrf
                                         <input type="hidden" name="unit_id" value="{{ $unit->id }}">
-                                        <button type="submit" class="block w-full px-4 py-2 text-start text-sm leading-5 {{ $unit->id === $currentUnit->id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }} focus:outline-none transition duration-150 ease-in-out">
+                                        <button type="submit"
+                                            class="block w-full px-4 py-2 text-start text-sm leading-5 {{ $unit->id === $currentUnit->id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }} focus:outline-none transition duration-150 ease-in-out">
                                             {{ $unit->code }} &mdash; {{ $unit->name }}
                                         </button>
                                     </form>
@@ -170,7 +177,8 @@
                             </x-slot>
                         </x-dropdown>
                     @else
-                        <span class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50">
+                        <span
+                            class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50">
                             {{ $currentUnit->code }}
                         </span>
                     @endif
@@ -255,11 +263,13 @@
 
             {{-- Master Data Group --}}
             @if(
-                (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
-                || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
-            )
+                    (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
+                    || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
+                )
                 <div class="pt-2 pb-1 border-t border-gray-200">
-                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.master_data') }}</div>
+                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {{ __('app.nav.master_data') }}
+                    </div>
                 </div>
                 @if(auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->can('master.students.view'))
                     <x-responsive-nav-link :href="route('master.students.index')"
@@ -296,7 +306,9 @@
             {{-- Reports Group --}}
             @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears']))
                 <div class="pt-2 pb-1 border-t border-gray-200">
-                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.reports') }}</div>
+                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {{ __('app.nav.reports') }}
+                    </div>
                 </div>
                 @can('reports.daily')
                     <x-responsive-nav-link :href="route('reports.daily')" :active="request()->routeIs('reports.daily')">
@@ -318,7 +330,8 @@
 
         {{-- Responsive Language Toggle --}}
         <div class="pt-2 pb-1 border-t border-gray-200">
-            <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.language') }}</div>
+            <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.language') }}
+            </div>
         </div>
         <form method="POST" action="{{ route('locale.switch') }}" class="px-4 py-2">
             @csrf
@@ -331,14 +344,17 @@
         {{-- Responsive Unit Switcher --}}
         @if(isset($currentUnit))
             <div class="pt-2 pb-1 border-t border-gray-200">
-                <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit: {{ $currentUnit->code }}</div>
+                <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit:
+                    {{ $currentUnit->code }}
+                </div>
             </div>
             @if(isset($switchableUnits) && $switchableUnits->count() > 1)
                 @foreach($switchableUnits as $unit)
                     <form method="POST" action="{{ route('unit.switch') }}">
                         @csrf
                         <input type="hidden" name="unit_id" value="{{ $unit->id }}">
-                        <button type="submit" class="block w-full ps-4 pe-4 py-2 text-start text-base font-medium {{ $unit->id === $currentUnit->id ? 'text-indigo-700 bg-indigo-50 border-l-4 border-indigo-400' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }} focus:outline-none transition duration-150 ease-in-out">
+                        <button type="submit"
+                            class="block w-full ps-4 pe-4 py-2 text-start text-base font-medium {{ $unit->id === $currentUnit->id ? 'text-indigo-700 bg-indigo-50 border-l-4 border-indigo-400' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }} focus:outline-none transition duration-150 ease-in-out">
                             {{ $unit->code }} &mdash; {{ $unit->name }}
                         </button>
                     </form>

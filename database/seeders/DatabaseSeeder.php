@@ -10,6 +10,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UnitSeeder::class,
+            ChartOfAccountsSeeder::class,
+            AccountMappingsSeeder::class,
             RolePermissionSeeder::class,
             SettingsSeeder::class,
             UnitSchoolSettingsSeeder::class,

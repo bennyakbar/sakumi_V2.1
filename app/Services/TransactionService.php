@@ -62,6 +62,8 @@ class TransactionService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('payment.posted', ['unit_id' => $transaction->unit_id, 'source_type' => 'transaction', 'source_id' => $transaction->id, 'total_amount' => (float) $transaction->total_amount, 'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'payment.posted:transaction:'.$transaction->id]); }
+
             return $transaction;
         });
 

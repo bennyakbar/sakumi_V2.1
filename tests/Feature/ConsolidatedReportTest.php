@@ -126,7 +126,7 @@ class ConsolidatedReportTest extends TestCase
             ->assertSee($this->raSettlement->settlement_number)
             ->assertSee($this->miTransaction->transaction_number)
             ->assertSee($this->raTransaction->transaction_number)
-            ->assertSee('All Units');
+            ->assertSee(__('app.unit.all'));
     }
 
     public function test_super_admin_daily_report_default_scope_sees_own_unit(): void
@@ -204,7 +204,7 @@ class ConsolidatedReportTest extends TestCase
             ->assertSee($this->raTransaction->transaction_number)
             ->assertSee($this->miSettlement->settlement_number)
             ->assertSee($this->raSettlement->settlement_number)
-            ->assertSee('All Units');
+            ->assertSee(__('app.unit.all'));
     }
 
     public function test_non_super_admin_monthly_report_scope_all_ignored(): void
@@ -253,7 +253,7 @@ class ConsolidatedReportTest extends TestCase
             ->assertOk()
             ->assertSee($this->miStudent->name)
             ->assertSee($this->raStudent->name)
-            ->assertSee('All Units');
+            ->assertSee(__('app.unit.all'));
     }
 
     public function test_non_super_admin_arrears_report_scope_all_ignored(): void
@@ -407,9 +407,9 @@ class ConsolidatedReportTest extends TestCase
         $this->actAsUnit($this->superAdmin, $this->mi)
             ->get(route('dashboard', ['scope' => 'all']))
             ->assertOk()
-            ->assertSee('All Units')
-            ->assertSee('Per-Unit Breakdown')
-            ->assertSee('Current Unit');
+            ->assertSee(__('dashboard.all_units'))
+            ->assertSee(__('dashboard.breakdown'))
+            ->assertSee(__('dashboard.current_unit'));
     }
 
     public function test_non_super_admin_dashboard_scope_all_ignored(): void
@@ -417,8 +417,8 @@ class ConsolidatedReportTest extends TestCase
         $this->actAsUnit($this->operatorTu, $this->mi)
             ->get(route('dashboard', ['scope' => 'all']))
             ->assertOk()
-            ->assertDontSee('All Units')
-            ->assertDontSee('Per-Unit Breakdown');
+            ->assertDontSee(__('dashboard.all_units'))
+            ->assertDontSee(__('dashboard.breakdown'));
     }
 
     public function test_super_admin_dashboard_default_scope_no_breakdown(): void

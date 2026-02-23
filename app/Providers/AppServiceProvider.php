@@ -32,11 +32,11 @@ class AppServiceProvider extends ServiceProvider
     private function enforceSakumiMode(): void
     {
         // PHPUnit uses in-memory sqlite — bypass
-        if ($this->app->environment('testing') && env('DB_CONNECTION') === 'sqlite') {
+        if ($this->app->environment('testing') && config('database.default') === 'sqlite') {
             return;
         }
 
-        $mode = env('DB_SAKUMI_MODE');
+        $mode = config('database.sakumi_mode', env('DB_SAKUMI_MODE'));
 
         if (! in_array($mode, ['dummy', 'real'], true)) {
             throw new RuntimeException(
@@ -54,11 +54,11 @@ class AppServiceProvider extends ServiceProvider
     private function registerWriteProtection(): void
     {
         // PHPUnit uses in-memory sqlite — bypass
-        if ($this->app->environment('testing') && env('DB_CONNECTION') === 'sqlite') {
+        if ($this->app->environment('testing') && config('database.default') === 'sqlite') {
             return;
         }
 
-        $mode = env('DB_SAKUMI_MODE');
+        $mode = config('database.sakumi_mode', env('DB_SAKUMI_MODE'));
 
         if ($mode === 'dummy') {
             $this->blockWritesOn('sakumi_real', 'dummy');

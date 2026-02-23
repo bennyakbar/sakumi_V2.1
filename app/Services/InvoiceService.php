@@ -139,6 +139,8 @@ class InvoiceService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
+
             $result['created']++;
         });
     }
@@ -201,6 +203,8 @@ class InvoiceService
                     'year' => $obligation->year,
                 ]);
             }
+
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
 
             return $invoice->load('items.feeType', 'student');
         });

@@ -109,6 +109,8 @@ class SettlementService
             // Also update linked StudentObligations as paid
             $this->markObligationsFromAllocations($settlement);
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('settlement.applied', ['unit_id' => $settlement->unit_id, 'source_type' => 'settlement', 'source_id' => $settlement->id, 'total_amount' => (float) $settlement->allocated_amount, 'effective_date' => $settlement->payment_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'allocations' => collect($allocations)->map(fn ($amount, $invoiceId) => ['invoice_id' => (int) $invoiceId, 'amount' => (float) $amount])->values()->all(), 'idempotency_key' => 'settlement.applied:'.$settlement->id]); }
+
             return $settlement->load('allocations.invoice', 'student');
         });
     }
@@ -143,6 +145,8 @@ class SettlementService
             // Revert obligation payments linked to this settlement's invoices
             $this->revertObligationsFromAllocations($settlement);
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('reversal.posted', ['unit_id' => $settlement->unit_id, 'source_type' => 'settlement', 'source_id' => $settlement->id, 'effective_date' => now()->toDateString(), 'created_by' => $userId, 'reason' => $reason, 'idempotency_key' => 'settlement.void.reversal:'.$settlement->id]); }
+
             return $settlement->fresh();
         });
     }
@@ -172,6 +176,8 @@ class SettlementService
 
             // Revert obligation payments linked to this settlement's invoices
             $this->revertObligationsFromAllocations($settlement);
+
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('reversal.posted', ['unit_id' => $settlement->unit_id, 'source_type' => 'settlement', 'source_id' => $settlement->id, 'effective_date' => now()->toDateString(), 'created_by' => $userId, 'reason' => $reason, 'idempotency_key' => 'settlement.cancel.reversal:'.$settlement->id]); }
 
             return $settlement->fresh();
         });

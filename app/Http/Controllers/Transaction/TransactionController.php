@@ -18,7 +18,8 @@ class TransactionController extends Controller
 {
     public function __construct(
         private readonly TransactionService $transactionService,
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
@@ -37,7 +38,7 @@ class TransactionController extends Controller
             $query->where(function ($q) use ($search): void {
                 $q->where('transaction_number', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('student', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('student', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -51,7 +52,7 @@ class TransactionController extends Controller
 
         if ($request->filled('class_id')) {
             $classId = (int) $request->input('class_id');
-            $query->whereHas('student', fn ($sq) => $sq->where('class_id', $classId));
+            $query->whereHas('student', fn($sq) => $sq->where('class_id', $classId));
         }
 
         if ($request->filled('date_from')) {
@@ -92,13 +93,13 @@ class TransactionController extends Controller
             ->where('is_active', true)
             ->whereNotNull('expense_fee_subcategory_id')
             ->get()
-            ->sortBy(fn (FeeType $feeType): string => sprintf(
+            ->sortBy(fn(FeeType $feeType): string => sprintf(
                 '%03d-%03d-%s',
                 (int) ($feeType->expenseFeeSubcategory?->category?->sort_order ?? 999),
                 (int) ($feeType->expenseFeeSubcategory?->sort_order ?? 999),
                 $feeType->name
             ))
-            ->map(fn (FeeType $feeType): array => [
+            ->map(fn(FeeType $feeType): array => [
                 'id' => $feeType->id,
                 'name' => $feeType->name,
                 'category' => $feeType->expenseFeeSubcategory?->category?->name ?? __('message.uncategorized'),
@@ -117,11 +118,11 @@ class TransactionController extends Controller
         $unitId = session('current_unit_id');
         $transactionType = (string) $request->input('type', 'income');
 
-        if (! in_array($transactionType, ['income', 'expense'], true)) {
+        if (!in_array($transactionType, ['income', 'expense'], true)) {
             return back()->withInput()->withErrors(['type' => __('message.invalid_transaction_type')]);
         }
 
-        if ($transactionType === 'expense' && ! (auth()->user()?->can('transactions.expense.create'))) {
+        if ($transactionType === 'expense' && !(auth()->user()?->can('transactions.expense.create'))) {
             abort(403, __('message.expense_not_authorized'));
         }
 
@@ -144,7 +145,7 @@ class TransactionController extends Controller
         try {
             $items = collect($validated['items'])
                 ->values()
-                ->map(fn (array $item): array => [
+                ->map(fn(array $item): array => [
                     'fee_type_id' => (int) $item['fee_type_id'],
                     'amount' => (float) $item['amount'],
                     'description' => $item['description'] ?? null,

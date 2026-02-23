@@ -1,164 +1,117 @@
 #!/usr/bin/env bash
+#
+# Usage:
+#   ./scripts/switch-env.sh dummy   → Switch to SQLite dummy database
+#   ./scripts/switch-env.sh real    → Switch to PostgreSQL real database
+#   ./scripts/switch-env.sh        → Show current mode
+#
 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$ROOT_DIR/.env"
-BACKUP_DIR="$ROOT_DIR/storage/env-backups"
 
-usage() {
-  cat <<'EOF'
-Usage:
-  ./scripts/switch-env.sh dummy
-  ./scripts/switch-env.sh real
-
-Required files:
-  .env.dummy  (APP_ENV=testing|local, DB_SAKUMI_MODE=dummy)
-  .env.real   (APP_ENV=production,    DB_SAKUMI_MODE=real)
-EOF
-}
-
-if [[ $# -ne 1 ]]; then
-  usage
-  exit 1
+# ── Show current mode if no argument ──
+if [[ $# -eq 0 ]]; then
+  CURRENT="$(grep -E '^DB_SAKUMI_MODE=' "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' || echo 'unknown')"
+  echo "Current mode: $CURRENT"
+  exit 0
 fi
 
 TARGET="$1"
-case "$TARGET" in
-  dummy)
-    SOURCE_ENV="$ROOT_DIR/.env.dummy"
-    ;;
-  real)
-    SOURCE_ENV="$ROOT_DIR/.env.real"
-    ;;
-  *)
-    echo "Invalid target: $TARGET"
-    usage
-    exit 1
-    ;;
-esac
-
-if [[ ! -f "$SOURCE_ENV" ]]; then
-  echo "Missing file: $SOURCE_ENV"
+if [[ "$TARGET" != "dummy" && "$TARGET" != "real" ]]; then
+  echo "Usage: $0 [dummy|real]"
   exit 1
 fi
 
-mkdir -p "$BACKUP_DIR"
-if [[ -f "$ENV_FILE" ]]; then
-  TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-  cp "$ENV_FILE" "$BACKUP_DIR/.env.$TIMESTAMP.bak"
-  echo "Backup created: $BACKUP_DIR/.env.$TIMESTAMP.bak"
+# ── Check current mode ──
+CURRENT="$(grep -E '^DB_SAKUMI_MODE=' "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' || echo '')"
+if [[ "$CURRENT" == "$TARGET" ]]; then
+  echo "Already in $TARGET mode. Nothing to do."
+  exit 0
 fi
 
-if [[ "$TARGET" == "real" ]]; then
-  read -r -p "Type REAL to confirm switching to production config: " CONFIRM
-  if [[ "$CONFIRM" != "REAL" ]]; then
-    echo "Aborted."
-    exit 1
+# ── Helper: update a single .env variable ──
+set_env() {
+  local KEY="$1" VAL="$2"
+  if grep -qE "^${KEY}=" "$ENV_FILE"; then
+    sed -i "s|^${KEY}=.*|${KEY}=${VAL}|" "$ENV_FILE"
+  else
+    echo "${KEY}=${VAL}" >> "$ENV_FILE"
   fi
-fi
+}
 
-cp "$SOURCE_ENV" "$ENV_FILE"
-
-# ── Validate APP_ENV ──
-NEW_ENV="$(grep -E '^APP_ENV=' "$ENV_FILE" | head -n1 | cut -d'=' -f2 | tr -d '"' || true)"
-
+# ── Switch variables ──
 if [[ "$TARGET" == "dummy" ]]; then
-  if [[ "$NEW_ENV" != "testing" && "$NEW_ENV" != "local" ]]; then
-    echo "Safety check failed: dummy config must use APP_ENV=testing or APP_ENV=local"
-    exit 1
-  fi
-fi
-
-if [[ "$TARGET" == "real" && "$NEW_ENV" != "production" && "$NEW_ENV" != "local" ]]; then
-  echo "Safety check failed: real config must use APP_ENV=production or APP_ENV=local"
-  exit 1
-fi
-
-# ── Validate DB_SAKUMI_MODE ──
-NEW_MODE="$(grep -E '^DB_SAKUMI_MODE=' "$ENV_FILE" | head -n1 | cut -d'=' -f2 | tr -d '"' || true)"
-
-if [[ "$NEW_MODE" != "$TARGET" ]]; then
-  echo "Safety check failed: DB_SAKUMI_MODE=$NEW_MODE does not match target=$TARGET"
-  exit 1
+  set_env APP_NAME '"Sistem Keuangan MI [DUMMY]"'
+  set_env APP_ENV testing
+  set_env DB_SAKUMI_MODE dummy
+  set_env DB_CONNECTION sakumi_dummy
+  set_env DB_HOST ""
+  set_env DB_PORT ""
+  set_env DB_REAL_DATABASE sakumi_real
+  set_env DB_REAL_USERNAME sakumi
+  set_env DB_REAL_PASSWORD ""
+else
+  set_env APP_NAME '"Sistem Keuangan MI"'
+  set_env APP_ENV local
+  set_env DB_SAKUMI_MODE real
+  set_env DB_CONNECTION sakumi_real
+  set_env DB_HOST 127.0.0.1
+  set_env DB_PORT 5433
+  set_env DB_REAL_DATABASE sakumi
+  set_env DB_REAL_USERNAME sakumi
+  set_env DB_REAL_PASSWORD sakumi
 fi
 
 # ── Clear Laravel caches ──
 (
   cd "$ROOT_DIR"
-  php artisan config:clear >/dev/null 2>&1 || true
-  php artisan cache:clear >/dev/null 2>&1 || true
+  php artisan config:clear  >/dev/null 2>&1 || true
+  php artisan cache:clear   >/dev/null 2>&1 || true
 )
 
-echo "Switched to $TARGET environment (APP_ENV=$NEW_ENV, DB_SAKUMI_MODE=$NEW_MODE)."
+echo "✅ Switched to $TARGET mode!"
 
-# ── Handle Real Mode (Docker) ──
+# ── Post-switch setup ──
 if [[ "$TARGET" == "real" ]]; then
   echo ""
-  echo "Initializing real database (PostgreSQL via Docker)..."
-
-  # Check for Docker Compose
-  if ! command -v docker >/dev/null 2>&1; then
-    echo "Error: Docker is not installed or not in PATH."
-    exit 1
-  fi
+  echo "Starting PostgreSQL container..."
 
   COMPOSE_FILE="$ROOT_DIR/portable-transfer-kit-docker/docker-compose.yml"
   if [[ ! -f "$COMPOSE_FILE" ]]; then
-    echo "Error: Docker Compose file not found at $COMPOSE_FILE"
-    exit 1
+    echo "⚠️  Docker Compose file not found: $COMPOSE_FILE"
+    echo "   Please start your PostgreSQL manually."
+    exit 0
   fi
 
-  echo "Starting database container..."
   docker compose -f "$COMPOSE_FILE" up -d db
 
-  echo "Waiting for database to be ready..."
-  # Simple wait loop
+  echo "Waiting for database..."
   for i in {1..30}; do
     if docker compose -f "$COMPOSE_FILE" exec db pg_isready -U sakumi >/dev/null 2>&1; then
-      echo "Database is ready!"
+      echo "Database ready!"
       break
     fi
     echo -n "."
     sleep 1
   done
 
-  (
-    cd "$ROOT_DIR"
-    echo "Running migrations..."
-    php artisan migrate --force --no-interaction
-    
-    if [[ $? -eq 0 ]]; then
-       echo "Database migration successful."
-       # Optional: Seed if empty? For now, just migrate.
-    else
-       echo "Migration failed! Check your connection settings."
-    fi
-  )
+  (cd "$ROOT_DIR" && php artisan migrate --force --no-interaction)
+  echo "✅ Real database ready!"
 fi
 
-# ── Handle Dummy Mode (SQLite) ──
 if [[ "$TARGET" == "dummy" ]]; then
   echo ""
-  echo "Initializing dummy database..."
-
   DUMMY_DB="$ROOT_DIR/database/sakumi_dummy.sqlite"
   if [[ ! -f "$DUMMY_DB" ]]; then
     touch "$DUMMY_DB"
-    echo "Created: $DUMMY_DB"
   fi
 
   (
     cd "$ROOT_DIR"
-
-    echo "Running migrations..."
     php artisan migrate --force --no-interaction
-    
-    echo "Running dummy seeders..."
     php artisan db:seed --class='Database\Seeders\Testing\DummyDatabaseSeeder' --force --no-interaction
   )
-
-  echo ""
-  echo "Dummy database ready."
-  echo "Tip: You can stop the real database container with: docker compose -f portable-transfer-kit-docker/docker-compose.yml stop db"
+  echo "✅ Dummy database ready!"
 fi

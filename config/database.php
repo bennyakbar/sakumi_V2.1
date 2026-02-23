@@ -4,6 +4,8 @@ use Illuminate\Support\Str;
 
 return [
 
+    'sakumi_mode' => env('DB_SAKUMI_MODE'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Database Connection Name
