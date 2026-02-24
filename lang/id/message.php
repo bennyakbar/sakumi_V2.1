@@ -81,6 +81,14 @@ return [
     'category_restored'            => 'Kategori Siswa berhasil dipulihkan.',
     'category_has_students'        => 'Tidak dapat menghapus kategori karena masih memiliki siswa.',
 
+    // Manajemen User
+    'user_created'                 => 'User berhasil dibuat.',
+    'user_updated'                 => 'User berhasil diperbarui.',
+    'user_deleted'                 => 'User berhasil dinonaktifkan.',
+    'user_password_reset'          => 'Password sementara berhasil dibuat.',
+    'users_bulk_updated'           => ':count user berhasil diperbarui.',
+    'cannot_deactivate_self'       => 'Anda tidak dapat menonaktifkan akun sendiri.',
+
     // Middleware / Auth
     'no_unit_assigned'             => 'Akun Anda belum ditetapkan ke unit manapun. Hubungi administrator.',
     'unit_inactive'                => 'Unit tidak aktif.',

@@ -137,6 +137,7 @@ return [
         'log_out'        => 'Keluar',
         'master_data'    => 'Data Master',
         'reports'        => 'Laporan',
+        'users'          => 'User',
         'language'       => 'Bahasa',
     ],
 
@@ -150,6 +151,7 @@ return [
         'fee_types'     => 'Tidak ada jenis biaya ditemukan.',
         'fee_matrices'  => 'Tidak ada matriks biaya ditemukan.',
         'categories'    => 'Tidak ada kategori ditemukan.',
+        'users'         => 'Tidak ada user ditemukan.',
         'entries_date'  => 'Tidak ada entri untuk tanggal ini.',
         'entries'       => 'Tidak ada entri ditemukan.',
         'transactions_short' => 'Tidak ada transaksi.',

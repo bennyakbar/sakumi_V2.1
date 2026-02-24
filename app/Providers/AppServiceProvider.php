@@ -49,6 +49,14 @@ class AppServiceProvider extends ServiceProvider
             $key = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
             return Limit::perMinute(60)->by($key);
         });
+
+        RateLimiter::for('password-reset-link', function ($request) {
+            return Limit::perMinute(5)->by('password-reset-link|'.$request->ip());
+        });
+
+        RateLimiter::for('password-reset', function ($request) {
+            return Limit::perMinute(5)->by('password-reset|'.$request->ip());
+        });
     }
 
     /**

@@ -81,6 +81,14 @@ return [
     'category_restored'            => 'Student Category restored successfully.',
     'category_has_students'        => 'Cannot delete category because it has associated students.',
 
+    // User Management
+    'user_created'                 => 'User created successfully.',
+    'user_updated'                 => 'User updated successfully.',
+    'user_deleted'                 => 'User deactivated successfully.',
+    'user_password_reset'          => 'Temporary password generated successfully.',
+    'users_bulk_updated'           => ':count user(s) updated successfully.',
+    'cannot_deactivate_self'       => 'You cannot deactivate your own account.',
+
     // Middleware / Auth
     'no_unit_assigned'             => 'Your account has not been assigned to any unit. Contact administrator.',
     'unit_inactive'                => 'Unit is not active.',

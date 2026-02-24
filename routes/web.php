@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\FeeMatrixController;
 use App\Http\Controllers\Master\FeeTypeController;
 use App\Http\Controllers\Master\StudentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserManagement\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public liveness probe
@@ -172,6 +173,39 @@ Route::middleware('auth')->group(function () {
                 ->middleware('can:master.fee-matrix.delete')
                 ->name('fee-matrix.restore');
         });
+    });
+
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])
+            ->middleware('can:users.view')
+            ->name('index');
+        Route::get('/create', [UserController::class, 'create'])
+            ->middleware('can:users.create')
+            ->name('create');
+        Route::post('/', [UserController::class, 'store'])
+            ->middleware('can:users.create')
+            ->name('store');
+        Route::get('/export', [UserController::class, 'export'])
+            ->middleware('can:users.view')
+            ->name('export');
+        Route::post('/bulk-status', [UserController::class, 'bulkUpdateStatus'])
+            ->middleware('can:users.edit')
+            ->name('bulk-status');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])
+            ->middleware('can:users.edit')
+            ->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])
+            ->middleware('can:users.edit')
+            ->name('update');
+        Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->middleware('can:users.edit')
+            ->name('reset-password');
+        Route::get('/{user}', [UserController::class, 'show'])
+            ->middleware('can:users.view')
+            ->name('show');
+        Route::delete('/{user}', [UserController::class, 'destroy'])
+            ->middleware('can:users.delete')
+            ->name('destroy');
     });
 
     // Transactions

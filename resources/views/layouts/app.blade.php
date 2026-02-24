@@ -29,6 +29,40 @@
 
             <!-- Page Content -->
             <main>
+                @if (session('success') || session('status') || $errors->any() || session('temporary_password'))
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
+                        @if (session('success'))
+                            <div class="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                        @if (session('status'))
+                            <div class="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if (session('temporary_password'))
+                            <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
+                                <p class="font-semibold">Temporary Password</p>
+                                <p class="mt-1 font-mono">{{ session('temporary_password') }}</p>
+                                <p class="mt-1 text-xs">Share securely and require immediate password change.</p>
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+                                <ul class="list-disc ms-5">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 {{ $slot }}
             </main>
         </div>

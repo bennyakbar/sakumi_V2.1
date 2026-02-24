@@ -129,6 +129,12 @@
                             </x-dropdown>
                         </div>
                     @endif
+
+                    @can('users.view')
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                            {{ __('app.nav.users') }}
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -326,6 +332,12 @@
                     </x-responsive-nav-link>
                 @endcan
             @endif
+
+            @can('users.view')
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    {{ __('app.nav.users') }}
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         {{-- Responsive Language Toggle --}}

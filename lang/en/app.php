@@ -137,6 +137,7 @@ return [
         'log_out'        => 'Log Out',
         'master_data'    => 'Master Data',
         'reports'        => 'Reports',
+        'users'          => 'Users',
         'language'       => 'Language',
     ],
 
@@ -150,6 +151,7 @@ return [
         'fee_types'     => 'No fee types found.',
         'fee_matrices'  => 'No fee matrices found.',
         'categories'    => 'No categories found.',
+        'users'         => 'No users found.',
         'entries_date'  => 'No entries found for this date.',
         'entries'       => 'No entries found.',
         'transactions_short' => 'No transactions.',
