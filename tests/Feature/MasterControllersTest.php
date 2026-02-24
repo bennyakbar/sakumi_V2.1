@@ -59,6 +59,10 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.classes.destroy', $class))
             ->assertRedirect(route('master.classes.index'));
+
+        $this->get(route('master.classes.index'))
+            ->assertOk()
+            ->assertSee(__('app.button.restore'));
     }
 
     public function test_category_crud(): void
@@ -79,6 +83,10 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.categories.destroy', $category))
             ->assertRedirect(route('master.categories.index'));
+
+        $this->get(route('master.categories.index'))
+            ->assertOk()
+            ->assertSee(__('app.button.restore'));
     }
 
     public function test_fee_type_and_fee_matrix_crud(): void
@@ -125,6 +133,10 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.fee-matrix.destroy', $feeMatrix))
             ->assertRedirect(route('master.fee-matrix.index'));
+
+        $this->get(route('master.fee-matrix.index'))
+            ->assertOk()
+            ->assertSee(__('app.button.restore'));
     }
 
     public function test_student_crud_and_show_page(): void
@@ -169,5 +181,62 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.students.destroy', $student))
             ->assertRedirect(route('master.students.index'));
+    }
+
+    public function test_master_soft_deleted_records_can_be_restored(): void
+    {
+        $class = SchoolClass::query()->create([
+            'name' => '4A',
+            'level' => 4,
+            'academic_year' => '2025/2026',
+            'is_active' => true,
+        ]);
+        $category = StudentCategory::query()->create([
+            'code' => 'RST',
+            'name' => 'Restore Category',
+            'discount_percentage' => 0,
+        ]);
+        $feeType = FeeType::query()->create([
+            'code' => 'RST-FT',
+            'name' => 'Restore Fee Type',
+            'is_monthly' => true,
+            'is_active' => true,
+        ]);
+        $feeMatrix = FeeMatrix::query()->create([
+            'fee_type_id' => $feeType->id,
+            'class_id' => $class->id,
+            'category_id' => $category->id,
+            'amount' => 125000,
+            'effective_from' => '2025-01-01',
+            'is_active' => true,
+        ]);
+
+        $this->delete(route('master.fee-matrix.destroy', $feeMatrix))
+            ->assertRedirect(route('master.fee-matrix.index'));
+        $this->delete(route('master.fee-types.destroy', $feeType))
+            ->assertRedirect(route('master.fee-types.index'));
+        $this->delete(route('master.categories.destroy', $category))
+            ->assertRedirect(route('master.categories.index'));
+        $this->delete(route('master.classes.destroy', $class))
+            ->assertRedirect(route('master.classes.index'));
+
+        $this->assertSoftDeleted('fee_matrix', ['id' => $feeMatrix->id]);
+        $this->assertSoftDeleted('fee_types', ['id' => $feeType->id]);
+        $this->assertSoftDeleted('student_categories', ['id' => $category->id]);
+        $this->assertSoftDeleted('classes', ['id' => $class->id]);
+
+        $this->post(route('master.classes.restore', $class->id))
+            ->assertRedirect(route('master.classes.index'));
+        $this->post(route('master.categories.restore', $category->id))
+            ->assertRedirect(route('master.categories.index'));
+        $this->post(route('master.fee-types.restore', $feeType->id))
+            ->assertRedirect(route('master.fee-types.index'));
+        $this->post(route('master.fee-matrix.restore', $feeMatrix->id))
+            ->assertRedirect(route('master.fee-matrix.index'));
+
+        $this->assertDatabaseHas('classes', ['id' => $class->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('student_categories', ['id' => $category->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('fee_types', ['id' => $feeType->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('fee_matrix', ['id' => $feeMatrix->id, 'deleted_at' => null]);
     }
 }

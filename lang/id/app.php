@@ -30,6 +30,7 @@ return [
         'create'         => 'Buat',
         'view'           => 'Lihat',
         'remove'         => 'Hapus',
+        'restore'        => 'Pulihkan',
         'pay'            => 'Bayar',
         'pay_now'        => 'Bayar Sekarang',
         'view_all'       => 'Lihat Semua',

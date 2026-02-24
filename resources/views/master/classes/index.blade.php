@@ -47,7 +47,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($classes as $class)
-                                    <tr>
+                                    <tr class="{{ $class->trashed() ? 'bg-gray-50' : '' }}">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ $class->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $class->level }}
@@ -57,7 +57,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $class->students_count }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if($class->is_active)
+                                            @if($class->trashed())
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700">Deleted</span>
+                                            @elseif($class->is_active)
                                                 <span
                                                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ __('app.status.active') }}</span>
                                             @else
@@ -66,19 +69,30 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            @can('master.classes.edit')
-                                                <a href="{{ route('master.classes.edit', $class) }}"
-                                                    class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
-                                            @endcan
-                                            @can('master.classes.delete')
-                                                <form action="{{ route('master.classes.destroy', $class) }}" method="POST"
-                                                    class="inline-block" onsubmit="return confirm('Are you sure?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
-                                                </form>
-                                            @endcan
+                                            @if($class->trashed())
+                                                @can('master.classes.delete')
+                                                    <form action="{{ route('master.classes.restore', $class->id) }}" method="POST"
+                                                        class="inline-block" onsubmit="return confirm('Restore this class?');">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="text-emerald-600 hover:text-emerald-900">{{ __('app.button.restore') }}</button>
+                                                    </form>
+                                                @endcan
+                                            @else
+                                                @can('master.classes.edit')
+                                                    <a href="{{ route('master.classes.edit', $class) }}"
+                                                        class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
+                                                @endcan
+                                                @can('master.classes.delete')
+                                                    <form action="{{ route('master.classes.destroy', $class) }}" method="POST"
+                                                        class="inline-block" onsubmit="return confirm('Are you sure?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
+                                                    </form>
+                                                @endcan
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

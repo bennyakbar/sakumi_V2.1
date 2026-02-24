@@ -16,7 +16,7 @@ class FeeTypeController extends Controller
      */
     public function index(): View
     {
-        $feeTypes = FeeType::latest()->paginate(15);
+        $feeTypes = FeeType::withTrashed()->latest()->paginate(15);
 
         return view('master.fee-types.index', compact('feeTypes'));
     }
@@ -88,5 +88,14 @@ class FeeTypeController extends Controller
 
         return redirect()->route('master.fee-types.index')
             ->with('success', __('message.fee_type_deleted'));
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $feeType = FeeType::withTrashed()->findOrFail($id);
+        $feeType->restore();
+
+        return redirect()->route('master.fee-types.index')
+            ->with('success', __('message.fee_type_restored'));
     }
 }

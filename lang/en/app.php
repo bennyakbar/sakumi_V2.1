@@ -30,6 +30,7 @@ return [
         'create'         => 'Create',
         'view'           => 'View',
         'remove'         => 'Remove',
+        'restore'        => 'Restore',
         'pay'            => 'Pay',
         'pay_now'        => 'Pay Now',
         'view_all'       => 'View All',

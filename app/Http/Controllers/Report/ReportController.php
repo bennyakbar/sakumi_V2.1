@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use App\Models\SchoolClass;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Excel as ExcelWriter;
 use Maatwebsite\Excel\Facades\Excel;
@@ -377,6 +378,12 @@ class ReportController extends Controller
 
     private function buildArrearsQuery(bool $consolidated, mixed $classId, Carbon $asOfDate)
     {
+        $settledByInvoice = DB::table('settlement_allocations as sa')
+            ->join('settlements as s', 's.id', '=', 'sa.settlement_id')
+            ->where('s.status', 'completed')
+            ->selectRaw('sa.invoice_id, SUM(sa.amount) as settled_amount')
+            ->groupBy('sa.invoice_id');
+
         $query = Invoice::query();
 
         if ($consolidated) {
@@ -389,18 +396,15 @@ class ReportController extends Controller
             $query->with(['student.schoolClass']);
         }
 
-        $query->withSum(['allocations as settled_amount' => function ($q) {
-            $q->whereHas('settlement', fn ($sq) => $sq->where('status', 'completed'));
-        }], 'amount')
-            ->whereDate('due_date', '<', $asOfDate->toDateString())
-            ->whereRaw(
-                "(invoices.total_amount - COALESCE((SELECT SUM(sa.amount) FROM settlement_allocations sa INNER JOIN settlements s ON s.id = sa.settlement_id WHERE sa.invoice_id = invoices.id AND s.status = 'completed'), 0)) > 0"
-            )
+        $query->leftJoinSub($settledByInvoice, 'paid', function ($join) {
+            $join->on('paid.invoice_id', '=', 'invoices.id');
+        })
+            ->whereDate('invoices.due_date', '<', $asOfDate->toDateString())
+            ->whereRaw('invoices.total_amount > COALESCE(paid.settled_amount, 0)')
             ->select('invoices.*')
-            ->selectRaw(
-                "(invoices.total_amount - COALESCE((SELECT SUM(sa.amount) FROM settlement_allocations sa INNER JOIN settlements s ON s.id = sa.settlement_id WHERE sa.invoice_id = invoices.id AND s.status = 'completed'), 0)) as outstanding_amount"
-            )
-            ->orderBy('due_date');
+            ->selectRaw('COALESCE(paid.settled_amount, 0) as settled_amount')
+            ->selectRaw('(invoices.total_amount - COALESCE(paid.settled_amount, 0)) as outstanding_amount')
+            ->orderBy('invoices.due_date');
 
         if ($classId) {
             $query->whereHas('student', function ($q) use ($classId, $consolidated) {

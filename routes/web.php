@@ -37,7 +37,7 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
 })->name('locale.switch');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'can:dashboard.view'])->name('dashboard');
+    ->middleware(['auth', 'verified', 'can:dashboard.view', 'throttle:dashboard-read'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::post('/unit/switch', \App\Http\Controllers\UnitSwitchController::class)->name('unit.switch');
@@ -100,6 +100,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('classes/{class}', [ClassController::class, 'destroy'])
                 ->middleware('can:master.classes.delete')
                 ->name('classes.destroy');
+            Route::post('classes/{id}/restore', [ClassController::class, 'restore'])
+                ->middleware('can:master.classes.delete')
+                ->name('classes.restore');
 
             Route::get('categories', [CategoryController::class, 'index'])
                 ->middleware('can:master.categories.view')
@@ -119,6 +122,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('categories/{category}', [CategoryController::class, 'destroy'])
                 ->middleware('can:master.categories.delete')
                 ->name('categories.destroy');
+            Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])
+                ->middleware('can:master.categories.delete')
+                ->name('categories.restore');
         });
 
         Route::middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara')->group(function () {
@@ -140,6 +146,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('fee-types/{fee_type}', [FeeTypeController::class, 'destroy'])
                 ->middleware('can:master.fee-types.delete')
                 ->name('fee-types.destroy');
+            Route::post('fee-types/{id}/restore', [FeeTypeController::class, 'restore'])
+                ->middleware('can:master.fee-types.delete')
+                ->name('fee-types.restore');
 
             Route::get('fee-matrix', [FeeMatrixController::class, 'index'])
                 ->middleware('can:master.fee-matrix.view')
@@ -159,6 +168,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('fee-matrix/{fee_matrix}', [FeeMatrixController::class, 'destroy'])
                 ->middleware('can:master.fee-matrix.delete')
                 ->name('fee-matrix.destroy');
+            Route::post('fee-matrix/{id}/restore', [FeeMatrixController::class, 'restore'])
+                ->middleware('can:master.fee-matrix.delete')
+                ->name('fee-matrix.restore');
         });
     });
 
@@ -238,16 +250,16 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::prefix('reports')->name('reports.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
         Route::get('/daily', [\App\Http\Controllers\Report\ReportController::class, 'daily'])
-            ->middleware('can:reports.daily')
+            ->middleware(['can:reports.daily', 'throttle:reports-read'])
             ->name('daily');
         Route::get('/monthly', [\App\Http\Controllers\Report\ReportController::class, 'monthly'])
-            ->middleware('can:reports.monthly')
+            ->middleware(['can:reports.monthly', 'throttle:reports-read'])
             ->name('monthly');
         Route::get('/arrears', [\App\Http\Controllers\Report\ReportController::class, 'arrears'])
-            ->middleware('can:reports.arrears')
+            ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears');
         Route::get('/arrears/export', [\App\Http\Controllers\Report\ReportController::class, 'arrearsExport'])
-            ->middleware('can:reports.arrears')
+            ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears.export');
     });
 });

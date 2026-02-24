@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Settlement;
 use App\Models\Transaction;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ReportService
@@ -90,39 +91,77 @@ class ReportService
 
     public function getChartData(int $months = 6, bool $consolidated = false): array
     {
-        $labels = [];
-        $incomeData = [];
-        $expenseData = [];
+        $now = now();
+        $scopeCacheKey = $consolidated
+            ? 'all'
+            : 'unit-' . (string) session('current_unit_id', 'none');
+        $cacheBucket = intdiv((int) $now->format('i'), 10);
+        $cacheVersion = (int) Cache::get('cache-version:chart-data', 1);
 
-        for ($i = $months - 1; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $labels[] = $date->translatedFormat('M Y');
+        return Cache::remember(
+            "chart-data:v{$cacheVersion}:{$scopeCacheKey}:{$months}:{$now->format('Y-m-d-H')}:{$cacheBucket}",
+            now()->addMinutes(10),
+            function () use ($months, $consolidated, $now): array {
+                $start = $now->copy()->startOfMonth()->subMonths($months - 1);
+                $end = $now->copy()->endOfMonth();
 
-            $incomeQuery = Transaction::where('status', 'completed')
-                ->where('type', 'income')
-                ->whereNull('student_id')
-                ->whereMonth('transaction_date', $date->month)
-                ->whereYear('transaction_date', $date->year);
+                $transactionBuilder = Transaction::query();
+                $settlementBuilder = Settlement::query();
+                if ($consolidated) {
+                    $transactionBuilder->withoutGlobalScope('unit');
+                    $settlementBuilder->withoutGlobalScope('unit');
+                }
 
-            $expenseQuery = Transaction::where('status', 'completed')
-                ->where('type', 'expense')
-                ->whereMonth('transaction_date', $date->month)
-                ->whereYear('transaction_date', $date->year);
+                $transactionQuery = $transactionBuilder
+                    ->where('status', 'completed')
+                    ->whereBetween('transaction_date', [$start->toDateString(), $end->toDateString()])
+                    ->where(function ($query) {
+                        $query->where('type', 'expense')
+                            ->orWhere(function ($incomeQuery) {
+                                $incomeQuery->where('type', 'income')
+                                    ->whereNull('student_id');
+                            });
+                    })
+                    ->get(['transaction_date', 'type', 'total_amount']);
 
-            $settlementIncomeQuery = Settlement::where('status', 'completed')
-                ->whereMonth('payment_date', $date->month)
-                ->whereYear('payment_date', $date->year);
+                $settlementQuery = $settlementBuilder
+                    ->where('status', 'completed')
+                    ->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])
+                    ->get(['payment_date', 'allocated_amount']);
 
-            if ($consolidated) {
-                $incomeQuery->withoutGlobalScope('unit');
-                $expenseQuery->withoutGlobalScope('unit');
-                $settlementIncomeQuery->withoutGlobalScope('unit');
+                $incomeByMonth = [];
+                $expenseByMonth = [];
+
+                foreach ($transactionQuery as $transaction) {
+                    $monthKey = Carbon::parse($transaction->transaction_date)->format('Y-m');
+                    if ($transaction->type === 'expense') {
+                        $expenseByMonth[$monthKey] = ($expenseByMonth[$monthKey] ?? 0) + (float) $transaction->total_amount;
+                        continue;
+                    }
+
+                    $incomeByMonth[$monthKey] = ($incomeByMonth[$monthKey] ?? 0) + (float) $transaction->total_amount;
+                }
+
+                foreach ($settlementQuery as $settlement) {
+                    $monthKey = Carbon::parse($settlement->payment_date)->format('Y-m');
+                    $incomeByMonth[$monthKey] = ($incomeByMonth[$monthKey] ?? 0) + (float) $settlement->allocated_amount;
+                }
+
+                $labels = [];
+                $incomeData = [];
+                $expenseData = [];
+
+                for ($i = $months - 1; $i >= 0; $i--) {
+                    $date = $now->copy()->subMonths($i);
+                    $monthKey = $date->format('Y-m');
+
+                    $labels[] = $date->translatedFormat('M Y');
+                    $incomeData[] = (float) ($incomeByMonth[$monthKey] ?? 0);
+                    $expenseData[] = (float) ($expenseByMonth[$monthKey] ?? 0);
+                }
+
+                return compact('labels', 'incomeData', 'expenseData');
             }
-
-            $incomeData[] = $incomeQuery->sum('total_amount') + $settlementIncomeQuery->sum('allocated_amount');
-            $expenseData[] = $expenseQuery->sum('total_amount');
-        }
-
-        return compact('labels', 'incomeData', 'expenseData');
+        );
     }
 }

@@ -39,4 +39,21 @@ class ApiLoginTest extends TestCase
                 'error' => 'Invalid credentials',
             ]);
     }
+
+    public function test_api_login_is_rate_limited_after_too_many_attempts(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ])->assertStatus(401);
+        }
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ])->assertStatus(429);
+    }
 }

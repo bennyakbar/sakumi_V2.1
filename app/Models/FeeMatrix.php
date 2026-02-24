@@ -6,12 +6,13 @@ use App\Models\Concerns\BelongsToUnit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class FeeMatrix extends Model
 {
-    use BelongsToUnit, HasFactory, LogsActivity;
+    use BelongsToUnit, HasFactory, LogsActivity, SoftDeletes;
 
     protected $table = 'fee_matrix';
 

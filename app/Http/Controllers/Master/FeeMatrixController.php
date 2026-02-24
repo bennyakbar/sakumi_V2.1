@@ -19,7 +19,7 @@ class FeeMatrixController extends Controller
      */
     public function index(): View
     {
-        $feeMatrices = FeeMatrix::with(['schoolClass', 'category', 'feeType'])
+        $feeMatrices = FeeMatrix::withTrashed()->with(['schoolClass', 'category', 'feeType'])
             ->latest()
             ->paginate(15);
 
@@ -114,5 +114,14 @@ class FeeMatrixController extends Controller
 
         return redirect()->route('master.fee-matrix.index')
             ->with('success', __('message.fee_matrix_deleted'));
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $feeMatrix = FeeMatrix::withTrashed()->findOrFail($id);
+        $feeMatrix->restore();
+
+        return redirect()->route('master.fee-matrix.index')
+            ->with('success', __('message.fee_matrix_restored'));
     }
 }

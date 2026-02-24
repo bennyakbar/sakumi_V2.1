@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class FeeType extends Model
 {
-    use BelongsToUnit, HasFactory, LogsActivity;
+    use BelongsToUnit, HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'unit_id',

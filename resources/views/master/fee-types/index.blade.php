@@ -44,7 +44,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($feeTypes as $feeType)
-                                    <tr>
+                                    <tr class="{{ $feeType->trashed() ? 'bg-gray-50' : '' }}">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ $feeType->code }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $feeType->name }}
@@ -61,19 +61,32 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ Str::limit($feeType->description, 50) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            @can('master.fee-types.edit')
-                                                <a href="{{ route('master.fee-types.edit', $feeType) }}"
-                                                    class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
-                                            @endcan
-                                            @can('master.fee-types.delete')
-                                                <form action="{{ route('master.fee-types.destroy', $feeType) }}" method="POST"
-                                                    class="inline-block" onsubmit="return confirm('Are you sure?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
-                                                </form>
-                                            @endcan
+                                            @if($feeType->trashed())
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700 mr-3">Deleted</span>
+                                                @can('master.fee-types.delete')
+                                                    <form action="{{ route('master.fee-types.restore', $feeType->id) }}" method="POST"
+                                                        class="inline-block" onsubmit="return confirm('Restore this fee type?');">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="text-emerald-600 hover:text-emerald-900">{{ __('app.button.restore') }}</button>
+                                                    </form>
+                                                @endcan
+                                            @else
+                                                @can('master.fee-types.edit')
+                                                    <a href="{{ route('master.fee-types.edit', $feeType) }}"
+                                                        class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
+                                                @endcan
+                                                @can('master.fee-types.delete')
+                                                    <form action="{{ route('master.fee-types.destroy', $feeType) }}" method="POST"
+                                                        class="inline-block" onsubmit="return confirm('Are you sure?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
+                                                    </form>
+                                                @endcan
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

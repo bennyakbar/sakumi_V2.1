@@ -16,7 +16,7 @@ class ClassController extends Controller
      */
     public function index(): View
     {
-        $classes = SchoolClass::withCount('students')->latest()->paginate(15);
+        $classes = SchoolClass::withTrashed()->withCount('students')->latest()->paginate(15);
 
         return view('master.classes.index', compact('classes'));
     }
@@ -86,5 +86,14 @@ class ClassController extends Controller
 
         return redirect()->route('master.classes.index')
             ->with('success', __('message.class_deleted'));
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $class = SchoolClass::withTrashed()->findOrFail($id);
+        $class->restore();
+
+        return redirect()->route('master.classes.index')
+            ->with('success', __('message.class_restored'));
     }
 }

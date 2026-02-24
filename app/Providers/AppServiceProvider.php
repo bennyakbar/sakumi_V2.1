@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use App\Events\TransactionCreated;
+use App\Events\ObligationGenerated;
+use App\Listeners\BumpDashboardCacheVersion;
 use App\Listeners\SendPaymentNotification;
 use App\Listeners\UpdateInvoiceStatus;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
 
@@ -19,10 +23,32 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerRateLimiters();
+
         Event::listen(TransactionCreated::class, SendPaymentNotification::class);
         Event::listen(TransactionCreated::class, UpdateInvoiceStatus::class);
+        Event::listen(TransactionCreated::class, BumpDashboardCacheVersion::class);
+        Event::listen(ObligationGenerated::class, BumpDashboardCacheVersion::class);
 
         $this->registerWriteProtection();
+    }
+
+    private function registerRateLimiters(): void
+    {
+        RateLimiter::for('api-login', function ($request) {
+            $email = strtolower((string) $request->input('email', 'guest'));
+            return Limit::perMinute(10)->by($email.'|'.$request->ip());
+        });
+
+        RateLimiter::for('dashboard-read', function ($request) {
+            $key = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
+            return Limit::perMinute(120)->by($key);
+        });
+
+        RateLimiter::for('reports-read', function ($request) {
+            $key = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
+            return Limit::perMinute(60)->by($key);
+        });
     }
 
     /**

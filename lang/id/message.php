@@ -51,12 +51,14 @@ return [
     'fee_type_created'             => 'Jenis Biaya berhasil dibuat.',
     'fee_type_updated'             => 'Jenis Biaya berhasil diperbarui.',
     'fee_type_deleted'             => 'Jenis Biaya berhasil dihapus.',
+    'fee_type_restored'            => 'Jenis Biaya berhasil dipulihkan.',
     'fee_type_in_use'              => 'Tidak dapat menghapus jenis biaya karena digunakan dalam matriks biaya.',
 
     // Master: Matriks Biaya
     'fee_matrix_created'           => 'Matriks Biaya berhasil dibuat.',
     'fee_matrix_updated'           => 'Matriks Biaya berhasil diperbarui.',
     'fee_matrix_deleted'           => 'Matriks Biaya berhasil dihapus.',
+    'fee_matrix_restored'          => 'Matriks Biaya berhasil dipulihkan.',
     'fee_matrix_exists'            => 'Matriks Biaya untuk kombinasi ini sudah ada.',
 
     // Master: Siswa
@@ -69,12 +71,14 @@ return [
     'class_created'                => 'Kelas berhasil dibuat.',
     'class_updated'                => 'Kelas berhasil diperbarui.',
     'class_deleted'                => 'Kelas berhasil dihapus.',
+    'class_restored'               => 'Kelas berhasil dipulihkan.',
     'class_has_students'           => 'Tidak dapat menghapus kelas yang masih memiliki siswa.',
 
     // Master: Kategori
     'category_created'             => 'Kategori Siswa berhasil dibuat.',
     'category_updated'             => 'Kategori Siswa berhasil diperbarui.',
     'category_deleted'             => 'Kategori Siswa berhasil dihapus.',
+    'category_restored'            => 'Kategori Siswa berhasil dipulihkan.',
     'category_has_students'        => 'Tidak dapat menghapus kategori karena masih memiliki siswa.',
 
     // Middleware / Auth
