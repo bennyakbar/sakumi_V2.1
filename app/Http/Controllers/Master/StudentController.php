@@ -9,11 +9,16 @@ use App\Http\Requests\Master\StoreStudentRequest;
 use App\Http\Requests\Master\UpdateStudentRequest;
 use App\Imports\StudentImport;
 use App\Models\SchoolClass;
+use App\Models\FeeMatrix;
 use App\Models\Student;
 use App\Models\StudentCategory;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
+use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -108,9 +113,21 @@ class StudentController extends Controller
 
     public function show(Student $student): View
     {
-        $student->load(['schoolClass:id,name', 'category:id,name']);
+        $student->load([
+            'schoolClass:id,name',
+            'category:id,name',
+            'feeMappings.feeMatrix.feeType',
+            'feeMappings.feeMatrix.schoolClass',
+            'feeMappings.feeMatrix.category',
+        ]);
+        $feeMatrices = FeeMatrix::query()
+            ->with(['feeType', 'schoolClass', 'category'])
+            ->where('is_active', true)
+            ->orderByDesc('effective_from')
+            ->limit(200)
+            ->get();
 
-        return view('master.students.show', compact('student'));
+        return view('master.students.show', compact('student', 'feeMatrices'));
     }
 
     public function edit(Student $student): View
@@ -129,8 +146,42 @@ class StudentController extends Controller
             ->with('success', __('message.student_updated'));
     }
 
-    public function destroy(Student $student): RedirectResponse
+    public function destroy(Request $request, Student $student): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_STUDENT, (int) $student->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_STUDENT, $student, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_STUDENT, $student, [], 'attempt');
+                $student->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_STUDENT, $student, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
+
+            return redirect()->route('master.students.index')
+                ->with('success', __('message.student_permanently_deleted'));
+        }
+
         $student->delete();
 
         return redirect()->route('master.students.index')

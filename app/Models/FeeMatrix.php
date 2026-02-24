@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToUnit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -56,5 +57,10 @@ class FeeMatrix extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(StudentCategory::class, 'category_id');
+    }
+
+    public function studentFeeMappings(): HasMany
+    {
+        return $this->hasMany(StudentFeeMapping::class);
     }
 }

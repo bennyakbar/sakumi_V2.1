@@ -16,6 +16,10 @@ return [
     'transaction_already_cancelled' => 'Transaction is already cancelled.',
     'invalid_transaction_type'     => 'Invalid transaction type.',
     'expense_not_authorized'       => 'You are not authorized to create expense transactions.',
+    'transaction_redirect_to_settlement' => 'This student has an active invoice (:invoice). Please use Settlement so invoice status is updated correctly.',
+    'student_has_unpaid_obligations_use_invoice' => 'This student still has unpaid obligations. Create/use an invoice and process payment through Settlement.',
+    'student_required_for_monthly_fee' => 'Transactions containing monthly fee items must select a student to avoid bypassing invoice-settlement flow.',
+    'monthly_fee_must_use_invoice' => 'Monthly fee items must be processed through Invoice/Settlement flow, not walk-in transactions.',
     'cancelled_by_admin'           => 'Cancelled by administrator',
 
     // Settlement
@@ -46,6 +50,18 @@ return [
     'obligations_already_invoiced' => 'Some obligations are already paid or already invoiced.',
     'cannot_cancel_paid_invoice'   => 'Cannot cancel a fully paid invoice.',
     'cannot_cancel_invoice_payments' => 'Cannot cancel an invoice with existing payments. Cancel the settlements first.',
+    'invoice_void_requires_single_allocation_settlement' => 'This invoice is linked to settlement :number with multiple allocations. Automatic per-invoice void is not supported; adjust the settlement manually.',
+    'settings_updated'            => 'Settings updated successfully.',
+    'academic_year_must_be_consecutive' => 'Academic year must be consecutive, for example: 2025/2026.',
+    'permanent_delete_not_allowed' => 'Permanent delete is allowed only for superadmin and must be enabled in Settings.',
+    'permanent_delete_confirmation_invalid' => 'Permanent delete confirmation is invalid. Type exactly: HAPUS PERMANEN.',
+    'permanent_delete_blocked_dependencies' => 'Permanent delete is blocked because this data is already used: :details.',
+    'user_permanently_deleted' => 'User permanently deleted.',
+    'student_permanently_deleted' => 'Student permanently deleted.',
+    'class_permanently_deleted' => 'Class permanently deleted.',
+    'category_permanently_deleted' => 'Category permanently deleted.',
+    'fee_type_permanently_deleted' => 'Fee type permanently deleted.',
+    'fee_matrix_permanently_deleted' => 'Fee matrix permanently deleted.',
 
     // Master: Fee Type
     'fee_type_created'             => 'Fee Type created successfully.',
@@ -64,6 +80,10 @@ return [
     'student_updated'              => 'Student updated successfully.',
     'student_deleted'              => 'Student deleted successfully.',
     'student_import_success'       => 'Student import finished successfully.',
+    'student_fee_mapping_created'  => 'Student fee mapping created successfully.',
+    'student_fee_mapping_updated'  => 'Student fee mapping updated successfully.',
+    'student_fee_mapping_deactivated' => 'Student fee mapping deactivated successfully.',
+    'student_fee_mapping_overlap'  => 'The selected period overlaps with another active mapping for the same fee type.',
 
     // Master: Class
     'class_created'                => 'Class created successfully.',

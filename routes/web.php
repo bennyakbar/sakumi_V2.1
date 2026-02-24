@@ -2,12 +2,17 @@
 
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\PermanentDeleteController;
 use App\Http\Controllers\Master\CategoryController;
 use App\Http\Controllers\Master\ClassController;
 use App\Http\Controllers\Master\FeeMatrixController;
 use App\Http\Controllers\Master\FeeTypeController;
 use App\Http\Controllers\Master\StudentController;
+use App\Http\Controllers\Master\StudentFeeMappingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Expense\ExpenseController;
+use App\Http\Controllers\Reconciliation\BankReconciliationController;
 use App\Http\Controllers\UserManagement\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +87,15 @@ Route::middleware('auth')->group(function () {
             Route::delete('students/{student}', [StudentController::class, 'destroy'])
                 ->middleware('can:master.students.delete')
                 ->name('students.destroy');
+            Route::post('students/{student}/fee-mappings', [StudentFeeMappingController::class, 'store'])
+                ->middleware('can:master.student-fee-mappings.create')
+                ->name('students.fee-mappings.store');
+            Route::put('students/{student}/fee-mappings/{studentFeeMapping}', [StudentFeeMappingController::class, 'update'])
+                ->middleware('can:master.student-fee-mappings.edit')
+                ->name('students.fee-mappings.update');
+            Route::delete('students/{student}/fee-mappings/{studentFeeMapping}', [StudentFeeMappingController::class, 'destroy'])
+                ->middleware('can:master.student-fee-mappings.delete')
+                ->name('students.fee-mappings.destroy');
 
             Route::get('classes', [ClassController::class, 'index'])
                 ->middleware('can:master.classes.view')
@@ -196,6 +210,18 @@ Route::middleware('auth')->group(function () {
             ->name('destroy');
     });
 
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingsController::class, 'edit'])
+            ->middleware('can:settings.view')
+            ->name('edit');
+        Route::put('/', [SettingsController::class, 'update'])
+            ->middleware('can:settings.edit')
+            ->name('update');
+        Route::post('/permanent-delete/preview', [PermanentDeleteController::class, 'preview'])
+            ->middleware('role:super_admin')
+            ->name('permanent-delete.preview');
+    });
+
     // Transactions
     Route::middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor,cashier,admin_tu')->group(function () {
         Route::get('transactions', [\App\Http\Controllers\Transaction\TransactionController::class, 'index'])
@@ -274,15 +300,89 @@ Route::middleware('auth')->group(function () {
         Route::get('/daily', [\App\Http\Controllers\Report\ReportController::class, 'daily'])
             ->middleware(['can:reports.daily', 'throttle:reports-read'])
             ->name('daily');
+        Route::get('/daily/export', [\App\Http\Controllers\Report\ReportController::class, 'dailyExport'])
+            ->middleware(['can:reports.daily', 'throttle:reports-read'])
+            ->name('daily.export');
         Route::get('/monthly', [\App\Http\Controllers\Report\ReportController::class, 'monthly'])
             ->middleware(['can:reports.monthly', 'throttle:reports-read'])
             ->name('monthly');
+        Route::get('/monthly/export', [\App\Http\Controllers\Report\ReportController::class, 'monthlyExport'])
+            ->middleware(['can:reports.monthly', 'throttle:reports-read'])
+            ->name('monthly.export');
         Route::get('/arrears', [\App\Http\Controllers\Report\ReportController::class, 'arrears'])
             ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears');
         Route::get('/arrears/export', [\App\Http\Controllers\Report\ReportController::class, 'arrearsExport'])
             ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears.export');
+        Route::get('/ar-outstanding', [\App\Http\Controllers\Report\ReportController::class, 'arOutstanding'])
+            ->middleware(['can:reports.ar-outstanding', 'throttle:reports-read'])
+            ->name('ar-outstanding');
+        Route::get('/ar-outstanding/export', [\App\Http\Controllers\Report\ReportController::class, 'arOutstandingExport'])
+            ->middleware(['can:reports.ar-outstanding', 'throttle:reports-read'])
+            ->name('ar-outstanding.export');
+        Route::get('/collection', [\App\Http\Controllers\Report\ReportController::class, 'collection'])
+            ->middleware(['can:reports.collection', 'throttle:reports-read'])
+            ->name('collection');
+        Route::get('/collection/export', [\App\Http\Controllers\Report\ReportController::class, 'collectionExport'])
+            ->middleware(['can:reports.collection', 'throttle:reports-read'])
+            ->name('collection.export');
+        Route::get('/student-statement', [\App\Http\Controllers\Report\ReportController::class, 'studentStatement'])
+            ->middleware(['can:reports.student-statement', 'throttle:reports-read'])
+            ->name('student-statement');
+        Route::get('/student-statement/export', [\App\Http\Controllers\Report\ReportController::class, 'studentStatementExport'])
+            ->middleware(['can:reports.student-statement', 'throttle:reports-read'])
+            ->name('student-statement.export');
+        Route::get('/cash-book', [\App\Http\Controllers\Report\ReportController::class, 'cashBook'])
+            ->middleware(['can:reports.cash-book', 'throttle:reports-read'])
+            ->name('cash-book');
+        Route::get('/cash-book/export', [\App\Http\Controllers\Report\ReportController::class, 'cashBookExport'])
+            ->middleware(['can:reports.cash-book', 'throttle:reports-read'])
+            ->name('cash-book.export');
+    });
+
+    // Expense Management v2
+    Route::prefix('expenses')->name('expenses.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
+        Route::get('/', [ExpenseController::class, 'index'])
+            ->middleware('can:expenses.view')
+            ->name('index');
+        Route::post('/', [ExpenseController::class, 'store'])
+            ->middleware('can:expenses.create')
+            ->name('store');
+        Route::post('/{expense}/approve', [ExpenseController::class, 'approve'])
+            ->middleware('can:expenses.approve')
+            ->name('approve');
+        Route::get('/budget-report', [ExpenseController::class, 'budgetVsRealization'])
+            ->middleware('can:expenses.report.view')
+            ->name('budget-report');
+        Route::post('/budgets', [ExpenseController::class, 'storeBudget'])
+            ->middleware('can:expenses.budget.manage')
+            ->name('budgets.store');
+    });
+
+    // Bank Reconciliation
+    Route::prefix('bank-reconciliation')->name('bank-reconciliation.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
+        Route::get('/', [BankReconciliationController::class, 'index'])
+            ->middleware('can:bank-reconciliation.view')
+            ->name('index');
+        Route::post('/', [BankReconciliationController::class, 'storeSession'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('store');
+        Route::get('/{bankReconciliation}', [BankReconciliationController::class, 'show'])
+            ->middleware('can:bank-reconciliation.view')
+            ->name('show');
+        Route::post('/{bankReconciliation}/import', [BankReconciliationController::class, 'import'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('import');
+        Route::post('/{bankReconciliation}/lines/{line}/match', [BankReconciliationController::class, 'match'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('match');
+        Route::post('/{bankReconciliation}/lines/{line}/unmatch', [BankReconciliationController::class, 'unmatch'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('unmatch');
+        Route::post('/{bankReconciliation}/close', [BankReconciliationController::class, 'close'])
+            ->middleware('can:bank-reconciliation.close')
+            ->name('close');
     });
 });
 

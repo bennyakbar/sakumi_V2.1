@@ -71,6 +71,11 @@ class Student extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function feeMappings(): HasMany
+    {
+        return $this->hasMany(StudentFeeMapping::class);
+    }
+
     public function settlements(): HasMany
     {
         return $this->hasMany(Settlement::class);

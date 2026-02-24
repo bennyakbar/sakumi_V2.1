@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Master\StoreFeeTypeRequest;
 use App\Http\Requests\Master\UpdateFeeTypeRequest;
 use App\Models\FeeType;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FeeTypeController extends Controller
@@ -78,8 +81,42 @@ class FeeTypeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeType $feeType): RedirectResponse
+    public function destroy(Request $request, FeeType $feeType): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $dependencies = [];
+            $counts = [
+                'fee_matrix' => DB::table('fee_matrix')->where('fee_type_id', $feeType->id)->count(),
+                'transaction_items' => DB::table('transaction_items')->where('fee_type_id', $feeType->id)->count(),
+                'student_obligations' => DB::table('student_obligations')->where('fee_type_id', $feeType->id)->count(),
+                'invoice_items' => DB::table('invoice_items')->where('fee_type_id', $feeType->id)->count(),
+            ];
+            foreach ($counts as $key => $count) {
+                if ($count > 0) {
+                    $dependencies[] = "{$key}:{$count}";
+                }
+            }
+            if (!empty($dependencies)) {
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', ['details' => implode(', ', $dependencies)]),
+                ]);
+            }
+
+            $feeType->forceDelete();
+
+            return redirect()->route('master.fee-types.index')
+                ->with('success', __('message.fee_type_permanently_deleted'));
+        }
+
         if ($feeType->feeMatrix()->exists()) {
             return back()->with('error', __('message.fee_type_in_use'));
         }

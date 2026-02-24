@@ -6,6 +6,7 @@ use App\Models\AccountingEvent;
 use App\Models\Invoice;
 use App\Models\JournalEntryV2;
 use App\Models\SchoolClass;
+use App\Models\Setting;
 use App\Models\Student;
 use App\Models\StudentCategory;
 use App\Models\Unit;
@@ -129,6 +130,85 @@ class AccountingEngineV2Test extends TestCase
         ]);
     }
 
+    public function test_it_posts_direct_payment_as_cash_and_revenue(): void
+    {
+        [$unit, $user] = $this->prepareSeededUnitContext();
+
+        app(AccountingEngine::class)->post('payment.direct.posted', [
+            'unit_id' => $unit->id,
+            'source_type' => 'transaction',
+            'source_id' => 777,
+            'total_amount' => 90000,
+            'effective_date' => '2026-02-23',
+            'created_by' => $user->id,
+            'idempotency_key' => 'test.payment.direct.posted.777',
+        ]);
+
+        $event = AccountingEvent::query()
+            ->where('idempotency_key', 'test.payment.direct.posted.777')
+            ->firstOrFail();
+        $entries = JournalEntryV2::query()
+            ->where('accounting_event_id', $event->id)
+            ->orderBy('line_no')
+            ->get();
+
+        $this->assertCount(2, $entries);
+        $this->assertSame(90000.0, (float) $entries->sum('debit'));
+        $this->assertSame(90000.0, (float) $entries->sum('credit'));
+        $this->assertDatabaseHas('journal_entries_v2', [
+            'accounting_event_id' => $event->id,
+            'account_code' => '110200',
+            'debit' => 90000,
+            'credit' => 0,
+        ]);
+        $this->assertDatabaseHas('journal_entries_v2', [
+            'accounting_event_id' => $event->id,
+            'account_code' => '410100',
+            'debit' => 0,
+            'credit' => 90000,
+        ]);
+    }
+
+    public function test_it_posts_expense_as_expense_and_cash_credit(): void
+    {
+        [$unit, $user] = $this->prepareSeededUnitContext();
+
+        app(AccountingEngine::class)->post('expense.posted', [
+            'unit_id' => $unit->id,
+            'source_type' => 'transaction',
+            'source_id' => 778,
+            'total_amount' => 64000,
+            'effective_date' => '2026-02-23',
+            'created_by' => $user->id,
+            'idempotency_key' => 'test.expense.posted.778',
+        ]);
+
+        $event = AccountingEvent::query()
+            ->where('idempotency_key', 'test.expense.posted.778')
+            ->firstOrFail();
+
+        $entries = JournalEntryV2::query()
+            ->where('accounting_event_id', $event->id)
+            ->orderBy('line_no')
+            ->get();
+
+        $this->assertCount(2, $entries);
+        $this->assertSame(64000.0, (float) $entries->sum('debit'));
+        $this->assertSame(64000.0, (float) $entries->sum('credit'));
+        $this->assertDatabaseHas('journal_entries_v2', [
+            'accounting_event_id' => $event->id,
+            'account_code' => '510100',
+            'debit' => 64000,
+            'credit' => 0,
+        ]);
+        $this->assertDatabaseHas('journal_entries_v2', [
+            'accounting_event_id' => $event->id,
+            'account_code' => '110200',
+            'debit' => 0,
+            'credit' => 64000,
+        ]);
+    }
+
     public function test_it_posts_reversal_from_previous_event_and_prevents_duplicate_reversal(): void
     {
         [$unit, $user] = $this->prepareSeededUnitContext();
@@ -202,12 +282,70 @@ class AccountingEngineV2Test extends TestCase
         }
     }
 
+    public function test_it_rejects_posting_outside_active_academic_year_when_setting_present(): void
+    {
+        [$unit, $user] = $this->prepareSeededUnitContext();
+        Setting::set('academic_year_current', '2025/2026');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('outside active academic year');
+
+        app(AccountingEngine::class)->post('invoice.created', [
+            'unit_id' => $unit->id,
+            'source_type' => 'invoice',
+            'source_id' => 901,
+            'total_amount' => 200000,
+            'effective_date' => '2027-01-15',
+            'created_by' => $user->id,
+            'idempotency_key' => 'test.invoice.created.outside.ay',
+        ]);
+    }
+
+    public function test_it_rejects_posting_when_academic_year_setting_is_missing(): void
+    {
+        [$unit, $user] = $this->prepareSeededUnitContext();
+        Setting::query()->where('key', 'academic_year_current')->delete();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('academic_year_current must be configured');
+
+        app(AccountingEngine::class)->post('invoice.created', [
+            'unit_id' => $unit->id,
+            'source_type' => 'invoice',
+            'source_id' => 902,
+            'total_amount' => 100000,
+            'effective_date' => '2026-02-15',
+            'created_by' => $user->id,
+            'idempotency_key' => 'test.invoice.created.missing.ay',
+        ]);
+    }
+
+    public function test_it_rejects_posting_when_academic_year_setting_is_invalid_format(): void
+    {
+        [$unit, $user] = $this->prepareSeededUnitContext();
+        Setting::set('academic_year_current', '2026');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('academic_year_current must be configured');
+
+        app(AccountingEngine::class)->post('invoice.created', [
+            'unit_id' => $unit->id,
+            'source_type' => 'invoice',
+            'source_id' => 903,
+            'total_amount' => 100000,
+            'effective_date' => '2026-02-15',
+            'created_by' => $user->id,
+            'idempotency_key' => 'test.invoice.created.invalid.ay',
+        ]);
+    }
+
     private function prepareSeededUnitContext(): array
     {
         $unit = Unit::factory()->create();
         $user = User::factory()->create(['unit_id' => $unit->id]);
 
         $this->withSession(['current_unit_id' => $unit->id]);
+        Setting::set('academic_year_current', '2025/2026');
 
         $this->seed(ChartOfAccountsSeeder::class);
         $this->seed(AccountMappingsSeeder::class);

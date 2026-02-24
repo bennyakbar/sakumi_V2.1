@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Master\StoreClassRequest;
 use App\Http\Requests\Master\UpdateClassRequest;
 use App\Models\SchoolClass;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ClassController extends Controller
@@ -76,8 +80,42 @@ class ClassController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SchoolClass $class): RedirectResponse
+    public function destroy(Request $request, SchoolClass $class): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_CLASS, (int) $class->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CLASS, $class, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CLASS, $class, [], 'attempt');
+                $class->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CLASS, $class, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
+
+            return redirect()->route('master.classes.index')
+                ->with('success', __('message.class_permanently_deleted'));
+        }
+
         if ($class->students()->count() > 0) {
             return back()->with('error', __('message.class_has_students'));
         }

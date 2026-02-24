@@ -7,9 +7,12 @@ use App\Http\Requests\UserManagement\StoreUserRequest;
 use App\Http\Requests\UserManagement\UpdateUserRequest;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -204,9 +207,56 @@ class UserController extends Controller
     {
         $actor = $request->user();
         $this->authorizeUnitScope($actor, $user);
+        $permanentDelete = app(PermanentDeleteService::class);
 
         if ($user->id === $actor->id) {
             return back()->withErrors(['delete' => __('message.cannot_deactivate_self')]);
+        }
+
+        if ($permanentDelete->isRequested($request)) {
+            if (!$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_USER, (int) $user->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_USER, $user, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_USER, $user, [], 'attempt');
+
+                DB::transaction(function () use ($user): void {
+                    $user->roles()->detach();
+                    $user->delete();
+                });
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_USER, $user, [], 'failed', $e->getMessage());
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_failed_fk'),
+                ]);
+            }
+
+            activity('users')
+                ->causedBy($actor)
+                ->withProperties([
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'target_user_id' => $user->id,
+                ])
+                ->log('users.permanently_deleted');
+
+            return redirect()->route('users.index')->with('success', __('message.user_permanently_deleted'));
         }
 
         $user->update(['is_active' => false]);

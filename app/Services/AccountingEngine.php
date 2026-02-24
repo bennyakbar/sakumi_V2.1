@@ -9,6 +9,7 @@ use App\Models\FiscalPeriod;
 use App\Models\JournalEntryV2;
 use App\Models\PaymentAllocationV2;
 use App\Models\Reversal;
+use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -69,6 +70,8 @@ class AccountingEngine
 
     private function resolveOpenPeriod(int $unitId, string $effectiveDate): FiscalPeriod
     {
+        $this->assertWithinAcademicYear($effectiveDate);
+
         $period = FiscalPeriod::query()
             ->where('unit_id', $unitId)
             ->whereDate('starts_on', '<=', $effectiveDate)
@@ -92,6 +95,28 @@ class AccountingEngine
         }
 
         return $period;
+    }
+
+    private function assertWithinAcademicYear(string $effectiveDate): void
+    {
+        $academicYear = (string) Setting::get('academic_year_current', '');
+        if (!preg_match('/^(\d{4})\/(\d{4})$/', $academicYear, $matches)) {
+            throw new \RuntimeException('Setting academic_year_current must be configured in YYYY/YYYY format before posting accounting events.');
+        }
+
+        $startYear = (int) $matches[1];
+        $endYear = (int) $matches[2];
+        if ($endYear !== $startYear + 1) {
+            throw new \RuntimeException("Setting academic_year_current is invalid: {$academicYear}. Expected consecutive years like 2025/2026.");
+        }
+
+        $start = CarbonImmutable::create($startYear, 7, 1)->startOfDay();
+        $end = CarbonImmutable::create($endYear, 6, 30)->endOfDay();
+        $date = CarbonImmutable::parse($effectiveDate)->startOfDay();
+
+        if ($date->lt($start) || $date->gt($end)) {
+            throw new \RuntimeException("Effective date {$effectiveDate} is outside active academic year {$academicYear}.");
+        }
     }
 
     private function postReversal(int $unitId, int $periodId, string $effectiveDate, array $payload): void
@@ -180,6 +205,14 @@ class AccountingEngine
             'payment.posted', 'settlement.applied' => [
                 'cash' => $amount,
                 'receivable' => $amount,
+            ],
+            'payment.direct.posted' => [
+                'cash' => $amount,
+                'revenue' => $amount,
+            ],
+            'expense.posted' => [
+                'expense' => $amount,
+                'cash' => $amount,
             ],
             default => throw new \RuntimeException("Unsupported accounting event type: {$eventType}."),
         };

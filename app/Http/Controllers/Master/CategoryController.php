@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Master\StoreCategoryRequest;
 use App\Http\Requests\Master\UpdateCategoryRequest;
 use App\Models\StudentCategory;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -44,8 +48,42 @@ class CategoryController extends Controller
             ->with('success', __('message.category_updated'));
     }
 
-    public function destroy(StudentCategory $category): RedirectResponse
+    public function destroy(Request $request, StudentCategory $category): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_CATEGORY, (int) $category->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CATEGORY, $category, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CATEGORY, $category, [], 'attempt');
+                $category->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_CATEGORY, $category, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
+
+            return redirect()->route('master.categories.index')
+                ->with('success', __('message.category_permanently_deleted'));
+        }
+
         if ($category->students()->exists()) {
             return back()->with('error', __('message.category_has_students'));
         }

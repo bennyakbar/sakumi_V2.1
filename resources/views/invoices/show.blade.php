@@ -164,13 +164,14 @@
                             @endif
                         @endcan
                         @can('invoices.cancel')
-                            @if(in_array($invoice->status, ['unpaid']))
+                            @if(in_array($invoice->status, ['unpaid', 'partially_paid']))
                                 <form method="POST" action="{{ route('invoices.destroy', $invoice) }}" onsubmit="return confirm('{{ __('Are you sure you want to cancel this invoice?') }}')">
                                     @csrf
                                     @method('DELETE')
+                                    <input type="hidden" name="cancellation_reason" value="{{ $invoice->status === 'partially_paid' ? 'Void partially paid invoice' : 'Cancel unpaid invoice' }}">
                                     <button type="submit"
                                         class="px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700">
-                                        {{ __('Cancel Invoice') }}
+                                        {{ $invoice->status === 'partially_paid' ? __('Void Invoice') : __('Cancel Invoice') }}
                                     </button>
                                 </form>
                             @endif

@@ -39,6 +39,18 @@
                         </x-nav-link>
                     @endcan
 
+                    @can('expenses.view')
+                        <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                            {{ __('Expenses') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('bank-reconciliation.view')
+                        <x-nav-link :href="route('bank-reconciliation.index')" :active="request()->routeIs('bank-reconciliation.*')">
+                            {{ __('Bank Recon') }}
+                        </x-nav-link>
+                    @endcan
+
                     {{-- Master Data Dropdown --}}
                     @if(
                             (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
@@ -92,7 +104,7 @@
                     @endif
 
                     {{-- Reports Dropdown --}}
-                    @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears']))
+                    @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears', 'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book']))
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
@@ -123,6 +135,26 @@
                                     @can('reports.arrears')
                                         <x-dropdown-link :href="route('reports.arrears')">
                                             {{ __('Arrears Report') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.ar-outstanding')
+                                        <x-dropdown-link :href="route('reports.ar-outstanding')">
+                                            {{ __('AR Outstanding') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.collection')
+                                        <x-dropdown-link :href="route('reports.collection')">
+                                            {{ __('Collection Report') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.student-statement')
+                                        <x-dropdown-link :href="route('reports.student-statement')">
+                                            {{ __('Student Statement') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.cash-book')
+                                        <x-dropdown-link :href="route('reports.cash-book')">
+                                            {{ __('Cash Book') }}
                                         </x-dropdown-link>
                                     @endcan
                                 </x-slot>
@@ -212,6 +244,11 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+                        @can('settings.view')
+                            <x-dropdown-link :href="route('settings.edit')">
+                                {{ __('Settings') }}
+                            </x-dropdown-link>
+                        @endcan
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -267,6 +304,18 @@
                 </x-responsive-nav-link>
             @endcan
 
+            @can('expenses.view')
+                <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                    {{ __('Expenses') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('bank-reconciliation.view')
+                <x-responsive-nav-link :href="route('bank-reconciliation.index')" :active="request()->routeIs('bank-reconciliation.*')">
+                    {{ __('Bank Recon') }}
+                </x-responsive-nav-link>
+            @endcan
+
             {{-- Master Data Group --}}
             @if(
                     (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
@@ -310,7 +359,7 @@
             @endif
 
             {{-- Reports Group --}}
-            @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears']))
+            @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears', 'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book']))
                 <div class="pt-2 pb-1 border-t border-gray-200">
                     <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         {{ __('app.nav.reports') }}
@@ -329,6 +378,26 @@
                 @can('reports.arrears')
                     <x-responsive-nav-link :href="route('reports.arrears')" :active="request()->routeIs('reports.arrears')">
                         {{ __('Arrears Report') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.ar-outstanding')
+                    <x-responsive-nav-link :href="route('reports.ar-outstanding')" :active="request()->routeIs('reports.ar-outstanding')">
+                        {{ __('AR Outstanding') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.collection')
+                    <x-responsive-nav-link :href="route('reports.collection')" :active="request()->routeIs('reports.collection')">
+                        {{ __('Collection Report') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.student-statement')
+                    <x-responsive-nav-link :href="route('reports.student-statement')" :active="request()->routeIs('reports.student-statement')">
+                        {{ __('Student Statement') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.cash-book')
+                    <x-responsive-nav-link :href="route('reports.cash-book')" :active="request()->routeIs('reports.cash-book')">
+                        {{ __('Cash Book') }}
                     </x-responsive-nav-link>
                 @endcan
             @endif
@@ -385,6 +454,11 @@
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+                @can('settings.view')
+                    <x-responsive-nav-link :href="route('settings.edit')">
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @endcan
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">

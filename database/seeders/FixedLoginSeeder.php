@@ -45,6 +45,10 @@ class FixedLoginSeeder extends Seeder
             'reports.daily',
             'reports.monthly',
             'reports.arrears',
+            'reports.ar-outstanding',
+            'reports.collection',
+            'reports.student-statement',
+            'reports.cash-book',
         ]);
 
         User::updateOrCreate(

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\TransactionCreated;
+use App\Models\StudentObligation;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,7 @@ class TransactionService
                 'transaction_number' => $number,
                 'transaction_date' => $data['transaction_date'],
                 'type' => 'income',
-                'student_id' => null,
+                'student_id' => $data['student_id'] ?? null,
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'total_amount' => collect($items)->sum('amount'),
                 'description' => $data['description'] ?? null,
@@ -62,7 +63,18 @@ class TransactionService
                 ]);
             }
 
-            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('payment.posted', ['unit_id' => $transaction->unit_id, 'source_type' => 'transaction', 'source_id' => $transaction->id, 'total_amount' => (float) $transaction->total_amount, 'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'payment.posted:transaction:'.$transaction->id]); }
+            if (config('features.accounting_engine_v2')) {
+                $eventType = (string) ($data['accounting_event_type'] ?? 'payment.posted');
+                AccountingEngine::fromEvent($eventType, [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'total_amount' => (float) $transaction->total_amount,
+                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'idempotency_key' => "{$eventType}:transaction:{$transaction->id}",
+                ]);
+            }
 
             return $transaction;
         });
@@ -103,6 +115,18 @@ class TransactionService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) {
+                AccountingEngine::fromEvent('expense.posted', [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'total_amount' => (float) $transaction->total_amount,
+                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'idempotency_key' => 'expense.posted:transaction:'.$transaction->id,
+                ]);
+            }
+
             return $transaction->load('items.feeType');
         });
     }
@@ -133,9 +157,21 @@ class TransactionService
                 ]);
 
             // Regenerate receipt with cancellation watermark
-            DB::afterCommit(function () use ($transaction) {
-                $this->receiptService->generateCancelled($transaction);
-            });
+                DB::afterCommit(function () use ($transaction) {
+                    $this->receiptService->generateCancelled($transaction);
+                });
+            }
+
+        if (config('features.accounting_engine_v2')) {
+            AccountingEngine::fromEvent('reversal.posted', [
+                'unit_id' => $transaction->unit_id,
+                'source_type' => 'transaction',
+                'source_id' => $transaction->id,
+                'effective_date' => now()->toDateString(),
+                'created_by' => $userId,
+                'reason' => $reason,
+                'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
+            ]);
         }
 
         return $transaction->fresh();

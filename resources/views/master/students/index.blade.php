@@ -212,6 +212,26 @@
                                                 <a href="{{ route('master.students.edit', $student) }}"
                                                     class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
                                             @endcan
+                                            @can('master.students.delete')
+                                                <form action="{{ route('master.students.destroy', $student) }}" method="POST"
+                                                    class="inline-block" onsubmit="return confirm('Hapus siswa ini?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
+                                                </form>
+                                                @if(auth()->user()->hasRole('super_admin') && getSetting('dangerous_permanent_delete_enabled', false))
+                                                    <form action="{{ route('master.students.destroy', $student) }}" method="POST"
+                                                        class="inline-block"
+                                                        onsubmit="const t=prompt('Ketik HAPUS PERMANEN untuk menghapus siswa ini secara permanen'); if(t===null){return false;} this.querySelector('input[name=confirm_text]').value=t; return confirm('Data akan dihapus permanen jika tidak memiliki dependensi. Lanjutkan?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <input type="hidden" name="permanent_delete" value="1">
+                                                        <input type="hidden" name="confirm_text" value="">
+                                                        <button type="submit" class="text-red-900 hover:text-red-700 ml-2">Delete Permanent</button>
+                                                    </form>
+                                                @endif
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

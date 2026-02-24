@@ -181,10 +181,18 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function destroy(Invoice $invoice): RedirectResponse
+    public function destroy(Request $request, Invoice $invoice): RedirectResponse
     {
+        $validated = $request->validate([
+            'cancellation_reason' => 'nullable|string|max:1000',
+        ]);
+
         try {
-            $this->invoiceService->cancel($invoice);
+            $this->invoiceService->cancel(
+                invoice: $invoice,
+                userId: (int) auth()->id(),
+                reason: (string) ($validated['cancellation_reason'] ?? __('message.cancelled_by_admin')),
+            );
             return redirect()->route('invoices.index')
                 ->with('success', __('message.invoice_cancelled'));
         } catch (\Throwable $e) {

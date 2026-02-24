@@ -16,6 +16,10 @@ return [
     'transaction_already_cancelled' => 'Transaksi sudah dibatalkan.',
     'invalid_transaction_type'     => 'Jenis transaksi tidak valid.',
     'expense_not_authorized'       => 'Anda tidak memiliki izin untuk membuat transaksi pengeluaran.',
+    'transaction_redirect_to_settlement' => 'Siswa memiliki invoice aktif (:invoice). Gunakan menu Settlement untuk pelunasan agar status invoice terupdate.',
+    'student_has_unpaid_obligations_use_invoice' => 'Siswa masih memiliki kewajiban belum dibayar. Buat/gunakan invoice lalu lakukan pembayaran lewat Settlement.',
+    'student_required_for_monthly_fee' => 'Transaksi dengan fee bulanan wajib memilih siswa agar tidak melewati alur invoice-settlement.',
+    'monthly_fee_must_use_invoice' => 'Fee bulanan wajib diproses lewat alur Invoice/Settlement, bukan transaksi walk-in.',
     'cancelled_by_admin'           => 'Dibatalkan oleh administrator',
 
     // Pembayaran (Settlement)
@@ -46,6 +50,18 @@ return [
     'obligations_already_invoiced' => 'Beberapa kewajiban sudah dibayar atau sudah ditagih.',
     'cannot_cancel_paid_invoice'   => 'Tidak dapat membatalkan tagihan yang sudah lunas.',
     'cannot_cancel_invoice_payments' => 'Tidak dapat membatalkan tagihan yang sudah ada pembayarannya. Batalkan pembayaran terlebih dahulu.',
+    'invoice_void_requires_single_allocation_settlement' => 'Invoice ini terhubung ke settlement :number dengan multi-alokasi. Void otomatis per-invoice tidak didukung; lakukan koreksi settlement manual.',
+    'settings_updated'            => 'Pengaturan berhasil diperbarui.',
+    'academic_year_must_be_consecutive' => 'Tahun ajaran harus berurutan, contoh: 2025/2026.',
+    'permanent_delete_not_allowed' => 'Permanent delete hanya boleh untuk superadmin dan harus diaktifkan di Settings.',
+    'permanent_delete_confirmation_invalid' => 'Konfirmasi permanent delete tidak valid. Ketik tepat: HAPUS PERMANEN.',
+    'permanent_delete_blocked_dependencies' => 'Permanent delete diblokir karena data ini sudah dipakai: :details.',
+    'user_permanently_deleted' => 'User berhasil dihapus permanen.',
+    'student_permanently_deleted' => 'Siswa berhasil dihapus permanen.',
+    'class_permanently_deleted' => 'Kelas berhasil dihapus permanen.',
+    'category_permanently_deleted' => 'Kategori berhasil dihapus permanen.',
+    'fee_type_permanently_deleted' => 'Jenis biaya berhasil dihapus permanen.',
+    'fee_matrix_permanently_deleted' => 'Matriks biaya berhasil dihapus permanen.',
 
     // Master: Jenis Biaya
     'fee_type_created'             => 'Jenis Biaya berhasil dibuat.',
@@ -64,6 +80,10 @@ return [
     'student_updated'              => 'Siswa berhasil diperbarui.',
     'student_deleted'              => 'Siswa berhasil dihapus.',
     'student_import_success'       => 'Impor siswa berhasil diselesaikan.',
+    'student_fee_mapping_created'  => 'Mapping biaya siswa berhasil ditambahkan.',
+    'student_fee_mapping_updated'  => 'Mapping biaya siswa berhasil diperbarui.',
+    'student_fee_mapping_deactivated' => 'Mapping biaya siswa berhasil dinonaktifkan.',
+    'student_fee_mapping_overlap'  => 'Periode yang dipilih bertabrakan dengan mapping aktif lain untuk jenis biaya yang sama.',
 
     // Master: Kelas
     'class_created'                => 'Kelas berhasil dibuat.',

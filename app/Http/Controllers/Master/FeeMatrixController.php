@@ -9,7 +9,10 @@ use App\Models\FeeMatrix;
 use App\Models\FeeType;
 use App\Models\SchoolClass;
 use App\Models\StudentCategory;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FeeMatrixController extends Controller
@@ -108,8 +111,33 @@ class FeeMatrixController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeMatrix $feeMatrix): RedirectResponse
+    public function destroy(Request $request, FeeMatrix $feeMatrix): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $mappingCount = DB::table('student_fee_mappings')->where('fee_matrix_id', $feeMatrix->id)->count();
+            if ($mappingCount > 0) {
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => "student_fee_mappings:{$mappingCount}",
+                    ]),
+                ]);
+            }
+
+            $feeMatrix->forceDelete();
+
+            return redirect()->route('master.fee-matrix.index')
+                ->with('success', __('message.fee_matrix_permanently_deleted'));
+        }
+
         $feeMatrix->delete();
 
         return redirect()->route('master.fee-matrix.index')

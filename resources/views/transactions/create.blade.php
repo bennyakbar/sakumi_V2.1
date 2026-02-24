@@ -56,6 +56,29 @@
                                 </select>
                             </div>
 
+                            <!-- Student (Income only) -->
+                            <div>
+                                <x-input-label for="student_id" :value="__('Student (optional)')" />
+                                <select id="student_id" name="student_id"
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">{{ __('app.label.all') }}</option>
+                                    @foreach($students as $student)
+                                        <option value="{{ $student->id }}" {{ (string) old('student_id') === (string) $student->id ? 'selected' : '' }}>
+                                            {{ $student->name }} ({{ $student->schoolClass->name ?? '-' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Jika siswa punya invoice aktif, pembayaran akan diarahkan ke Settlement.</p>
+                            </div>
+
+                            <div id="student-invoice-hint" class="md:col-span-2 rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900 hidden">
+                                <p id="student-invoice-hint-text"></p>
+                                <a id="student-invoice-hint-link" href="#"
+                                    class="inline-block mt-2 px-3 py-1.5 bg-amber-600 text-white rounded text-xs font-semibold uppercase">
+                                    Go to Settlement
+                                </a>
+                            </div>
+
                             <!-- Description -->
                             <div class="md:col-span-2">
                                 <x-input-label for="description" :value="__('Description')" />
@@ -103,6 +126,8 @@
     <script>
         const incomeFeeTypes = @json($incomeFeeTypes);
         const expenseFeeTypes = @json($expenseFeeTypes);
+        const activeInvoiceHints = @json($activeInvoiceHints);
+        const settlementCreateUrl = @json(route('settlements.create'));
         let itemCount = 0;
 
         const jsTranslations = {
@@ -204,6 +229,35 @@
             });
         }
 
+        function refreshStudentInvoiceHint() {
+            const typeSelect = document.getElementById('type');
+            const studentSelect = document.getElementById('student_id');
+            const hintWrap = document.getElementById('student-invoice-hint');
+            const hintText = document.getElementById('student-invoice-hint-text');
+            const hintLink = document.getElementById('student-invoice-hint-link');
+
+            if (!typeSelect || !studentSelect || !hintWrap || !hintText || !hintLink) {
+                return;
+            }
+
+            const isExpense = typeSelect.value === 'expense';
+            const selectedStudentId = studentSelect.value;
+
+            if (isExpense || !selectedStudentId || !activeInvoiceHints[selectedStudentId]) {
+                hintWrap.classList.add('hidden');
+                return;
+            }
+
+            const hint = activeInvoiceHints[selectedStudentId];
+            hintText.textContent = `Siswa memiliki ${hint.count} invoice aktif (contoh: ${hint.first_invoice_number}). Gunakan Settlement agar status invoice dan tunggakan terupdate.`;
+            const url = new URL(settlementCreateUrl, window.location.origin);
+            url.searchParams.set('student_id', selectedStudentId);
+            url.searchParams.set('invoice_id', hint.first_invoice_id);
+            hintLink.href = url.toString();
+
+            hintWrap.classList.remove('hidden');
+        }
+
         function calculateTotal() {
             let total = 0;
             document.querySelectorAll('.amount-input').forEach(input => {
@@ -218,14 +272,25 @@
         function toggleTransactionType() {
             const typeSelect = document.getElementById('type');
             const submitLabel = document.getElementById('submit-label');
+            const studentSelect = document.getElementById('student_id');
             const isExpense = typeSelect && typeSelect.value === 'expense';
 
             if (submitLabel) {
                 submitLabel.textContent = isExpense ? jsTranslations.processExpense : jsTranslations.processIncome;
             }
 
+            if (studentSelect) {
+                studentSelect.disabled = isExpense;
+                if (isExpense) {
+                    studentSelect.value = '';
+                }
+            }
+
             refreshAllFeeTypeOptions();
+            refreshStudentInvoiceHint();
         }
+
+        document.getElementById('student_id')?.addEventListener('change', refreshStudentInvoiceHint);
 
         toggleTransactionType();
     </script>

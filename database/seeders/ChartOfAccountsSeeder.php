@@ -34,6 +34,12 @@ class ChartOfAccountsSeeder extends Seeder
                 'type' => 'revenue',
                 'normal_balance' => 'credit',
             ],
+            [
+                'code' => '510100',
+                'name' => 'Beban Operasional',
+                'type' => 'expense',
+                'normal_balance' => 'debit',
+            ],
         ];
 
         $now = now();
