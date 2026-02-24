@@ -9,7 +9,7 @@ use App\Models\FeeType;
 use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class FeeTypeController extends Controller
@@ -93,25 +93,25 @@ class FeeTypeController extends Controller
                 return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
             }
 
-            $dependencies = [];
-            $counts = [
-                'fee_matrix' => DB::table('fee_matrix')->where('fee_type_id', $feeType->id)->count(),
-                'transaction_items' => DB::table('transaction_items')->where('fee_type_id', $feeType->id)->count(),
-                'student_obligations' => DB::table('student_obligations')->where('fee_type_id', $feeType->id)->count(),
-                'invoice_items' => DB::table('invoice_items')->where('fee_type_id', $feeType->id)->count(),
-            ];
-            foreach ($counts as $key => $count) {
-                if ($count > 0) {
-                    $dependencies[] = "{$key}:{$count}";
-                }
-            }
-            if (!empty($dependencies)) {
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_FEE_TYPE, (int) $feeType->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, $blocking, 'blocked');
                 return back()->withErrors([
-                    'delete' => __('message.permanent_delete_blocked_dependencies', ['details' => implode(', ', $dependencies)]),
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
                 ]);
             }
 
-            $feeType->forceDelete();
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, [], 'attempt');
+                $feeType->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
 
             return redirect()->route('master.fee-types.index')
                 ->with('success', __('message.fee_type_permanently_deleted'));

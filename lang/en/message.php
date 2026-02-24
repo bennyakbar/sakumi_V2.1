@@ -56,6 +56,7 @@ return [
     'permanent_delete_not_allowed' => 'Permanent delete is allowed only for superadmin and must be enabled in Settings.',
     'permanent_delete_confirmation_invalid' => 'Permanent delete confirmation is invalid. Type exactly: HAPUS PERMANEN.',
     'permanent_delete_blocked_dependencies' => 'Permanent delete is blocked because this data is already used: :details.',
+    'permanent_delete_failed_fk' => 'Permanent delete failed because related records are still locked by database constraints.',
     'user_permanently_deleted' => 'User permanently deleted.',
     'student_permanently_deleted' => 'Student permanently deleted.',
     'class_permanently_deleted' => 'Class permanently deleted.',

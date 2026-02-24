@@ -80,8 +80,8 @@
                                                 </form>
                                                 @if(auth()->user()->hasRole('super_admin') && getSetting('dangerous_permanent_delete_enabled', false))
                                                     <form action="{{ route('master.classes.destroy', $class) }}" method="POST"
-                                                        class="inline-block"
-                                                        onsubmit="const t=prompt('Ketik HAPUS PERMANEN untuk menghapus kelas ini secara permanen'); if(t===null){return false;} this.querySelector('input[name=confirm_text]').value=t; return confirm('Data akan dihapus permanen jika tidak memiliki dependensi. Lanjutkan?');">
+                                                        class="inline-block js-permanent-delete-form"
+                                                        data-entity="class" data-entity-id="{{ $class->id }}" data-preview-url="{{ route('settings.permanent-delete.preview') }}">
                                                         @csrf
                                                         @method('DELETE')
                                                         <input type="hidden" name="permanent_delete" value="1">

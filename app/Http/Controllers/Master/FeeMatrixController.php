@@ -12,7 +12,7 @@ use App\Models\StudentCategory;
 use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class FeeMatrixController extends Controller
@@ -123,16 +123,25 @@ class FeeMatrixController extends Controller
                 return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
             }
 
-            $mappingCount = DB::table('student_fee_mappings')->where('fee_matrix_id', $feeMatrix->id)->count();
-            if ($mappingCount > 0) {
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_FEE_MATRIX, (int) $feeMatrix->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, $blocking, 'blocked');
                 return back()->withErrors([
                     'delete' => __('message.permanent_delete_blocked_dependencies', [
-                        'details' => "student_fee_mappings:{$mappingCount}",
+                        'details' => $permanentDelete->formatDependencies($blocking),
                     ]),
                 ]);
             }
 
-            $feeMatrix->forceDelete();
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, [], 'attempt');
+                $feeMatrix->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
 
             return redirect()->route('master.fee-matrix.index')
                 ->with('success', __('message.fee_matrix_permanently_deleted'));

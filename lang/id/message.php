@@ -56,6 +56,7 @@ return [
     'permanent_delete_not_allowed' => 'Permanent delete hanya boleh untuk superadmin dan harus diaktifkan di Settings.',
     'permanent_delete_confirmation_invalid' => 'Konfirmasi permanent delete tidak valid. Ketik tepat: HAPUS PERMANEN.',
     'permanent_delete_blocked_dependencies' => 'Permanent delete diblokir karena data ini sudah dipakai: :details.',
+    'permanent_delete_failed_fk' => 'Permanent delete gagal karena masih ada relasi data yang terkunci oleh database.',
     'user_permanently_deleted' => 'User berhasil dihapus permanen.',
     'student_permanently_deleted' => 'Siswa berhasil dihapus permanen.',
     'class_permanently_deleted' => 'Kelas berhasil dihapus permanen.',

@@ -108,4 +108,44 @@ class PermanentDeleteSafetyTest extends TestCase
 
         $this->assertDatabaseHas('users', ['id' => $target->id]);
     }
+
+    public function test_preview_endpoint_returns_blocking_dependencies_before_submit(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $this->actingAs($admin)->withSession(['current_unit_id' => $admin->unit_id]);
+        Setting::set('dangerous_permanent_delete_enabled', true);
+
+        $class = SchoolClass::query()->create([
+            'unit_id' => $admin->unit_id,
+            'name' => 'X-PREVIEW',
+            'level' => 1,
+            'academic_year' => '2025/2026',
+            'is_active' => true,
+        ]);
+        $category = StudentCategory::query()->create([
+            'unit_id' => $admin->unit_id,
+            'code' => 'PVW',
+            'name' => 'Preview',
+            'discount_percentage' => 0,
+        ]);
+        Student::query()->create([
+            'unit_id' => $admin->unit_id,
+            'nis' => '991',
+            'nisn' => '992',
+            'name' => 'Preview Student',
+            'class_id' => $class->id,
+            'category_id' => $category->id,
+            'status' => 'active',
+            'enrollment_date' => '2025-07-01',
+        ]);
+
+        $this->postJson(route('settings.permanent-delete.preview'), [
+            'entity' => 'class',
+            'id' => $class->id,
+        ])->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('blocked', true)
+            ->assertJsonStructure(['dependencies']);
+    }
 }
