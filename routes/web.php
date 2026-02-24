@@ -101,9 +101,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('classes/{class}', [ClassController::class, 'destroy'])
                 ->middleware('can:master.classes.delete')
                 ->name('classes.destroy');
-            Route::post('classes/{id}/restore', [ClassController::class, 'restore'])
-                ->middleware('can:master.classes.delete')
-                ->name('classes.restore');
 
             Route::get('categories', [CategoryController::class, 'index'])
                 ->middleware('can:master.categories.view')
@@ -123,9 +120,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('categories/{category}', [CategoryController::class, 'destroy'])
                 ->middleware('can:master.categories.delete')
                 ->name('categories.destroy');
-            Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])
-                ->middleware('can:master.categories.delete')
-                ->name('categories.restore');
         });
 
         Route::middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara')->group(function () {
@@ -147,9 +141,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('fee-types/{fee_type}', [FeeTypeController::class, 'destroy'])
                 ->middleware('can:master.fee-types.delete')
                 ->name('fee-types.destroy');
-            Route::post('fee-types/{id}/restore', [FeeTypeController::class, 'restore'])
-                ->middleware('can:master.fee-types.delete')
-                ->name('fee-types.restore');
 
             Route::get('fee-matrix', [FeeMatrixController::class, 'index'])
                 ->middleware('can:master.fee-matrix.view')
@@ -169,9 +160,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('fee-matrix/{fee_matrix}', [FeeMatrixController::class, 'destroy'])
                 ->middleware('can:master.fee-matrix.delete')
                 ->name('fee-matrix.destroy');
-            Route::post('fee-matrix/{id}/restore', [FeeMatrixController::class, 'restore'])
-                ->middleware('can:master.fee-matrix.delete')
-                ->name('fee-matrix.restore');
         });
     });
 

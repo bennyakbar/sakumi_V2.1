@@ -19,7 +19,7 @@ class PasswordController extends Controller
             'current_password' => ['required', 'current_password'],
             'password' => [
                 'required',
-                Password::min(12)->letters()->mixedCase()->numbers()->symbols(),
+                Password::defaults(),
                 'confirmed',
             ],
         ]);

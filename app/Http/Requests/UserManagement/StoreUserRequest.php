@@ -27,7 +27,7 @@ class StoreUserRequest extends BaseRequest
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(12)->letters()->mixedCase()->numbers()->symbols(),
+                Password::defaults(),
             ],
             'role' => ['nullable', Rule::exists('roles', 'name')],
         ];

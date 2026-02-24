@@ -48,8 +48,8 @@ class UserManagementTest extends TestCase
             'name' => 'User Baru',
             'email' => 'baru@example.test',
             'unit_id' => $this->mi->id,
-            'password' => 'StrongPass!123',
-            'password_confirmation' => 'StrongPass!123',
+            'password' => 'Aa1!bcde2@',
+            'password_confirmation' => 'Aa1!bcde2@',
             'role' => 'operator_tu',
             'is_active' => 1,
         ]);

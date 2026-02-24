@@ -36,7 +36,7 @@ class NewPasswordController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                PasswordRule::min(12)->letters()->mixedCase()->numbers()->symbols(),
+                PasswordRule::defaults(),
             ],
         ]);
 

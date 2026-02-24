@@ -21,7 +21,9 @@ class StudentController extends Controller
 {
     public function index(): View
     {
-        $students = Student::query()
+        $sort = request('sort', 'latest');
+
+        $studentsQuery = Student::query()
             ->with(['schoolClass:id,name', 'category:id,name'])
             ->when(request('search'), function ($query, string $search): void {
                 $query->where(function ($subQuery) use ($search): void {
@@ -32,12 +34,27 @@ class StudentController extends Controller
             })
             ->when(request('class_id'), fn ($query, $classId) => $query->where('class_id', $classId))
             ->when(request('category_id'), fn ($query, $categoryId) => $query->where('category_id', $categoryId))
-            ->when(request('status'), fn ($query, $status) => $query->where('status', $status))
-            ->latest()
+            ->when(request('status'), fn ($query, $status) => $query->where('status', $status));
+
+        match ($sort) {
+            'oldest' => $studentsQuery->oldest(),
+            'name_asc' => $studentsQuery->orderBy('name'),
+            'name_desc' => $studentsQuery->orderByDesc('name'),
+            'nis_asc' => $studentsQuery->orderBy('nis'),
+            'nis_desc' => $studentsQuery->orderByDesc('nis'),
+            'status_asc' => $studentsQuery->orderBy('status')->orderBy('name'),
+            'status_desc' => $studentsQuery->orderByDesc('status')->orderBy('name'),
+            default => $studentsQuery->latest(),
+        };
+
+        $students = $studentsQuery
             ->paginate(15)
             ->withQueryString();
 
-        return view('master.students.index', compact('students'));
+        $classes = SchoolClass::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $categories = StudentCategory::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('master.students.index', compact('students', 'classes', 'categories', 'sort'));
     }
 
     public function import(): View

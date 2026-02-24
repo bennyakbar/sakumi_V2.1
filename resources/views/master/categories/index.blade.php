@@ -41,7 +41,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($categories as $category)
-                                    <tr class="{{ $category->trashed() ? 'bg-gray-50' : '' }}">
+                                    <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $category->code }}
                                         </td>
@@ -56,33 +56,20 @@
                                             {{ $category->discount_percentage }}%
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            @if($category->trashed())
-                                                <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700 mr-3">Deleted</span>
-                                                @can('master.categories.delete')
-                                                    <form action="{{ route('master.categories.restore', $category->id) }}" method="POST"
-                                                        class="inline-block" onsubmit="return confirm('Restore this category?');">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="text-emerald-600 hover:text-emerald-900">{{ __('app.button.restore') }}</button>
-                                                    </form>
-                                                @endcan
-                                            @else
-                                                @can('master.categories.edit')
-                                                    <a href="{{ route('master.categories.edit', $category) }}"
-                                                        class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
-                                                @endcan
-                                                @can('master.categories.delete')
-                                                    <form action="{{ route('master.categories.destroy', $category) }}" method="POST"
-                                                        class="inline-block"
-                                                        onsubmit="return confirm('Are you sure you want to delete this category?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
-                                                    </form>
-                                                @endcan
-                                            @endif
+                                            @can('master.categories.edit')
+                                                <a href="{{ route('master.categories.edit', $category) }}"
+                                                    class="text-indigo-600 hover:text-indigo-900 mr-3">{{ __('app.button.edit') }}</a>
+                                            @endcan
+                                            @can('master.categories.delete')
+                                                <form action="{{ route('master.categories.destroy', $category) }}" method="POST"
+                                                    class="inline-block"
+                                                    onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
+                                                </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

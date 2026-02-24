@@ -80,6 +80,30 @@ class PasswordResetTest extends TestCase
         });
     }
 
+    public function test_password_can_be_reset_with_strong_password_under_twelve_characters(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $response = $this->post('/reset-password', [
+                'token' => $notification->token,
+                'email' => $user->email,
+                'password' => 'Aa1!bcde2@',
+                'password_confirmation' => 'Aa1!bcde2@',
+            ]);
+
+            $response
+                ->assertSessionHasNoErrors()
+                ->assertRedirect(route('login'));
+
+            return true;
+        });
+    }
+
     public function test_forgot_password_is_rate_limited(): void
     {
         Notification::fake();

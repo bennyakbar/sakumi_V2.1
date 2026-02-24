@@ -13,7 +13,7 @@ class CategoryController extends Controller
 {
     public function index(): View
     {
-        $categories = StudentCategory::withTrashed()->latest()->paginate(15);
+        $categories = StudentCategory::latest()->paginate(15);
 
         return view('master.categories.index', compact('categories'));
     }
@@ -56,12 +56,4 @@ class CategoryController extends Controller
             ->with('success', __('message.category_deleted'));
     }
 
-    public function restore(int $id): RedirectResponse
-    {
-        $category = StudentCategory::withTrashed()->findOrFail($id);
-        $category->restore();
-
-        return redirect()->route('master.categories.index')
-            ->with('success', __('message.category_restored'));
-    }
 }

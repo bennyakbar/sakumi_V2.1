@@ -51,14 +51,12 @@ return [
     'fee_type_created'             => 'Fee Type created successfully.',
     'fee_type_updated'             => 'Fee Type updated successfully.',
     'fee_type_deleted'             => 'Fee Type deleted successfully.',
-    'fee_type_restored'            => 'Fee Type restored successfully.',
     'fee_type_in_use'              => 'Cannot delete fee type because it is used in fee matrices.',
 
     // Master: Fee Matrix
     'fee_matrix_created'           => 'Fee Matrix created successfully.',
     'fee_matrix_updated'           => 'Fee Matrix updated successfully.',
     'fee_matrix_deleted'           => 'Fee Matrix deleted successfully.',
-    'fee_matrix_restored'          => 'Fee Matrix restored successfully.',
     'fee_matrix_exists'            => 'Fee Matrix for this combination already exists.',
 
     // Master: Student
@@ -71,14 +69,12 @@ return [
     'class_created'                => 'Class created successfully.',
     'class_updated'                => 'Class updated successfully.',
     'class_deleted'                => 'Class deleted successfully.',
-    'class_restored'               => 'Class restored successfully.',
     'class_has_students'           => 'Cannot delete class with assigned students.',
 
     // Master: Category
     'category_created'             => 'Student Category created successfully.',
     'category_updated'             => 'Student Category updated successfully.',
     'category_deleted'             => 'Student Category deleted successfully.',
-    'category_restored'            => 'Student Category restored successfully.',
     'category_has_students'        => 'Cannot delete category because it has associated students.',
 
     // User Management
