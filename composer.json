@@ -14,7 +14,7 @@
         "maatwebsite/excel": "^3.1",
         "spatie/laravel-activitylog": "^4.8",
         "spatie/laravel-backup": "^9.0",
-        "spatie/laravel-permission": "^6.0"
+        "spatie/laravel-permission": "^6.0",
         "maennchen/zipstream-php": "^2.1"
     },
     "require-dev": {
