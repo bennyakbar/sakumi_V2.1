@@ -1,0 +1,8 @@
+{
+  "name": "Laravel PHP 8.2",
+  "image": "mcr.microsoft.com/devcontainers/php:1-8.2",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "postCreateCommand": "sudo apt update && sudo apt install -y unzip git libzip-dev && docker-php-ext-install zip gd"
+}
