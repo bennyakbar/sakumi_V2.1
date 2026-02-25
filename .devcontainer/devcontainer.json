@@ -4,5 +4,5 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": {}
   },
-  "postCreateCommand": "sudo apt update && sudo apt install -y libzip-dev zlib1g-dev && docker-php-ext-install zip gd"
+  "postCreateCommand": "sudo apt update && sudo apt install -y libzip-dev zlib1g-dev git-lfs && docker-php-ext-install zip gd && git lfs install"
 }
