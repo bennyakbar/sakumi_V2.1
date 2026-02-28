@@ -19,9 +19,9 @@
 ])
 @php
     $themes = [
-        'receipt'    => ['brand1' => '#154f84', 'brand2' => '#1d6394', 'brand3' => '#e8f3fa', 'ok' => '#176b73', 'line' => '#b9ccd8', 'soft' => '#f3f8fb', 'border' => '#9ab6c6', 'wm' => 'rgba(21, 79, 132, 0.08)', 'stripe' => '#f8fcff', 'totalBg' => '#e7f2f9', 'totalBorder' => '#84b3c9'],
-        'expense'    => ['brand1' => '#7c4a1e', 'brand2' => '#96602e', 'brand3' => '#fef7ed', 'ok' => '#92400e', 'line' => '#d4b896', 'soft' => '#fdf8f3', 'border' => '#c4a57a', 'wm' => 'rgba(124, 74, 30, 0.08)', 'stripe' => '#fefcf8', 'totalBg' => '#fef3e2', 'totalBorder' => '#d4a85c'],
-        'invoice'    => ['brand1' => '#374151', 'brand2' => '#4b5563', 'brand3' => '#f3f4f6', 'ok' => '#111827', 'line' => '#d1d5db', 'soft' => '#f9fafb', 'border' => '#9ca3af', 'wm' => 'rgba(55, 65, 81, 0.08)', 'stripe' => '#f9fafb', 'totalBg' => '#f3f4f6', 'totalBorder' => '#9ca3af'],
+        'receipt' => ['brand1' => '#154f84', 'brand2' => '#1d6394', 'brand3' => '#e8f3fa', 'ok' => '#176b73', 'line' => '#b9ccd8', 'soft' => '#f3f8fb', 'border' => '#9ab6c6', 'wm' => 'rgba(21, 79, 132, 0.08)', 'stripe' => '#f8fcff', 'totalBg' => '#e7f2f9', 'totalBorder' => '#84b3c9'],
+        'expense' => ['brand1' => '#7c4a1e', 'brand2' => '#96602e', 'brand3' => '#fef7ed', 'ok' => '#92400e', 'line' => '#d4b896', 'soft' => '#fdf8f3', 'border' => '#c4a57a', 'wm' => 'rgba(124, 74, 30, 0.08)', 'stripe' => '#fefcf8', 'totalBg' => '#fef3e2', 'totalBorder' => '#d4a85c'],
+        'invoice' => ['brand1' => '#374151', 'brand2' => '#4b5563', 'brand3' => '#f3f4f6', 'ok' => '#111827', 'line' => '#d1d5db', 'soft' => '#f9fafb', 'border' => '#9ca3af', 'wm' => 'rgba(55, 65, 81, 0.08)', 'stripe' => '#f9fafb', 'totalBg' => '#f3f4f6', 'totalBorder' => '#9ca3af'],
         'settlement' => ['brand1' => '#166534', 'brand2' => '#15803d', 'brand3' => '#ecfdf5', 'ok' => '#166534', 'line' => '#86efac', 'soft' => '#f0fdf4', 'border' => '#6bbe8a', 'wm' => 'rgba(22, 101, 52, 0.08)', 'stripe' => '#f7fdf9', 'totalBg' => '#dcfce7', 'totalBorder' => '#6bbe8a'],
     ];
     $t = $themes[$theme] ?? $themes['receipt'];
@@ -32,7 +32,7 @@
     $schoolInitials = collect(preg_split('/\s+/', trim($schoolName)))
         ->filter()
         ->take(2)
-        ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+        ->map(fn($part) => strtoupper(substr($part, 0, 1)))
         ->implode('');
     $schoolInitials = $schoolInitials !== '' ? $schoolInitials : 'SC';
     $foundationLogo = $school['foundation_logo'] ?? '';
@@ -63,8 +63,18 @@
         storage_path('app/public/yayasan_logo.jpeg'),
         storage_path('app/public/yayasan_logo.webp'),
     ]);
+    $unitCode = strtolower($school['unit_code'] ?? '');
+    $unitCodeUpper = strtoupper($school['unit_code'] ?? '');
     $schoolLogoSrc = $toDataUri([
         $schoolLogo !== '' ? storage_path('app/public/' . ltrim($schoolLogo, '/')) : null,
+        $unitCode ? public_path("images/logo-{$unitCode}.png") : null,
+        $unitCode ? public_path("images/logo-{$unitCode}.jpg") : null,
+        $unitCodeUpper ? public_path("images/{$unitCodeUpper}.png") : null,
+        $unitCodeUpper ? public_path("images/{$unitCodeUpper}.jpg") : null,
+        $unitCode ? public_path("images/{$unitCode}.png") : null,
+        $unitCode ? public_path("images/{$unitCode}.jpg") : null,
+        $unitCode ? storage_path("app/public/logo-{$unitCode}.png") : null,
+        $unitCode ? storage_path("app/public/logo-{$unitCode}.jpg") : null,
         public_path('images/kwitansi-logo.png'),
         public_path('images/kwitansi-logo.jpg'),
         public_path('images/kwitansi-logo.jpeg'),
@@ -79,13 +89,13 @@
 
     // Status badge overlay
     $badgeColors = [
-        'paid'            => '#065f46',
-        'unpaid'          => '#92400e',
-        'partially_paid'  => '#1e40af',
-        'partial'         => '#1e40af',
-        'completed'       => '#065f46',
-        'cancelled'       => '#991b1b',
-        'void'            => '#991b1b',
+        'paid' => '#065f46',
+        'unpaid' => '#92400e',
+        'partially_paid' => '#1e40af',
+        'partial' => '#1e40af',
+        'completed' => '#065f46',
+        'cancelled' => '#991b1b',
+        'void' => '#991b1b',
     ];
     $badgeLabel = null;
     $badgeColor = '#6b7280';
@@ -97,7 +107,6 @@
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -124,7 +133,8 @@
         @page { size: A5 landscape; margin: 6mm; }
 
         html, body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             font-family: "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
             font-weight: 400;
             color: var(--ink);
@@ -134,50 +144,155 @@
         }
 
         .sheet {
-            min-height: 136mm; max-height: 136mm;
+            min-height: 136mm;
+            max-height: 136mm;
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
 
         .dynamic-watermark {
-            position: absolute; top: 52%; left: 50%;
+            position: absolute;
+            top: 52%;
+            left: 50%;
             transform: translate(-50%, -50%) rotate(-24deg);
             font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
-            font-weight: 500; font-size: 20px; letter-spacing: 0.8px;
+            font-weight: 500;
+            font-size: 20px;
+            letter-spacing: 0.8px;
             color: var(--wm);
-            white-space: nowrap; pointer-events: none; z-index: 0;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .topbar {
-            padding: 2.5mm 4mm; color: #fff;
+            padding: 2.5mm 4mm;
+            color: #fff;
             background: linear-gradient(180deg, var(--brand-1), var(--brand-2));
-            display: grid; grid-template-columns: 14mm 1fr 14mm;
-            align-items: center; gap: 3mm;
+            display: grid;
+            grid-template-columns: 14mm 1fr 14mm;
+            align-items: center;
+            gap: 3mm;
         }
 
         .head-center { min-width: 0; text-align: center; }
-        .logo-wrap { width: 14mm; height: 14mm; border-radius: 999px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #ffffff55; flex: 0 0 auto; }
+
+        .logo-wrap {
+            width: 14mm;
+            height: 14mm;
+            max-width: 14mm;
+            max-height: 14mm;
+            border-radius: 999px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #ffffff55;
+            flex: 0 0 auto;
+        }
+
         .logo-wrap-square { border-radius: 3px; }
-        .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+
+        .logo-wrap img {
+            width: 100%;
+            height: 100%;
+            max-width: 14mm;
+            max-height: 14mm;
+            object-fit: contain;
+        }
+
         .logo-fallback { font-size: 7px; color: var(--brand-1); font-weight: 700; text-align: center; }
-        .head-center .name { font-size: 11.5px; font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif; font-weight: 500; letter-spacing: 0.1px; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; }
-        .head-center .address { font-size: 8.5px; opacity: 0.92; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; max-height: 2.4em; }
-        .doc-title { margin: 0; font-size: 11.5px; font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif; font-weight: 500; letter-spacing: 0.35px; line-height: 1.1; }
 
-        .body { padding: 3.5mm 4mm 3mm; display: flex; flex-direction: column; gap: 2.5mm; flex: 1; min-height: 0; position: relative; z-index: 1; }
+        .head-center .name {
+            font-size: 11.5px;
+            font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            line-height: 1.15;
+        }
 
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; }
-        .meta-card { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 1.8mm 2.2mm; }
+        .head-center .address {
+            font-size: 8.5px;
+            opacity: 0.92;
+            white-space: normal;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.2;
+            max-height: 2.4em;
+        }
+
+        .doc-title {
+            margin: 0;
+            font-size: 11.5px;
+            font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.35px;
+            line-height: 1.1;
+        }
+
+        .body {
+            padding: 3.5mm 4mm 3mm;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5mm;
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2mm;
+        }
+
+        .meta-card {
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 1.8mm 2.2mm;
+        }
+
         .meta-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.8mm; }
-        .meta-value { font-size: 10px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .meta-value {
+            font-size: 10px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         .table-wrap { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex: 1; min-height: 0; background: #fff; }
+
         table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 1.4mm 1.8mm; vertical-align: top; }
-        th { background: var(--brand-3); color: var(--brand-1); font-size: 8px; text-transform: uppercase; letter-spacing: 0.35px; font-weight: 700; }
+
+        th, td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.4mm 1.8mm;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--brand-3);
+            color: var(--brand-1);
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            font-weight: 700;
+        }
+
         tbody tr:nth-child(even) { background: var(--stripe); }
         tbody tr:last-child td { border-bottom: none; }
 
@@ -185,17 +300,53 @@
         .c-item { width: 46%; }
         .c-note { width: 24%; }
         .c-amt { width: 22%; text-align: right; white-space: nowrap; }
+
         .item-name { font-weight: 400; }
         .item-note { color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
-        .compact th, .compact td { padding-top: 1.1mm; padding-bottom: 1.1mm; font-size: 9px; }
+
+        .compact th, .compact td {
+            padding-top: 1.1mm;
+            padding-bottom: 1.1mm;
+            font-size: 9px;
+        }
+
         .summary-row td { background: var(--soft); color: var(--muted); font-style: italic; }
 
-        .footer { display: grid; grid-template-columns: 1fr auto; gap: 3mm; align-items: end; }
+        .footer {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 3mm;
+            align-items: end;
+        }
+
         .foot-note { color: var(--muted); font-size: 8.2px; }
 
-        .total-box { min-width: 56mm; border: 1px solid var(--total-border); border-radius: 6px; overflow: hidden; }
-        .total-head { background: var(--total-bg); padding: 1.3mm 2mm; font-size: 8px; color: var(--brand-1); text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; }
-        .total-value { padding: 2mm; text-align: right; font-size: 14px; font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif; font-weight: 500; color: var(--ok); }
+        .total-box {
+            min-width: 56mm;
+            border: 1px solid var(--total-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .total-head {
+            background: var(--total-bg);
+            padding: 1.3mm 2mm;
+            font-size: 8px;
+            color: var(--brand-1);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 700;
+        }
+
+        .total-value {
+            padding: 2mm;
+            text-align: right;
+            font-size: 14px;
+            font-family: "IBM Plex Sans", "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+            font-weight: 500;
+            color: var(--ok);
+        }
+
         .stamp { margin-top: 0.7mm; text-align: right; font-size: 7.8px; color: var(--muted); }
 
         /* Invoice multi-row totals */
@@ -225,7 +376,8 @@
         /* Status badge overlay — centered, outline only */
         .status-overlay {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%) rotate(-18deg);
             z-index: 2;
             pointer-events: none;
@@ -258,7 +410,6 @@
         @if($badgeLabel)
             <div class="status-overlay" style="--status-color: {{ $badgeColor }}">{{ $badgeLabel }}</div>
         @endif
-
         <section class="topbar">
             <div class="logo-wrap logo-wrap-square" aria-label="Logo Yayasan">
                 @if ($foundationLogoSrc)
@@ -273,7 +424,6 @@
                 <div class="address">{!! nl2br(e($schoolAddress !== '' ? $schoolAddress : __('receipt.address_not_set'))) !!}</div>
                 <h1 class="doc-title">{{ $title }}</h1>
             </div>
-
             <div class="logo-wrap" aria-label="Logo {{ $schoolName }}">
                 @if ($schoolLogoSrc)
                     <img src="{{ $schoolLogoSrc }}" alt="Logo {{ $schoolName }}">
