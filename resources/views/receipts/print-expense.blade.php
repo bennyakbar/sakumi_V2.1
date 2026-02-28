@@ -14,7 +14,7 @@
     :receiptPrintStatus="$receiptPrintStatus ?? 'ORIGINAL'"
     :signerName="$transaction->creator->name ?? 'Administration Admin'"
     :school="$school"
-    statusBadge="paid"
+    :statusBadge="$transaction->status === 'completed' ? __('receipt.status_disbursed') : $transaction->status"
     :footerNote="__('receipt.footer.official_expense')"
 >
     <x-slot:meta>

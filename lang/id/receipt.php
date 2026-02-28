@@ -97,5 +97,6 @@ return [
     'expense_type'         => 'PENGELUARAN',
     'income_type'          => 'PENDAPATAN',
     'address_not_set'      => 'Alamat sekolah belum diatur',
+    'status_disbursed'     => 'DICAIRKAN',
 
 ];

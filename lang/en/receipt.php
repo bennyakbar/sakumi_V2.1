@@ -97,5 +97,6 @@ return [
     'expense_type'         => 'EXPENSE',
     'income_type'          => 'INCOME',
     'address_not_set'      => 'School address not configured',
+    'status_disbursed'     => 'DISBURSED',
 
 ];

@@ -94,6 +94,8 @@
         'partially_paid' => '#1e40af',
         'partial' => '#1e40af',
         'completed' => '#065f46',
+        'disbursed' => '#7c4a1e',
+        'dicairkan' => '#7c4a1e',
         'cancelled' => '#991b1b',
         'void' => '#991b1b',
     ];
