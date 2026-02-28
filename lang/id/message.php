@@ -122,6 +122,25 @@ return [
     'general'                      => 'Umum',
     'watermark_original'           => 'ASLI',
 
+    // Penerimaan (PSB)
+    'admission_period_created'     => 'Periode penerimaan berhasil dibuat.',
+    'admission_period_updated'     => 'Periode penerimaan berhasil diperbarui.',
+    'admission_period_deleted'     => 'Periode penerimaan berhasil dihapus.',
+    'admission_period_has_applicants' => 'Tidak dapat menghapus periode yang masih memiliki calon siswa.',
+    'applicant_created'            => 'Calon siswa berhasil didaftarkan.',
+    'applicant_updated'            => 'Data calon siswa berhasil diperbarui.',
+    'applicant_deleted'            => 'Data calon siswa berhasil dihapus.',
+    'applicant_reviewed'           => 'Calon siswa berhasil masuk tahap review.',
+    'applicant_accepted'           => 'Calon siswa berhasil diterima.',
+    'applicant_rejected'           => 'Calon siswa berhasil ditolak.',
+    'applicant_enrolled'           => 'Calon siswa berhasil didaftarkan sebagai siswa.',
+    'applicant_cannot_edit_enrolled' => 'Tidak dapat mengedit calon siswa yang sudah terdaftar.',
+    'applicant_cannot_delete_enrolled' => 'Tidak dapat menghapus calon siswa yang sudah terdaftar.',
+    'applicants_bulk_updated'      => ':count calon siswa berhasil diperbarui.',
+    'admission_invalid_transition' => 'Transisi status tidak valid.',
+    'admission_quota_exceeded'     => 'Kuota kelas sudah penuh.',
+    'admission_invalid_status'     => 'Status tidak valid untuk operasi bulk.',
+
     // Label kelompok aging
     'aging_0_30'                   => '0-30 hari',
     'aging_31_60'                  => '31-60 hari',

@@ -122,6 +122,25 @@ return [
     'general'                      => 'General',
     'watermark_original'           => 'ORIGINAL',
 
+    // Admission (PSB)
+    'admission_period_created'     => 'Admission period created successfully.',
+    'admission_period_updated'     => 'Admission period updated successfully.',
+    'admission_period_deleted'     => 'Admission period deleted successfully.',
+    'admission_period_has_applicants' => 'Cannot delete period that still has applicants.',
+    'applicant_created'            => 'Applicant registered successfully.',
+    'applicant_updated'            => 'Applicant updated successfully.',
+    'applicant_deleted'            => 'Applicant deleted successfully.',
+    'applicant_reviewed'           => 'Applicant moved to review.',
+    'applicant_accepted'           => 'Applicant accepted.',
+    'applicant_rejected'           => 'Applicant rejected.',
+    'applicant_enrolled'           => 'Applicant enrolled as student successfully.',
+    'applicant_cannot_edit_enrolled' => 'Cannot edit an enrolled applicant.',
+    'applicant_cannot_delete_enrolled' => 'Cannot delete an enrolled applicant.',
+    'applicants_bulk_updated'      => ':count applicant(s) updated successfully.',
+    'admission_invalid_transition' => 'Invalid status transition.',
+    'admission_quota_exceeded'     => 'Class quota has been reached.',
+    'admission_invalid_status'     => 'Invalid status for bulk operation.',
+
     // Aging bucket labels
     'aging_0_30'                   => '0-30 days',
     'aging_31_60'                  => '31-60 days',

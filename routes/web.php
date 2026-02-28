@@ -11,6 +11,8 @@ use App\Http\Controllers\Master\FeeTypeController;
 use App\Http\Controllers\Master\StudentController;
 use App\Http\Controllers\Master\StudentFeeMappingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admission\AdmissionPeriodController;
+use App\Http\Controllers\Admission\ApplicantController;
 use App\Http\Controllers\Expense\ExpenseController;
 use App\Http\Controllers\Reconciliation\BankReconciliationController;
 use App\Http\Controllers\UserManagement\UserController;
@@ -358,6 +360,72 @@ Route::middleware('auth')->group(function () {
         Route::post('/budgets', [ExpenseController::class, 'storeBudget'])
             ->middleware('can:expenses.budget.manage')
             ->name('budgets.store');
+    });
+
+    // Admission (PSB)
+    Route::prefix('admission')->name('admission.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,operator_tu,kepala_sekolah,bendahara,auditor')->group(function () {
+        // Periods
+        Route::get('periods', [AdmissionPeriodController::class, 'index'])
+            ->middleware('can:admission.periods.view')
+            ->name('periods.index');
+        Route::get('periods/create', [AdmissionPeriodController::class, 'create'])
+            ->middleware('can:admission.periods.create')
+            ->name('periods.create');
+        Route::post('periods', [AdmissionPeriodController::class, 'store'])
+            ->middleware('can:admission.periods.create')
+            ->name('periods.store');
+        Route::get('periods/{period}', [AdmissionPeriodController::class, 'show'])
+            ->middleware('can:admission.periods.view')
+            ->name('periods.show');
+        Route::get('periods/{period}/edit', [AdmissionPeriodController::class, 'edit'])
+            ->middleware('can:admission.periods.edit')
+            ->name('periods.edit');
+        Route::put('periods/{period}', [AdmissionPeriodController::class, 'update'])
+            ->middleware('can:admission.periods.edit')
+            ->name('periods.update');
+        Route::delete('periods/{period}', [AdmissionPeriodController::class, 'destroy'])
+            ->middleware('can:admission.periods.delete')
+            ->name('periods.destroy');
+
+        // Applicants
+        Route::get('applicants', [ApplicantController::class, 'index'])
+            ->middleware('can:admission.applicants.view')
+            ->name('applicants.index');
+        Route::get('applicants/create', [ApplicantController::class, 'create'])
+            ->middleware('can:admission.applicants.create')
+            ->name('applicants.create');
+        Route::post('applicants', [ApplicantController::class, 'store'])
+            ->middleware('can:admission.applicants.create')
+            ->name('applicants.store');
+        Route::get('applicants/{applicant}', [ApplicantController::class, 'show'])
+            ->middleware('can:admission.applicants.view')
+            ->name('applicants.show');
+        Route::get('applicants/{applicant}/edit', [ApplicantController::class, 'edit'])
+            ->middleware('can:admission.applicants.edit')
+            ->name('applicants.edit');
+        Route::put('applicants/{applicant}', [ApplicantController::class, 'update'])
+            ->middleware('can:admission.applicants.edit')
+            ->name('applicants.update');
+        Route::delete('applicants/{applicant}', [ApplicantController::class, 'destroy'])
+            ->middleware('can:admission.applicants.delete')
+            ->name('applicants.destroy');
+
+        // Workflow actions
+        Route::post('applicants/{applicant}/review', [ApplicantController::class, 'review'])
+            ->middleware('can:admission.applicants.review')
+            ->name('applicants.review');
+        Route::post('applicants/{applicant}/accept', [ApplicantController::class, 'accept'])
+            ->middleware('can:admission.applicants.accept')
+            ->name('applicants.accept');
+        Route::post('applicants/{applicant}/reject', [ApplicantController::class, 'reject'])
+            ->middleware('can:admission.applicants.reject')
+            ->name('applicants.reject');
+        Route::post('applicants/{applicant}/enroll', [ApplicantController::class, 'enroll'])
+            ->middleware('can:admission.applicants.enroll')
+            ->name('applicants.enroll');
+        Route::post('applicants/bulk-status', [ApplicantController::class, 'bulkStatus'])
+            ->middleware('can:admission.applicants.accept')
+            ->name('applicants.bulk-status');
     });
 
     // Bank Reconciliation

@@ -48,6 +48,14 @@ return [
         'monthly'        => 'Monthly',
         'one_time'       => 'One-time',
         'annual'         => 'Annual',
+        'registered'     => 'Registered',
+        'under_review'   => 'Under Review',
+        'accepted'       => 'Accepted',
+        'rejected'       => 'Rejected',
+        'enrolled'       => 'Enrolled',
+        'draft'          => 'Draft',
+        'open'           => 'Open',
+        'closed'         => 'Closed',
     ],
 
     // Common labels / column headers
@@ -139,6 +147,9 @@ return [
         'reports'        => 'Reports',
         'users'          => 'Users',
         'language'       => 'Language',
+        'admission'      => 'Admission',
+        'admission_periods' => 'Admission Periods',
+        'applicants'     => 'Applicants',
     ],
 
     // Empty state messages
@@ -159,6 +170,8 @@ return [
         'arrears'       => 'No overdue invoices with outstanding balance.',
         'no_invoices_student' => 'No outstanding invoices found for this student.',
         'no_transactions_yet' => 'No transactions yet.',
+        'admission_periods' => 'No admission periods found.',
+        'applicants'     => 'No applicants found.',
     ],
 
     // Error/flash messages (from controllers/middleware)

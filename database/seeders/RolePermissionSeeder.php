@@ -37,6 +37,10 @@ class RolePermissionSeeder extends Seeder
             'reports.daily', 'reports.monthly', 'reports.arrears',
             'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
             'reports.export',
+            // Admission (PSB)
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             // Dashboard
             'dashboard.view',
             // Users & Roles
@@ -64,6 +68,7 @@ class RolePermissionSeeder extends Seeder
         // Bendahara — financial operations + reporting
         $bendahara = Role::firstOrCreate(['name' => 'bendahara']);
         $bendahara->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.fee-types.view',
@@ -88,6 +93,7 @@ class RolePermissionSeeder extends Seeder
         // Kepala Sekolah — view-only + reporting
         $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah']);
         $kepalaSekolah->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.classes.view',
@@ -111,6 +117,9 @@ class RolePermissionSeeder extends Seeder
         // Operator TU — operations (master data + create financial docs, no cancel)
         $operatorTu = Role::firstOrCreate(['name' => 'operator_tu']);
         $operatorTu->syncPermissions([
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             'dashboard.view',
             'master.students.view', 'master.students.create', 'master.students.edit', 'master.students.delete',
             'master.students.import', 'master.students.export',
@@ -132,6 +141,9 @@ class RolePermissionSeeder extends Seeder
 
         // Admin TU per unit (MI/RA/DTA) — granular operational access in own unit.
         $adminTuUnitPermissions = [
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             'dashboard.view',
             'master.students.view', 'master.students.create', 'master.students.edit', 'master.students.delete',
             'master.students.import', 'master.students.export',
@@ -162,6 +174,7 @@ class RolePermissionSeeder extends Seeder
         // Auditor — view-only all data, audit log
         $auditor = Role::firstOrCreate(['name' => 'auditor']);
         $auditor->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.classes.view',

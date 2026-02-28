@@ -48,6 +48,14 @@ return [
         'monthly'        => 'Bulanan',
         'one_time'       => 'Sekali Bayar',
         'annual'         => 'Tahunan',
+        'registered'     => 'Terdaftar',
+        'under_review'   => 'Sedang Direview',
+        'accepted'       => 'Diterima',
+        'rejected'       => 'Ditolak',
+        'enrolled'       => 'Terdaftar Siswa',
+        'draft'          => 'Draft',
+        'open'           => 'Dibuka',
+        'closed'         => 'Ditutup',
     ],
 
     // Label umum / header kolom
@@ -139,6 +147,9 @@ return [
         'reports'        => 'Laporan',
         'users'          => 'User',
         'language'       => 'Bahasa',
+        'admission'      => 'Penerimaan',
+        'admission_periods' => 'Periode Penerimaan',
+        'applicants'     => 'Calon Siswa',
     ],
 
     // Pesan kosong
@@ -159,6 +170,8 @@ return [
         'arrears'       => 'Tidak ada invoice jatuh tempo dengan tunggakan.',
         'no_invoices_student' => 'Tidak ada tagihan tertunggak untuk siswa ini.',
         'no_transactions_yet' => 'Belum ada transaksi.',
+        'admission_periods' => 'Tidak ada periode penerimaan ditemukan.',
+        'applicants'     => 'Tidak ada calon siswa ditemukan.',
     ],
 
     // Pesan error/flash
