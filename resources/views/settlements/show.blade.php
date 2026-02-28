@@ -127,6 +127,12 @@
                             class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
                             {{ __('app.button.back') }}
                         </a>
+                        @if($settlement->status === 'completed')
+                            <a href="{{ route('settlements.print', $settlement) }}" target="_blank"
+                                class="px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                                {{ __('app.button.print') }}
+                            </a>
+                        @endif
                         @can('settlements.cancel')
                             @if($settlement->status === 'completed')
                                 <button type="button" class="px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700"

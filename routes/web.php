@@ -289,6 +289,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{settlement}', [\App\Http\Controllers\Settlement\SettlementController::class, 'show'])
             ->middleware('can:settlements.view')
             ->name('show');
+        Route::get('/{settlement}/print', [\App\Http\Controllers\Settlement\SettlementController::class, 'print'])
+            ->middleware('can:settlements.view')
+            ->name('print');
         Route::post('/{settlement}/void', [\App\Http\Controllers\Settlement\SettlementController::class, 'void'])
             ->middleware('can:settlements.void')
             ->name('void');

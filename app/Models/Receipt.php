@@ -11,6 +11,7 @@ class Receipt extends Model
     protected $fillable = [
         'transaction_id',
         'invoice_id',
+        'settlement_id',
         'issued_at',
         'printed_at',
         'verification_code',
@@ -34,6 +35,11 @@ class Receipt extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function settlement(): BelongsTo
+    {
+        return $this->belongsTo(Settlement::class);
     }
 
     public function printLogs(): HasMany

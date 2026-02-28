@@ -6,18 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Settlement;
 use App\Models\Student;
+use App\Services\ControlledReceiptService;
+use App\Services\ReceiptVerificationService;
+use App\Services\SchoolIdentityService;
 use App\Services\SettlementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SettlementController extends Controller
 {
     public function __construct(
         private readonly SettlementService $settlementService,
+        private readonly SchoolIdentityService $schoolIdentityService,
+        private readonly ReceiptVerificationService $verificationService,
+        private readonly ControlledReceiptService $controlledReceiptService,
     ) {}
 
     public function index(Request $request): View
@@ -169,6 +176,86 @@ class SettlementController extends Controller
         ]);
 
         return view('settlements.show', compact('settlement'));
+    }
+
+    public function print(Request $request, Settlement $settlement): View|RedirectResponse
+    {
+        $settlement->load(['student.schoolClass', 'allocations.invoice', 'creator']);
+        $schoolData = $this->schoolIdentityService->resolve($settlement->unit_id);
+
+        if (! Schema::hasTable('receipts')) {
+            $verificationCode = $this->verificationService->makeSettlementCode($settlement);
+            $verificationUrl = $this->verificationService->makeVerifyUrl($verificationCode);
+            $watermarkText = $this->verificationService->makeWatermark($verificationCode, 'ORIGINAL');
+
+            return view('settlements.print', [
+                'settlement' => $settlement,
+                'verificationCode' => $verificationCode,
+                'verificationUrl' => $verificationUrl,
+                'watermarkText' => $watermarkText,
+                'receiptIssuedAt' => $settlement->created_at,
+                'receiptPrintedAt' => now(),
+                'receiptPrintStatus' => 'ORIGINAL',
+                'schoolData' => $schoolData,
+            ]);
+        }
+
+        $receipt = $this->controlledReceiptService->issueForSettlement($settlement);
+        $reason = $this->resolveReprintReason($request);
+        $isReprintAttempt = $receipt->print_count > 0;
+        $isReprintAuthority = (bool) $request->user()?->hasAnyRole(['bendahara', 'super_admin', 'admin_tu_mi', 'admin_tu_ra', 'admin_tu_dta', 'admin_tu']);
+
+        if ($isReprintAttempt && ! $isReprintAuthority) {
+            abort(403, 'Only bendahara/admin can reprint settlement receipts.');
+        }
+
+        if ($isReprintAttempt && blank($reason)) {
+            return view('receipts.reprint-reason', [
+                'transaction' => null,
+                'settlement' => $settlement,
+                'receipt' => $receipt,
+            ]);
+        }
+
+        $receipt = $this->controlledReceiptService->registerPrintForSettlement(
+            settlement: $settlement,
+            user: $request->user(),
+            reason: $reason,
+            ipAddress: $request->ip(),
+            device: (string) $request->userAgent(),
+        );
+
+        $printStatus = $this->controlledReceiptService->printStatus($receipt);
+        $verificationCode = $receipt->verification_code;
+        $verificationUrl = $this->verificationService->makeVerifyUrl($verificationCode);
+        $watermarkText = $this->verificationService->makeWatermark($verificationCode, $printStatus);
+
+        return view('settlements.print', [
+            'settlement' => $settlement,
+            'verificationCode' => $verificationCode,
+            'verificationUrl' => $verificationUrl,
+            'watermarkText' => $watermarkText,
+            'receiptIssuedAt' => $receipt->issued_at,
+            'receiptPrintedAt' => $receipt->printed_at,
+            'receiptPrintStatus' => $printStatus,
+            'schoolData' => $schoolData,
+        ]);
+    }
+
+    private function resolveReprintReason(Request $request): ?string
+    {
+        $reasonType = trim((string) $request->query('reason_type', ''));
+        $reasonOther = trim((string) $request->query('reason_other', ''));
+
+        if ($reasonType === '') {
+            return null;
+        }
+
+        if ($reasonType === 'other') {
+            return $reasonOther !== '' ? $reasonOther : null;
+        }
+
+        return $reasonType;
     }
 
     public function void(Request $request, Settlement $settlement): RedirectResponse

@@ -4,9 +4,10 @@ return [
 
     // Judul dokumen
     'title' => [
-        'payment_receipt'  => 'RECEIPT PEMBAYARAN',
-        'expense_receipt'  => 'BUKTI PENGELUARAN',
-        'invoice'          => 'TAGIHAN PEMBAYARAN',
+        'payment_receipt'    => 'RECEIPT PEMBAYARAN',
+        'expense_receipt'    => 'BUKTI PENGELUARAN',
+        'invoice'            => 'TAGIHAN PEMBAYARAN',
+        'settlement_receipt' => 'BUKTI PELUNASAN',
     ],
 
     // Label meta
@@ -27,7 +28,9 @@ return [
         'issued_at'        => 'Diterbitkan pada',
         'printed_at'       => 'Dicetak pada',
         'print_status'     => 'Status Cetak',
-        'school_treasurer' => 'Bendahara Sekolah',
+        'school_treasurer'   => 'Bendahara Sekolah',
+        'settlement_no'      => 'No. Pelunasan',
+        'reference_number'   => 'No. Referensi',
     ],
 
     // Header tabel
@@ -39,6 +42,9 @@ return [
         'detail'           => 'Keterangan',
         'nominal'          => 'Nominal',
         'period'           => 'Periode',
+        'invoice_no'       => 'No. Invoice',
+        'invoice_total'    => 'Total Tagihan',
+        'allocated'        => 'Jumlah Dialokasi',
     ],
 
     // Total
@@ -48,6 +54,7 @@ return [
         'invoice'          => 'Total Tagihan',
         'paid'             => 'Sudah Dibayar',
         'outstanding'      => 'Sisa Tagihan',
+        'settlement'       => 'Total Pelunasan',
     ],
 
     // Footer
@@ -56,7 +63,8 @@ return [
         'official_expense' => 'Dokumen ini merupakan bukti pengeluaran resmi sekolah.',
         'items_condensed'  => ':count item tambahan diringkas agar tetap 1 lembar',
         'digitally_signed' => 'Ditandatangani secara digital',
-        'verification'     => 'Kode Verifikasi',
+        'verification'       => 'Kode Verifikasi',
+        'official_settlement' => 'Dokumen ini merupakan bukti pelunasan resmi sekolah.',
     ],
 
     // Halaman verifikasi

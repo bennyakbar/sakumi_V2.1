@@ -4,9 +4,10 @@ return [
 
     // Document titles
     'title' => [
-        'payment_receipt'  => 'PAYMENT RECEIPT',
-        'expense_receipt'  => 'EXPENSE RECEIPT',
-        'invoice'          => 'PAYMENT INVOICE',
+        'payment_receipt'    => 'PAYMENT RECEIPT',
+        'expense_receipt'    => 'EXPENSE RECEIPT',
+        'invoice'            => 'PAYMENT INVOICE',
+        'settlement_receipt' => 'SETTLEMENT RECEIPT',
     ],
 
     // Meta labels
@@ -27,7 +28,9 @@ return [
         'issued_at'        => 'Issued At',
         'printed_at'       => 'Printed at',
         'print_status'     => 'Print Status',
-        'school_treasurer' => 'School Treasurer',
+        'school_treasurer'   => 'School Treasurer',
+        'settlement_no'      => 'Settlement No.',
+        'reference_number'   => 'Reference No.',
     ],
 
     // Table headers
@@ -39,6 +42,9 @@ return [
         'detail'           => 'Detail',
         'nominal'          => 'Amount',
         'period'           => 'Period',
+        'invoice_no'       => 'Invoice #',
+        'invoice_total'    => 'Invoice Total',
+        'allocated'        => 'Allocated Amount',
     ],
 
     // Totals
@@ -48,6 +54,7 @@ return [
         'invoice'          => 'Total Invoice',
         'paid'             => 'Already Paid',
         'outstanding'      => 'Outstanding',
+        'settlement'       => 'Total Settlement',
     ],
 
     // Footer
@@ -56,7 +63,8 @@ return [
         'official_expense' => 'This document is an official school expense receipt.',
         'items_condensed'  => ':count additional items condensed to fit 1 page',
         'digitally_signed' => 'Digitally signed',
-        'verification'     => 'Verification Code',
+        'verification'       => 'Verification Code',
+        'official_settlement' => 'This document is an official school settlement receipt.',
     ],
 
     // Verification page
