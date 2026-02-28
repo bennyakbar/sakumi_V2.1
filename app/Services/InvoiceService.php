@@ -8,6 +8,7 @@ use App\Models\Settlement;
 use App\Models\Student;
 use App\Models\StudentObligation;
 use App\Models\Unit;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class InvoiceService
@@ -249,6 +250,12 @@ class InvoiceService
 
     private function voidWithPayments(Invoice $invoice, int $userId, ?string $reason = null): Invoice
     {
+        // Ensure the acting user has settlement void permission before cascading
+        $user = Auth::user();
+        if ($user && !$user->can('settlements.void')) {
+            throw new \RuntimeException(__('message.cancel_paid_invoice_requires_void_permission'));
+        }
+
         $reason = trim((string) ($reason ?: 'Invoice void with payment correction'));
 
         return DB::transaction(function () use ($invoice, $userId, $reason) {

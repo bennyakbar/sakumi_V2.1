@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\Settlement;
 use App\Models\SettlementAllocation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SettlementService
 {
@@ -71,7 +72,15 @@ class SettlementService
                 $settledAmount = (float) $invoice->allocations()
                     ->whereHas('settlement', fn ($q) => $q->where('status', 'completed'))
                     ->sum('amount');
-                $outstanding = max(0, (float) $invoice->total_amount - $settledAmount);
+                $outstanding = (float) $invoice->total_amount - $settledAmount;
+                if ($outstanding < 0) {
+                    Log::warning('Over-settled invoice detected', [
+                        'invoice_id' => $invoice->id,
+                        'total_amount' => $invoice->total_amount,
+                        'settled_amount' => $settledAmount,
+                    ]);
+                    $outstanding = 0;
+                }
                 if ($amount > $outstanding) {
                     throw new \RuntimeException(__('message.allocation_exceeds_outstanding', ['number' => $invoice->invoice_number, 'allocated' => number_format($amount, 0, ',', '.'), 'outstanding' => number_format($outstanding, 0, ',', '.')]));
                 }
@@ -155,6 +164,10 @@ class SettlementService
     {
         if ($settlement->isCancelled()) {
             throw new \RuntimeException(__('message.settlement_already_cancelled'));
+        }
+
+        if ($settlement->status !== 'completed') {
+            throw new \RuntimeException(__('message.settlement_not_active', ['status' => $settlement->status]));
         }
 
         return DB::transaction(function () use ($settlement, $userId, $reason) {

@@ -137,43 +137,45 @@ class TransactionService
             throw new \RuntimeException(__('message.transaction_already_cancelled'));
         }
 
-        $transaction->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-            'cancelled_by' => $userId,
-            'cancellation_reason' => $reason,
-        ]);
+        return DB::transaction(function () use ($transaction, $userId, $reason) {
+            $transaction->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancelled_by' => $userId,
+                'cancellation_reason' => $reason,
+            ]);
 
-        // Revert obligation payments
-        if ($transaction->type === 'income') {
-            $itemIds = $transaction->items->pluck('id');
+            // Revert obligation payments
+            if ($transaction->type === 'income') {
+                $itemIds = $transaction->items->pluck('id');
 
-            StudentObligation::whereIn('transaction_item_id', $itemIds)
-                ->update([
-                    'is_paid' => false,
-                    'paid_amount' => 0,
-                    'paid_at' => null,
-                    'transaction_item_id' => null,
-                ]);
+                StudentObligation::whereIn('transaction_item_id', $itemIds)
+                    ->update([
+                        'is_paid' => false,
+                        'paid_amount' => 0,
+                        'paid_at' => null,
+                        'transaction_item_id' => null,
+                    ]);
 
-            // Regenerate receipt with cancellation watermark
+                // Regenerate receipt with cancellation watermark
                 DB::afterCommit(function () use ($transaction) {
                     $this->receiptService->generateCancelled($transaction);
                 });
             }
 
-        if (config('features.accounting_engine_v2')) {
-            AccountingEngine::fromEvent('reversal.posted', [
-                'unit_id' => $transaction->unit_id,
-                'source_type' => 'transaction',
-                'source_id' => $transaction->id,
-                'effective_date' => now()->toDateString(),
-                'created_by' => $userId,
-                'reason' => $reason,
-                'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
-            ]);
-        }
+            if (config('features.accounting_engine_v2')) {
+                AccountingEngine::fromEvent('reversal.posted', [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'effective_date' => now()->toDateString(),
+                    'created_by' => $userId,
+                    'reason' => $reason,
+                    'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
+                ]);
+            }
 
-        return $transaction->fresh();
+            return $transaction->fresh();
+        });
     }
 }

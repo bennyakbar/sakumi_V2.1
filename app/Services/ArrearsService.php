@@ -7,59 +7,62 @@ use App\Models\Student;
 use App\Models\StudentFeeMapping;
 use App\Models\StudentObligation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ArrearsService
 {
     public function generateMonthlyObligations(int $month, int $year): int
     {
-        $students = Student::where('status', 'active')->get();
-        $created = 0;
-        $periodDate = Carbon::create($year, $month, 1)->startOfDay();
+        return DB::transaction(function () use ($month, $year) {
+            $students = Student::where('status', 'active')->get();
+            $created = 0;
+            $periodDate = Carbon::create($year, $month, 1)->startOfDay();
 
-        foreach ($students as $student) {
-            $feeEntries = $this->resolveFeeEntriesForStudentAtDate($student, $periodDate);
+            foreach ($students as $student) {
+                $feeEntries = $this->resolveFeeEntriesForStudentAtDate($student, $periodDate);
 
-            foreach ($feeEntries as $entry) {
-                $existing = StudentObligation::query()
-                    ->where('student_id', $student->id)
-                    ->where('fee_type_id', $entry->fee_type_id)
-                    ->where('month', $month)
-                    ->where('year', $year)
-                    ->first();
+                foreach ($feeEntries as $entry) {
+                    $existing = StudentObligation::query()
+                        ->where('student_id', $student->id)
+                        ->where('fee_type_id', $entry->fee_type_id)
+                        ->where('month', $month)
+                        ->where('year', $year)
+                        ->first();
 
-                if (! $existing) {
-                    StudentObligation::query()->create([
-                        'unit_id' => $student->unit_id,
-                        'student_id' => $student->id,
-                        'fee_type_id' => $entry->fee_type_id,
-                        'month' => $month,
-                        'year' => $year,
-                        'amount' => $entry->amount,
-                        'is_paid' => false,
-                        'paid_amount' => 0,
-                    ]);
-                    $created++;
-                    continue;
-                }
-
-                // Keep obligations idempotent but allow tariff correction before payment/invoice posting.
-                $hasActiveInvoice = $existing->invoiceItems()
-                    ->whereHas('invoice', fn ($q) => $q->where('status', '!=', 'cancelled'))
-                    ->exists();
-
-                if (! $existing->is_paid && ! $hasActiveInvoice && $existing->transaction_item_id === null) {
-                    $newAmount = (float) $entry->amount;
-                    if ((float) $existing->amount !== $newAmount) {
-                        $existing->update([
-                            'amount' => $newAmount,
-                            'updated_at' => now(),
+                    if (! $existing) {
+                        StudentObligation::query()->create([
+                            'unit_id' => $student->unit_id,
+                            'student_id' => $student->id,
+                            'fee_type_id' => $entry->fee_type_id,
+                            'month' => $month,
+                            'year' => $year,
+                            'amount' => $entry->amount,
+                            'is_paid' => false,
+                            'paid_amount' => 0,
                         ]);
+                        $created++;
+                        continue;
+                    }
+
+                    // Keep obligations idempotent but allow tariff correction before payment/invoice posting.
+                    $hasActiveInvoice = $existing->invoiceItems()
+                        ->whereHas('invoice', fn ($q) => $q->where('status', '!=', 'cancelled'))
+                        ->exists();
+
+                    if (! $existing->is_paid && ! $hasActiveInvoice && $existing->transaction_item_id === null) {
+                        $newAmount = (float) $entry->amount;
+                        if ((float) $existing->amount !== $newAmount) {
+                            $existing->update([
+                                'amount' => $newAmount,
+                                'updated_at' => now(),
+                            ]);
+                        }
                     }
                 }
             }
-        }
 
-        return $created;
+            return $created;
+        });
     }
 
     /**

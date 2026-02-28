@@ -59,7 +59,16 @@ class SettlementController extends Controller
                 ->get()
                 ->map(function (Invoice $invoice) {
                     $settled = (float) ($invoice->settled_amount ?? 0);
-                    $invoice->outstanding_amount = max(0, (float) $invoice->total_amount - $settled);
+                    $outstanding = (float) $invoice->total_amount - $settled;
+                    if ($outstanding < 0) {
+                        Log::warning('Over-settled invoice detected', [
+                            'invoice_id' => $invoice->id,
+                            'total_amount' => $invoice->total_amount,
+                            'settled_amount' => $settled,
+                        ]);
+                        $outstanding = 0;
+                    }
+                    $invoice->outstanding_amount = $outstanding;
                     return $invoice;
                 })
                 ->filter(fn (Invoice $invoice) => $invoice->outstanding_amount > 0)
@@ -102,7 +111,15 @@ class SettlementController extends Controller
         $settledAmount = (float) $invoice->allocations()
             ->whereHas('settlement', fn ($q) => $q->where('status', 'completed'))
             ->sum('amount');
-        $outstanding = max(0, (float) $invoice->total_amount - $settledAmount);
+        $outstanding = (float) $invoice->total_amount - $settledAmount;
+        if ($outstanding < 0) {
+            Log::warning('Over-settled invoice detected', [
+                'invoice_id' => $invoice->id,
+                'total_amount' => $invoice->total_amount,
+                'settled_amount' => $settledAmount,
+            ]);
+            $outstanding = 0;
+        }
         $amount = (float) $validated['amount'];
 
         if ($amount > $outstanding) {

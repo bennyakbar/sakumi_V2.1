@@ -30,7 +30,7 @@ class RolePermissionSeeder extends Seeder
             // Receipts
             'receipts.view', 'receipts.print', 'receipts.reprint',
             // Invoices
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
             // Settlements
             'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
             // Reports
@@ -80,7 +80,7 @@ class RolePermissionSeeder extends Seeder
             'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
             'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             'receipts.view', 'receipts.print', 'receipts.reprint',
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
             'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
             'reports.daily', 'reports.monthly', 'reports.arrears',
             'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
