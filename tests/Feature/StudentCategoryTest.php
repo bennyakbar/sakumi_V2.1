@@ -83,7 +83,7 @@ class StudentCategoryTest extends TestCase
         $response = $this->delete(route('master.categories.destroy', $category));
 
         $response->assertRedirect(route('master.categories.index'));
-        $this->assertDatabaseMissing('student_categories', ['id' => $category->id]);
+        $this->assertSoftDeleted('student_categories', ['id' => $category->id]);
     }
 
     public function test_unique_code_validation()

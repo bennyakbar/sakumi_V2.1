@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Settlement;
 use App\Models\Transaction;
 use Carbon\CarbonInterface;
 
@@ -29,6 +30,15 @@ class ReceiptVerificationService
             referenceId: 'TXN-' . (string) $transaction->id,
             amount: (float) $transaction->total_amount,
             issuedAt: $issuedAt,
+        );
+    }
+
+    public function makeSettlementCode(Settlement $settlement): string
+    {
+        return $this->makeDeterministicCode(
+            referenceId: 'STL-' . (string) $settlement->id,
+            amount: (float) $settlement->total_amount,
+            issuedAt: $settlement->created_at ?? now(),
         );
     }
 

@@ -181,10 +181,25 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function destroy(Invoice $invoice): RedirectResponse
+    public function destroy(Request $request, Invoice $invoice): RedirectResponse
     {
+        // Paid or partially paid invoices require escalated permission
+        if (in_array($invoice->status, ['paid', 'partially_paid']) || (float) $invoice->paid_amount > 0) {
+            if (!$request->user()->can('invoices.cancel_paid')) {
+                abort(403, __('message.cancel_paid_invoice_not_authorized'));
+            }
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => 'nullable|string|max:1000',
+        ]);
+
         try {
-            $this->invoiceService->cancel($invoice);
+            $this->invoiceService->cancel(
+                invoice: $invoice,
+                userId: (int) auth()->id(),
+                reason: (string) ($validated['cancellation_reason'] ?? __('message.cancelled_by_admin')),
+            );
             return redirect()->route('invoices.index')
                 ->with('success', __('message.invoice_cancelled'));
         } catch (\Throwable $e) {

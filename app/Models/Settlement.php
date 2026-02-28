@@ -14,6 +14,13 @@ class Settlement extends Model
 {
     use BelongsToUnit, HasFactory, LogsActivity;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Settlement $settlement) {
+            throw new \RuntimeException(__('message.hard_delete_not_allowed'));
+        });
+    }
+
     protected $fillable = [
         'unit_id',
         'settlement_number',

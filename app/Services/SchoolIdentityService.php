@@ -35,6 +35,7 @@ class SchoolIdentityService
             'school_phone' => $phone,
             'school_logo' => $logo,
             'foundation_logo' => $foundationLogo,
+            'unit_code' => $unitCode,
         ];
     }
 

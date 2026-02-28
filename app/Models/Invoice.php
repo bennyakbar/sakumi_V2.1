@@ -14,6 +14,13 @@ class Invoice extends Model
 {
     use BelongsToUnit, HasFactory, LogsActivity;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Invoice $invoice) {
+            throw new \RuntimeException(__('message.hard_delete_not_allowed'));
+        });
+    }
+
     protected $fillable = [
         'unit_id',
         'invoice_number',

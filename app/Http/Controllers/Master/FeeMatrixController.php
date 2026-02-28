@@ -9,7 +9,10 @@ use App\Models\FeeMatrix;
 use App\Models\FeeType;
 use App\Models\SchoolClass;
 use App\Models\StudentCategory;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class FeeMatrixController extends Controller
@@ -108,11 +111,46 @@ class FeeMatrixController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeMatrix $feeMatrix): RedirectResponse
+    public function destroy(Request $request, FeeMatrix $feeMatrix): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_FEE_MATRIX, (int) $feeMatrix->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, [], 'attempt');
+                $feeMatrix->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_MATRIX, $feeMatrix, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
+
+            return redirect()->route('master.fee-matrix.index')
+                ->with('success', __('message.fee_matrix_permanently_deleted'));
+        }
+
         $feeMatrix->delete();
 
         return redirect()->route('master.fee-matrix.index')
             ->with('success', __('message.fee_matrix_deleted'));
     }
+
 }

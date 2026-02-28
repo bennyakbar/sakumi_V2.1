@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\View\View;
 
 class NewPasswordController extends Controller
@@ -33,7 +33,11 @@ class NewPasswordController extends Controller
         $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                PasswordRule::defaults(),
+            ],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -47,9 +51,29 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                activity('security')
+                    ->causedBy($user)
+                    ->performedOn($user)
+                    ->withProperties([
+                        'ip' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                    ])
+                    ->log('auth.password_reset_completed');
+
                 event(new PasswordReset($user));
             }
         );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            activity('security')
+                ->withProperties([
+                    'email_hash' => hash('sha256', strtolower((string) $request->input('email'))),
+                    'status' => $status,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ])
+                ->log('auth.password_reset_failed');
+        }
 
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can

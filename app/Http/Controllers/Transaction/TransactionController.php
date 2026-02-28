@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use App\Models\SchoolClass;
+use App\Models\Student;
+use App\Models\StudentObligation;
 use App\Models\Transaction;
 use App\Models\FeeType;
 use App\Services\TransactionService;
@@ -18,7 +21,8 @@ class TransactionController extends Controller
 {
     public function __construct(
         private readonly TransactionService $transactionService,
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
@@ -37,7 +41,7 @@ class TransactionController extends Controller
             $query->where(function ($q) use ($search): void {
                 $q->where('transaction_number', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('student', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('student', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -51,7 +55,7 @@ class TransactionController extends Controller
 
         if ($request->filled('class_id')) {
             $classId = (int) $request->input('class_id');
-            $query->whereHas('student', fn ($sq) => $sq->where('class_id', $classId));
+            $query->whereHas('student', fn($sq) => $sq->where('class_id', $classId));
         }
 
         if ($request->filled('date_from')) {
@@ -82,6 +86,31 @@ class TransactionController extends Controller
      */
     public function create(): View
     {
+        $students = Student::query()
+            ->with('schoolClass')
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'class_id']);
+        $activeInvoiceHints = Invoice::query()
+            ->whereIn('status', ['unpaid', 'partially_paid'])
+            ->orderBy('due_date')
+            ->get(['id', 'student_id', 'invoice_number', 'total_amount', 'paid_amount'])
+            ->groupBy('student_id')
+            ->map(function ($invoices): array {
+                $first = $invoices->first();
+                $outstandingTotal = (float) $invoices->sum(
+                    fn (Invoice $invoice): float => max(0, (float) $invoice->total_amount - (float) $invoice->paid_amount)
+                );
+
+                return [
+                    'count' => $invoices->count(),
+                    'first_invoice_id' => (int) $first->id,
+                    'first_invoice_number' => (string) $first->invoice_number,
+                    'outstanding_total' => $outstandingTotal,
+                ];
+            })
+            ->all();
+
         $incomeFeeTypes = FeeType::query()
             ->where('is_active', true)
             ->where('code', 'not like', 'EXP-%')
@@ -92,13 +121,13 @@ class TransactionController extends Controller
             ->where('is_active', true)
             ->whereNotNull('expense_fee_subcategory_id')
             ->get()
-            ->sortBy(fn (FeeType $feeType): string => sprintf(
+            ->sortBy(fn(FeeType $feeType): string => sprintf(
                 '%03d-%03d-%s',
                 (int) ($feeType->expenseFeeSubcategory?->category?->sort_order ?? 999),
                 (int) ($feeType->expenseFeeSubcategory?->sort_order ?? 999),
                 $feeType->name
             ))
-            ->map(fn (FeeType $feeType): array => [
+            ->map(fn(FeeType $feeType): array => [
                 'id' => $feeType->id,
                 'name' => $feeType->name,
                 'category' => $feeType->expenseFeeSubcategory?->category?->name ?? __('message.uncategorized'),
@@ -106,7 +135,7 @@ class TransactionController extends Controller
             ])->values();
         $canCreateExpense = auth()->user()?->can('transactions.expense.create') ?? false;
 
-        return view('transactions.create', compact('incomeFeeTypes', 'expenseFeeTypes', 'canCreateExpense'));
+        return view('transactions.create', compact('students', 'activeInvoiceHints', 'incomeFeeTypes', 'expenseFeeTypes', 'canCreateExpense'));
     }
 
     /**
@@ -117,11 +146,11 @@ class TransactionController extends Controller
         $unitId = session('current_unit_id');
         $transactionType = (string) $request->input('type', 'income');
 
-        if (! in_array($transactionType, ['income', 'expense'], true)) {
+        if (!in_array($transactionType, ['income', 'expense'], true)) {
             return back()->withInput()->withErrors(['type' => __('message.invalid_transaction_type')]);
         }
 
-        if ($transactionType === 'expense' && ! (auth()->user()?->can('transactions.expense.create'))) {
+        if ($transactionType === 'expense' && !(auth()->user()?->can('transactions.expense.create'))) {
             abort(403, __('message.expense_not_authorized'));
         }
 
@@ -129,7 +158,7 @@ class TransactionController extends Controller
             'type' => 'nullable|in:income,expense',
             'student_id' => [
                 'nullable',
-                Rule::prohibitedIf(in_array($transactionType, ['income', 'expense'], true)),
+                Rule::prohibitedIf($transactionType === 'expense'),
                 Rule::exists('students', 'id')->where('unit_id', $unitId),
             ],
             'transaction_date' => 'required|date',
@@ -144,11 +173,59 @@ class TransactionController extends Controller
         try {
             $items = collect($validated['items'])
                 ->values()
-                ->map(fn (array $item): array => [
+                ->map(fn(array $item): array => [
                     'fee_type_id' => (int) $item['fee_type_id'],
                     'amount' => (float) $item['amount'],
                     'description' => $item['description'] ?? null,
                 ])->all();
+            $studentId = isset($validated['student_id']) ? (int) $validated['student_id'] : null;
+            $feeTypeIds = collect($items)->pluck('fee_type_id')->map(fn ($id) => (int) $id)->unique()->values();
+            $hasMonthlyFee = FeeType::query()
+                ->whereIn('id', $feeTypeIds)
+                ->where('is_monthly', true)
+                ->exists();
+
+            if ($transactionType === 'income' && $studentId) {
+                $openInvoice = Invoice::query()
+                    ->where('student_id', $studentId)
+                    ->whereIn('status', ['unpaid', 'partially_paid'])
+                    ->orderBy('due_date')
+                    ->orderBy('id')
+                    ->first();
+
+                if ($openInvoice) {
+                    return redirect()->route('settlements.create', [
+                        'student_id' => $studentId,
+                        'invoice_id' => $openInvoice->id,
+                    ])->with('status', __('message.transaction_redirect_to_settlement', [
+                        'invoice' => $openInvoice->invoice_number,
+                    ]));
+                }
+
+                $hasUnpaidObligation = StudentObligation::query()
+                    ->where('student_id', $studentId)
+                    ->where('is_paid', false)
+                    ->exists();
+                if ($hasUnpaidObligation) {
+                    return back()->withInput()->withErrors([
+                        'student_id' => __('message.student_has_unpaid_obligations_use_invoice'),
+                    ]);
+                }
+
+                if ($hasMonthlyFee) {
+                    return back()->withInput()->withErrors([
+                        'student_id' => __('message.monthly_fee_must_use_invoice'),
+                    ]);
+                }
+            }
+
+            if ($transactionType === 'income' && !$studentId) {
+                if ($hasMonthlyFee) {
+                    return back()->withInput()->withErrors([
+                        'student_id' => __('message.student_required_for_monthly_fee'),
+                    ]);
+                }
+            }
 
             $transaction = $transactionType === 'expense'
                 ? $this->transactionService->createExpense(
@@ -162,6 +239,8 @@ class TransactionController extends Controller
                 )
                 : $this->transactionService->createIncome(
                     data: [
+                        'student_id' => $studentId,
+                        'accounting_event_type' => 'payment.direct.posted',
                         'transaction_date' => $validated['transaction_date'],
                         'payment_method' => $validated['payment_method'],
                         'description' => $validated['description'] ?? null,

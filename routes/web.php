@@ -2,12 +2,20 @@
 
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\PermanentDeleteController;
 use App\Http\Controllers\Master\CategoryController;
 use App\Http\Controllers\Master\ClassController;
 use App\Http\Controllers\Master\FeeMatrixController;
 use App\Http\Controllers\Master\FeeTypeController;
 use App\Http\Controllers\Master\StudentController;
+use App\Http\Controllers\Master\StudentFeeMappingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admission\AdmissionPeriodController;
+use App\Http\Controllers\Admission\ApplicantController;
+use App\Http\Controllers\Expense\ExpenseController;
+use App\Http\Controllers\Reconciliation\BankReconciliationController;
+use App\Http\Controllers\UserManagement\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public liveness probe
@@ -37,7 +45,7 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
 })->name('locale.switch');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'can:dashboard.view'])->name('dashboard');
+    ->middleware(['auth', 'verified', 'can:dashboard.view', 'throttle:dashboard-read'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::post('/unit/switch', \App\Http\Controllers\UnitSwitchController::class)->name('unit.switch');
@@ -81,6 +89,15 @@ Route::middleware('auth')->group(function () {
             Route::delete('students/{student}', [StudentController::class, 'destroy'])
                 ->middleware('can:master.students.delete')
                 ->name('students.destroy');
+            Route::post('students/{student}/fee-mappings', [StudentFeeMappingController::class, 'store'])
+                ->middleware('can:master.student-fee-mappings.create')
+                ->name('students.fee-mappings.store');
+            Route::put('students/{student}/fee-mappings/{studentFeeMapping}', [StudentFeeMappingController::class, 'update'])
+                ->middleware('can:master.student-fee-mappings.edit')
+                ->name('students.fee-mappings.update');
+            Route::delete('students/{student}/fee-mappings/{studentFeeMapping}', [StudentFeeMappingController::class, 'destroy'])
+                ->middleware('can:master.student-fee-mappings.delete')
+                ->name('students.fee-mappings.destroy');
 
             Route::get('classes', [ClassController::class, 'index'])
                 ->middleware('can:master.classes.view')
@@ -162,6 +179,51 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])
+            ->middleware('can:users.view')
+            ->name('index');
+        Route::get('/create', [UserController::class, 'create'])
+            ->middleware('can:users.create')
+            ->name('create');
+        Route::post('/', [UserController::class, 'store'])
+            ->middleware('can:users.create')
+            ->name('store');
+        Route::get('/export', [UserController::class, 'export'])
+            ->middleware('can:users.view')
+            ->name('export');
+        Route::post('/bulk-status', [UserController::class, 'bulkUpdateStatus'])
+            ->middleware('can:users.edit')
+            ->name('bulk-status');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])
+            ->middleware('can:users.edit')
+            ->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])
+            ->middleware('can:users.edit')
+            ->name('update');
+        Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->middleware('can:users.edit')
+            ->name('reset-password');
+        Route::get('/{user}', [UserController::class, 'show'])
+            ->middleware('can:users.view')
+            ->name('show');
+        Route::delete('/{user}', [UserController::class, 'destroy'])
+            ->middleware('can:users.delete')
+            ->name('destroy');
+    });
+
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingsController::class, 'edit'])
+            ->middleware('can:settings.view')
+            ->name('edit');
+        Route::put('/', [SettingsController::class, 'update'])
+            ->middleware('can:settings.edit')
+            ->name('update');
+        Route::post('/permanent-delete/preview', [PermanentDeleteController::class, 'preview'])
+            ->middleware('role:super_admin')
+            ->name('permanent-delete.preview');
+    });
+
     // Transactions
     Route::middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor,cashier,admin_tu')->group(function () {
         Route::get('transactions', [\App\Http\Controllers\Transaction\TransactionController::class, 'index'])
@@ -227,6 +289,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{settlement}', [\App\Http\Controllers\Settlement\SettlementController::class, 'show'])
             ->middleware('can:settlements.view')
             ->name('show');
+        Route::get('/{settlement}/print', [\App\Http\Controllers\Settlement\SettlementController::class, 'print'])
+            ->middleware('can:settlements.view')
+            ->name('print');
         Route::post('/{settlement}/void', [\App\Http\Controllers\Settlement\SettlementController::class, 'void'])
             ->middleware('can:settlements.void')
             ->name('void');
@@ -238,17 +303,157 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::prefix('reports')->name('reports.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
         Route::get('/daily', [\App\Http\Controllers\Report\ReportController::class, 'daily'])
-            ->middleware('can:reports.daily')
+            ->middleware(['can:reports.daily', 'throttle:reports-read'])
             ->name('daily');
+        Route::get('/daily/export', [\App\Http\Controllers\Report\ReportController::class, 'dailyExport'])
+            ->middleware(['can:reports.daily', 'throttle:reports-read'])
+            ->name('daily.export');
         Route::get('/monthly', [\App\Http\Controllers\Report\ReportController::class, 'monthly'])
-            ->middleware('can:reports.monthly')
+            ->middleware(['can:reports.monthly', 'throttle:reports-read'])
             ->name('monthly');
+        Route::get('/monthly/export', [\App\Http\Controllers\Report\ReportController::class, 'monthlyExport'])
+            ->middleware(['can:reports.monthly', 'throttle:reports-read'])
+            ->name('monthly.export');
         Route::get('/arrears', [\App\Http\Controllers\Report\ReportController::class, 'arrears'])
-            ->middleware('can:reports.arrears')
+            ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears');
         Route::get('/arrears/export', [\App\Http\Controllers\Report\ReportController::class, 'arrearsExport'])
-            ->middleware('can:reports.arrears')
+            ->middleware(['can:reports.arrears', 'throttle:reports-read'])
             ->name('arrears.export');
+        Route::get('/ar-outstanding', [\App\Http\Controllers\Report\ReportController::class, 'arOutstanding'])
+            ->middleware(['can:reports.ar-outstanding', 'throttle:reports-read'])
+            ->name('ar-outstanding');
+        Route::get('/ar-outstanding/export', [\App\Http\Controllers\Report\ReportController::class, 'arOutstandingExport'])
+            ->middleware(['can:reports.ar-outstanding', 'throttle:reports-read'])
+            ->name('ar-outstanding.export');
+        Route::get('/collection', [\App\Http\Controllers\Report\ReportController::class, 'collection'])
+            ->middleware(['can:reports.collection', 'throttle:reports-read'])
+            ->name('collection');
+        Route::get('/collection/export', [\App\Http\Controllers\Report\ReportController::class, 'collectionExport'])
+            ->middleware(['can:reports.collection', 'throttle:reports-read'])
+            ->name('collection.export');
+        Route::get('/student-statement', [\App\Http\Controllers\Report\ReportController::class, 'studentStatement'])
+            ->middleware(['can:reports.student-statement', 'throttle:reports-read'])
+            ->name('student-statement');
+        Route::get('/student-statement/export', [\App\Http\Controllers\Report\ReportController::class, 'studentStatementExport'])
+            ->middleware(['can:reports.student-statement', 'throttle:reports-read'])
+            ->name('student-statement.export');
+        Route::get('/cash-book', [\App\Http\Controllers\Report\ReportController::class, 'cashBook'])
+            ->middleware(['can:reports.cash-book', 'throttle:reports-read'])
+            ->name('cash-book');
+        Route::get('/cash-book/export', [\App\Http\Controllers\Report\ReportController::class, 'cashBookExport'])
+            ->middleware(['can:reports.cash-book', 'throttle:reports-read'])
+            ->name('cash-book.export');
+    });
+
+    // Expense Management v2
+    Route::prefix('expenses')->name('expenses.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
+        Route::get('/', [ExpenseController::class, 'index'])
+            ->middleware('can:expenses.view')
+            ->name('index');
+        Route::post('/', [ExpenseController::class, 'store'])
+            ->middleware('can:expenses.create')
+            ->name('store');
+        Route::post('/{expense}/approve', [ExpenseController::class, 'approve'])
+            ->middleware('can:expenses.approve')
+            ->name('approve');
+        Route::get('/budget-report', [ExpenseController::class, 'budgetVsRealization'])
+            ->middleware('can:expenses.report.view')
+            ->name('budget-report');
+        Route::post('/budgets', [ExpenseController::class, 'storeBudget'])
+            ->middleware('can:expenses.budget.manage')
+            ->name('budgets.store');
+    });
+
+    // Admission (PSB)
+    Route::prefix('admission')->name('admission.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,operator_tu,kepala_sekolah,bendahara,auditor')->group(function () {
+        // Periods
+        Route::get('periods', [AdmissionPeriodController::class, 'index'])
+            ->middleware('can:admission.periods.view')
+            ->name('periods.index');
+        Route::get('periods/create', [AdmissionPeriodController::class, 'create'])
+            ->middleware('can:admission.periods.create')
+            ->name('periods.create');
+        Route::post('periods', [AdmissionPeriodController::class, 'store'])
+            ->middleware('can:admission.periods.create')
+            ->name('periods.store');
+        Route::get('periods/{period}', [AdmissionPeriodController::class, 'show'])
+            ->middleware('can:admission.periods.view')
+            ->name('periods.show');
+        Route::get('periods/{period}/edit', [AdmissionPeriodController::class, 'edit'])
+            ->middleware('can:admission.periods.edit')
+            ->name('periods.edit');
+        Route::put('periods/{period}', [AdmissionPeriodController::class, 'update'])
+            ->middleware('can:admission.periods.edit')
+            ->name('periods.update');
+        Route::delete('periods/{period}', [AdmissionPeriodController::class, 'destroy'])
+            ->middleware('can:admission.periods.delete')
+            ->name('periods.destroy');
+
+        // Applicants
+        Route::get('applicants', [ApplicantController::class, 'index'])
+            ->middleware('can:admission.applicants.view')
+            ->name('applicants.index');
+        Route::get('applicants/create', [ApplicantController::class, 'create'])
+            ->middleware('can:admission.applicants.create')
+            ->name('applicants.create');
+        Route::post('applicants', [ApplicantController::class, 'store'])
+            ->middleware('can:admission.applicants.create')
+            ->name('applicants.store');
+        Route::get('applicants/{applicant}', [ApplicantController::class, 'show'])
+            ->middleware('can:admission.applicants.view')
+            ->name('applicants.show');
+        Route::get('applicants/{applicant}/edit', [ApplicantController::class, 'edit'])
+            ->middleware('can:admission.applicants.edit')
+            ->name('applicants.edit');
+        Route::put('applicants/{applicant}', [ApplicantController::class, 'update'])
+            ->middleware('can:admission.applicants.edit')
+            ->name('applicants.update');
+        Route::delete('applicants/{applicant}', [ApplicantController::class, 'destroy'])
+            ->middleware('can:admission.applicants.delete')
+            ->name('applicants.destroy');
+
+        // Workflow actions
+        Route::post('applicants/{applicant}/review', [ApplicantController::class, 'review'])
+            ->middleware('can:admission.applicants.review')
+            ->name('applicants.review');
+        Route::post('applicants/{applicant}/accept', [ApplicantController::class, 'accept'])
+            ->middleware('can:admission.applicants.accept')
+            ->name('applicants.accept');
+        Route::post('applicants/{applicant}/reject', [ApplicantController::class, 'reject'])
+            ->middleware('can:admission.applicants.reject')
+            ->name('applicants.reject');
+        Route::post('applicants/{applicant}/enroll', [ApplicantController::class, 'enroll'])
+            ->middleware('can:admission.applicants.enroll')
+            ->name('applicants.enroll');
+        Route::post('applicants/bulk-status', [ApplicantController::class, 'bulkStatus'])
+            ->middleware('can:admission.applicants.accept')
+            ->name('applicants.bulk-status');
+    });
+
+    // Bank Reconciliation
+    Route::prefix('bank-reconciliation')->name('bank-reconciliation.')->middleware('role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor')->group(function () {
+        Route::get('/', [BankReconciliationController::class, 'index'])
+            ->middleware('can:bank-reconciliation.view')
+            ->name('index');
+        Route::post('/', [BankReconciliationController::class, 'storeSession'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('store');
+        Route::get('/{bankReconciliation}', [BankReconciliationController::class, 'show'])
+            ->middleware('can:bank-reconciliation.view')
+            ->name('show');
+        Route::post('/{bankReconciliation}/import', [BankReconciliationController::class, 'import'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('import');
+        Route::post('/{bankReconciliation}/lines/{line}/match', [BankReconciliationController::class, 'match'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('match');
+        Route::post('/{bankReconciliation}/lines/{line}/unmatch', [BankReconciliationController::class, 'unmatch'])
+            ->middleware('can:bank-reconciliation.manage')
+            ->name('unmatch');
+        Route::post('/{bankReconciliation}/close', [BankReconciliationController::class, 'close'])
+            ->middleware('can:bank-reconciliation.close')
+            ->name('close');
     });
 });
 

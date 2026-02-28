@@ -78,6 +78,17 @@
                                                     <button type="submit"
                                                         class="text-red-600 hover:text-red-900">{{ __('app.button.delete') }}</button>
                                                 </form>
+                                                @if(auth()->user()->hasRole('super_admin') && getSetting('dangerous_permanent_delete_enabled', false))
+                                                    <form action="{{ route('master.classes.destroy', $class) }}" method="POST"
+                                                        class="inline-block js-permanent-delete-form"
+                                                        data-entity="class" data-entity-id="{{ $class->id }}" data-preview-url="{{ route('settings.permanent-delete.preview') }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <input type="hidden" name="permanent_delete" value="1">
+                                                        <input type="hidden" name="confirm_text" value="">
+                                                        <button type="submit" class="text-red-900 hover:text-red-700 ml-2">Delete Permanent</button>
+                                                    </form>
+                                                @endif
                                             @endcan
                                         </td>
                                     </tr>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -71,6 +72,11 @@ class Student extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function feeMappings(): HasMany
+    {
+        return $this->hasMany(StudentFeeMapping::class);
+    }
+
     public function settlements(): HasMany
     {
         return $this->hasMany(Settlement::class);
@@ -79,5 +85,10 @@ class Student extends Model
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function applicant(): HasOne
+    {
+        return $this->hasOne(Applicant::class);
     }
 }

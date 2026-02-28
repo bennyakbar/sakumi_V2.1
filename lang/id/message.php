@@ -16,6 +16,10 @@ return [
     'transaction_already_cancelled' => 'Transaksi sudah dibatalkan.',
     'invalid_transaction_type'     => 'Jenis transaksi tidak valid.',
     'expense_not_authorized'       => 'Anda tidak memiliki izin untuk membuat transaksi pengeluaran.',
+    'transaction_redirect_to_settlement' => 'Siswa memiliki invoice aktif (:invoice). Gunakan menu Settlement untuk pelunasan agar status invoice terupdate.',
+    'student_has_unpaid_obligations_use_invoice' => 'Siswa masih memiliki kewajiban belum dibayar. Buat/gunakan invoice lalu lakukan pembayaran lewat Settlement.',
+    'student_required_for_monthly_fee' => 'Transaksi dengan fee bulanan wajib memilih siswa agar tidak melewati alur invoice-settlement.',
+    'monthly_fee_must_use_invoice' => 'Fee bulanan wajib diproses lewat alur Invoice/Settlement, bukan transaksi walk-in.',
     'cancelled_by_admin'           => 'Dibatalkan oleh administrator',
 
     // Pembayaran (Settlement)
@@ -46,6 +50,22 @@ return [
     'obligations_already_invoiced' => 'Beberapa kewajiban sudah dibayar atau sudah ditagih.',
     'cannot_cancel_paid_invoice'   => 'Tidak dapat membatalkan tagihan yang sudah lunas.',
     'cannot_cancel_invoice_payments' => 'Tidak dapat membatalkan tagihan yang sudah ada pembayarannya. Batalkan pembayaran terlebih dahulu.',
+    'invoice_void_requires_single_allocation_settlement' => 'Tidak dapat membatalkan: settlement :number mencakup beberapa invoice. Silakan void settlement tersebut terlebih dahulu (Settlement > :number > Void), lalu coba batalkan invoice ini kembali.',
+    'cancel_paid_invoice_not_authorized' => 'Anda tidak memiliki izin untuk membatalkan invoice yang sudah dibayar. Hubungi bendahara atau super admin.',
+    'cancel_paid_invoice_requires_void_permission' => 'Pembatalan invoice yang sudah dibayar memerlukan izin void settlement. Hubungi bendahara atau super admin.',
+    'hard_delete_not_allowed'      => 'Penghapusan langsung tidak diizinkan. Gunakan alur batal/void.',
+    'settings_updated'            => 'Pengaturan berhasil diperbarui.',
+    'academic_year_must_be_consecutive' => 'Tahun ajaran harus berurutan, contoh: 2025/2026.',
+    'permanent_delete_not_allowed' => 'Permanent delete hanya boleh untuk superadmin dan harus diaktifkan di Settings.',
+    'permanent_delete_confirmation_invalid' => 'Konfirmasi permanent delete tidak valid. Ketik tepat: HAPUS PERMANEN.',
+    'permanent_delete_blocked_dependencies' => 'Permanent delete diblokir karena data ini sudah dipakai: :details.',
+    'permanent_delete_failed_fk' => 'Permanent delete gagal karena masih ada relasi data yang terkunci oleh database.',
+    'user_permanently_deleted' => 'User berhasil dihapus permanen.',
+    'student_permanently_deleted' => 'Siswa berhasil dihapus permanen.',
+    'class_permanently_deleted' => 'Kelas berhasil dihapus permanen.',
+    'category_permanently_deleted' => 'Kategori berhasil dihapus permanen.',
+    'fee_type_permanently_deleted' => 'Jenis biaya berhasil dihapus permanen.',
+    'fee_matrix_permanently_deleted' => 'Matriks biaya berhasil dihapus permanen.',
 
     // Master: Jenis Biaya
     'fee_type_created'             => 'Jenis Biaya berhasil dibuat.',
@@ -64,6 +84,10 @@ return [
     'student_updated'              => 'Siswa berhasil diperbarui.',
     'student_deleted'              => 'Siswa berhasil dihapus.',
     'student_import_success'       => 'Impor siswa berhasil diselesaikan.',
+    'student_fee_mapping_created'  => 'Mapping biaya siswa berhasil ditambahkan.',
+    'student_fee_mapping_updated'  => 'Mapping biaya siswa berhasil diperbarui.',
+    'student_fee_mapping_deactivated' => 'Mapping biaya siswa berhasil dinonaktifkan.',
+    'student_fee_mapping_overlap'  => 'Periode yang dipilih bertabrakan dengan mapping aktif lain untuk jenis biaya yang sama.',
 
     // Master: Kelas
     'class_created'                => 'Kelas berhasil dibuat.',
@@ -76,6 +100,14 @@ return [
     'category_updated'             => 'Kategori Siswa berhasil diperbarui.',
     'category_deleted'             => 'Kategori Siswa berhasil dihapus.',
     'category_has_students'        => 'Tidak dapat menghapus kategori karena masih memiliki siswa.',
+
+    // Manajemen User
+    'user_created'                 => 'User berhasil dibuat.',
+    'user_updated'                 => 'User berhasil diperbarui.',
+    'user_deleted'                 => 'User berhasil dinonaktifkan.',
+    'user_password_reset'          => 'Password sementara berhasil dibuat.',
+    'users_bulk_updated'           => ':count user berhasil diperbarui.',
+    'cannot_deactivate_self'       => 'Anda tidak dapat menonaktifkan akun sendiri.',
 
     // Middleware / Auth
     'no_unit_assigned'             => 'Akun Anda belum ditetapkan ke unit manapun. Hubungi administrator.',
@@ -92,6 +124,25 @@ return [
     'uncategorized'                => 'Tidak Berkategori',
     'general'                      => 'Umum',
     'watermark_original'           => 'ASLI',
+
+    // Penerimaan (PSB)
+    'admission_period_created'     => 'Periode penerimaan berhasil dibuat.',
+    'admission_period_updated'     => 'Periode penerimaan berhasil diperbarui.',
+    'admission_period_deleted'     => 'Periode penerimaan berhasil dihapus.',
+    'admission_period_has_applicants' => 'Tidak dapat menghapus periode yang masih memiliki calon siswa.',
+    'applicant_created'            => 'Calon siswa berhasil didaftarkan.',
+    'applicant_updated'            => 'Data calon siswa berhasil diperbarui.',
+    'applicant_deleted'            => 'Data calon siswa berhasil dihapus.',
+    'applicant_reviewed'           => 'Calon siswa berhasil masuk tahap review.',
+    'applicant_accepted'           => 'Calon siswa berhasil diterima.',
+    'applicant_rejected'           => 'Calon siswa berhasil ditolak.',
+    'applicant_enrolled'           => 'Calon siswa berhasil didaftarkan sebagai siswa.',
+    'applicant_cannot_edit_enrolled' => 'Tidak dapat mengedit calon siswa yang sudah terdaftar.',
+    'applicant_cannot_delete_enrolled' => 'Tidak dapat menghapus calon siswa yang sudah terdaftar.',
+    'applicants_bulk_updated'      => ':count calon siswa berhasil diperbarui.',
+    'admission_invalid_transition' => 'Transisi status tidak valid.',
+    'admission_quota_exceeded'     => 'Kuota kelas sudah penuh.',
+    'admission_invalid_status'     => 'Status tidak valid untuk operasi bulk.',
 
     // Label kelompok aging
     'aging_0_30'                   => '0-30 hari',

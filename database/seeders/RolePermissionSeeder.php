@@ -18,18 +18,29 @@ class RolePermissionSeeder extends Seeder
             'master.categories.view', 'master.categories.create', 'master.categories.edit', 'master.categories.delete',
             'master.fee-types.view', 'master.fee-types.create', 'master.fee-types.edit', 'master.fee-types.delete',
             'master.fee-matrix.view', 'master.fee-matrix.create', 'master.fee-matrix.edit', 'master.fee-matrix.delete',
+            'master.student-fee-mappings.view', 'master.student-fee-mappings.create', 'master.student-fee-mappings.edit', 'master.student-fee-mappings.delete',
             'master.students.view', 'master.students.create', 'master.students.edit', 'master.students.delete',
             'master.students.import', 'master.students.export',
             // Transactions
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
+            // Expense v2
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            // Bank Reconciliation
+            'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             // Receipts
             'receipts.view', 'receipts.print', 'receipts.reprint',
             // Invoices
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
             // Settlements
             'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
             // Reports
-            'reports.daily', 'reports.monthly', 'reports.arrears', 'reports.export',
+            'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
+            'reports.export',
+            // Admission (PSB)
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             // Dashboard
             'dashboard.view',
             // Users & Roles
@@ -57,17 +68,23 @@ class RolePermissionSeeder extends Seeder
         // Bendahara — financial operations + reporting
         $bendahara = Role::firstOrCreate(['name' => 'bendahara']);
         $bendahara->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.fee-types.view',
             'master.fee-matrix.view', 'master.fee-matrix.create', 'master.fee-matrix.edit', 'master.fee-matrix.delete',
+            'master.student-fee-mappings.view', 'master.student-fee-mappings.create', 'master.student-fee-mappings.edit', 'master.student-fee-mappings.delete',
             'master.classes.view',
             'master.categories.view',
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             'receipts.view', 'receipts.print', 'receipts.reprint',
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
             'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
-            'reports.daily', 'reports.monthly', 'reports.arrears', 'reports.export',
+            'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
+            'reports.export',
             'users.view',
             'settings.view',
             'audit.view',
@@ -76,6 +93,7 @@ class RolePermissionSeeder extends Seeder
         // Kepala Sekolah — view-only + reporting
         $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah']);
         $kepalaSekolah->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.classes.view',
@@ -83,10 +101,14 @@ class RolePermissionSeeder extends Seeder
             'master.fee-types.view',
             'master.fee-matrix.view',
             'transactions.view',
+            'expenses.view', 'expenses.report.view',
+            'bank-reconciliation.view',
             'receipts.view',
             'invoices.view', 'invoices.print',
             'settlements.view',
-            'reports.daily', 'reports.monthly', 'reports.arrears', 'reports.export',
+            'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
+            'reports.export',
             'users.view',
             'settings.view',
             'audit.view',
@@ -95,6 +117,9 @@ class RolePermissionSeeder extends Seeder
         // Operator TU — operations (master data + create financial docs, no cancel)
         $operatorTu = Role::firstOrCreate(['name' => 'operator_tu']);
         $operatorTu->syncPermissions([
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             'dashboard.view',
             'master.students.view', 'master.students.create', 'master.students.edit', 'master.students.delete',
             'master.students.import', 'master.students.export',
@@ -102,17 +127,23 @@ class RolePermissionSeeder extends Seeder
             'master.categories.view', 'master.categories.create', 'master.categories.edit', 'master.categories.delete',
             'master.fee-types.view',
             'master.fee-matrix.view',
+            'master.student-fee-mappings.view',
             'transactions.view', 'transactions.create',
+            'expenses.view',
             'receipts.view', 'receipts.print',
             'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print',
             'settlements.view', 'settlements.create',
             'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
             'users.view',
             'settings.view',
         ]);
 
         // Admin TU per unit (MI/RA/DTA) — granular operational access in own unit.
         $adminTuUnitPermissions = [
+            'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
+            'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
+            'admission.applicants.review', 'admission.applicants.accept', 'admission.applicants.reject', 'admission.applicants.enroll',
             'dashboard.view',
             'master.students.view', 'master.students.create', 'master.students.edit', 'master.students.delete',
             'master.students.import', 'master.students.export',
@@ -120,11 +151,16 @@ class RolePermissionSeeder extends Seeder
             'master.categories.view', 'master.categories.create', 'master.categories.edit', 'master.categories.delete',
             'master.fee-types.view', 'master.fee-types.create', 'master.fee-types.edit', 'master.fee-types.delete',
             'master.fee-matrix.view', 'master.fee-matrix.create', 'master.fee-matrix.edit', 'master.fee-matrix.delete',
+            'master.student-fee-mappings.view', 'master.student-fee-mappings.create', 'master.student-fee-mappings.edit', 'master.student-fee-mappings.delete',
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             'receipts.view', 'receipts.print', 'receipts.reprint',
             'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
             'settlements.view', 'settlements.create', 'settlements.cancel',
-            'reports.daily', 'reports.monthly', 'reports.arrears', 'reports.export',
+            'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
+            'reports.export',
             'users.view',
             'settings.view',
             'audit.view',
@@ -138,17 +174,23 @@ class RolePermissionSeeder extends Seeder
         // Auditor — view-only all data, audit log
         $auditor = Role::firstOrCreate(['name' => 'auditor']);
         $auditor->syncPermissions([
+            'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
             'master.students.view',
             'master.classes.view',
             'master.categories.view',
             'master.fee-types.view',
             'master.fee-matrix.view',
+            'master.student-fee-mappings.view',
             'transactions.view',
+            'expenses.view', 'expenses.report.view',
+            'bank-reconciliation.view',
             'receipts.view',
             'invoices.view', 'invoices.print',
             'settlements.view',
-            'reports.daily', 'reports.monthly', 'reports.arrears', 'reports.export',
+            'reports.daily', 'reports.monthly', 'reports.arrears',
+            'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
+            'reports.export',
             'audit.view',
         ]);
 

@@ -31,6 +31,14 @@
                                 {{ ($scope ?? 'unit') === 'all' ? __('app.unit.current') : __('app.unit.all') }}
                             </a>
                         @endif
+                        <a href="{{ route('reports.daily.export', array_merge(request()->all(), ['format' => 'xlsx'])) }}"
+                            class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-semibold uppercase">
+                            {{ __('app.button.export_xlsx') }}
+                        </a>
+                        <a href="{{ route('reports.daily.export', array_merge(request()->all(), ['format' => 'csv'])) }}"
+                            class="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-md hover:bg-emerald-200 text-sm font-semibold uppercase">
+                            {{ __('app.button.export_csv') }}
+                        </a>
                     </form>
 
                     <div class="flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-lg">

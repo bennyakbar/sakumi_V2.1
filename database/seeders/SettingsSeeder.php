@@ -32,6 +32,7 @@ class SettingsSeeder extends Seeder
 
             // System
             ['key' => 'academic_year_current', 'value' => '2025/2026', 'type' => 'string', 'group' => 'system', 'description' => 'Tahun akademik aktif'],
+            ['key' => 'dangerous_permanent_delete_enabled', 'value' => 'false', 'type' => 'boolean', 'group' => 'system', 'description' => 'Izinkan permanent delete superadmin'],
             ['key' => 'inactivity_timeout', 'value' => '7200', 'type' => 'number', 'group' => 'system', 'description' => 'Timeout inaktivitas sesi (detik)'],
         ];
 

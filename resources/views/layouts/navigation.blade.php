@@ -7,16 +7,16 @@
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex flex-1 min-w-0">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-20 w-auto" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-3 sm:-my-px sm:ms-4 sm:flex items-center overflow-x-auto scrollbar-hide">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -39,16 +39,62 @@
                         </x-nav-link>
                     @endcan
 
-                    {{-- Master Data Dropdown --}}
-                    @if(
-                        (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
-                        || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
-                    )
-                        <div class="hidden sm:flex sm:items-center sm:ms-6">
+                    @can('expenses.view')
+                        <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                            {{ __('Expenses') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('bank-reconciliation.view')
+                        <x-nav-link :href="route('bank-reconciliation.index')" :active="request()->routeIs('bank-reconciliation.*')">
+                            {{ __('Bank Recon') }}
+                        </x-nav-link>
+                    @endcan
+
+                    {{-- Admission (PSB) Dropdown --}}
+                    @if(auth()->user()->canAny(['admission.periods.view', 'admission.applicants.view']))
+                        <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     <button
-                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
+                                        <div>{{ __('app.nav.admission') }}</div>
+                                        <div class="ms-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('admission.periods.view')
+                                        <x-dropdown-link :href="route('admission.periods.index')">
+                                            {{ __('app.nav.admission_periods') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('admission.applicants.view')
+                                        <x-dropdown-link :href="route('admission.applicants.index')">
+                                            {{ __('app.nav.applicants') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endif
+
+                    {{-- Master Data Dropdown --}}
+                    @if(
+                            (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
+                            || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
+                        )
+                        <div class="hidden sm:flex sm:items-center">
+                            <x-dropdown align="right" width="48">
+                                <x-slot name="trigger">
+                                    <button
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
                                         <div>{{ __('app.nav.master_data') }}</div>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -92,12 +138,12 @@
                     @endif
 
                     {{-- Reports Dropdown --}}
-                    @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears']))
-                        <div class="hidden sm:flex sm:items-center sm:ms-6">
+                    @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears', 'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book']))
+                        <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     <button
-                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
                                         <div>{{ __('app.nav.reports') }}</div>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -125,20 +171,48 @@
                                             {{ __('Arrears Report') }}
                                         </x-dropdown-link>
                                     @endcan
+                                    @can('reports.ar-outstanding')
+                                        <x-dropdown-link :href="route('reports.ar-outstanding')">
+                                            {{ __('AR Outstanding') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.collection')
+                                        <x-dropdown-link :href="route('reports.collection')">
+                                            {{ __('Collection Report') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.student-statement')
+                                        <x-dropdown-link :href="route('reports.student-statement')">
+                                            {{ __('Student Statement') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('reports.cash-book')
+                                        <x-dropdown-link :href="route('reports.cash-book')">
+                                            {{ __('Cash Book') }}
+                                        </x-dropdown-link>
+                                    @endcan
                                 </x-slot>
                             </x-dropdown>
                         </div>
                     @endif
+
+                    @can('users.view')
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                            {{ __('app.nav.users') }}
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
             <!-- Locale + Unit Switcher + Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-3">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-3 shrink-0">
                 {{-- Language Toggle --}}
                 <form method="POST" action="{{ route('locale.switch') }}">
                     @csrf
                     <input type="hidden" name="locale" value="{{ app()->getLocale() === 'id' ? 'en' : 'id' }}">
-                    <button type="submit" class="inline-flex items-center px-2 py-1 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50 hover:bg-gray-100 focus:outline-none transition ease-in-out duration-150" title="{{ app()->getLocale() === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia' }}">
+                    <button type="submit"
+                        class="inline-flex items-center px-2 py-1 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50 hover:bg-gray-100 focus:outline-none transition ease-in-out duration-150"
+                        title="{{ app()->getLocale() === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia' }}">
                         {{ app()->getLocale() === 'id' ? 'EN' : 'ID' }}
                     </button>
                 </form>
@@ -148,11 +222,15 @@
                     @if(isset($switchableUnits) && $switchableUnits->count() > 1)
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
-                                <button class="inline-flex items-center px-3 py-1.5 border border-indigo-200 text-xs font-semibold rounded-full text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none transition ease-in-out duration-150">
+                                <button
+                                    class="inline-flex items-center px-3 py-1.5 border border-indigo-200 text-xs font-semibold rounded-full text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
                                     <div>{{ $currentUnit->code }}</div>
                                     <div class="ms-1">
-                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </div>
                                 </button>
@@ -162,7 +240,8 @@
                                     <form method="POST" action="{{ route('unit.switch') }}">
                                         @csrf
                                         <input type="hidden" name="unit_id" value="{{ $unit->id }}">
-                                        <button type="submit" class="block w-full px-4 py-2 text-start text-sm leading-5 {{ $unit->id === $currentUnit->id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }} focus:outline-none transition duration-150 ease-in-out">
+                                        <button type="submit"
+                                            class="block w-full px-4 py-2 text-start text-sm leading-5 {{ $unit->id === $currentUnit->id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }} focus:outline-none transition duration-150 ease-in-out">
                                             {{ $unit->code }} &mdash; {{ $unit->name }}
                                         </button>
                                     </form>
@@ -170,7 +249,8 @@
                             </x-slot>
                         </x-dropdown>
                     @else
-                        <span class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50">
+                        <span
+                            class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-semibold rounded-full text-gray-600 bg-gray-50">
                             {{ $currentUnit->code }}
                         </span>
                     @endif
@@ -180,7 +260,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
@@ -198,6 +278,11 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+                        @can('settings.view')
+                            <x-dropdown-link :href="route('settings.edit')">
+                                {{ __('Settings') }}
+                            </x-dropdown-link>
+                        @endcan
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -253,13 +338,48 @@
                 </x-responsive-nav-link>
             @endcan
 
+            @can('expenses.view')
+                <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                    {{ __('Expenses') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('bank-reconciliation.view')
+                <x-responsive-nav-link :href="route('bank-reconciliation.index')" :active="request()->routeIs('bank-reconciliation.*')">
+                    {{ __('Bank Recon') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            {{-- Admission (PSB) Group --}}
+            @if(auth()->user()->canAny(['admission.periods.view', 'admission.applicants.view']))
+                <div class="pt-2 pb-1 border-t border-gray-200">
+                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {{ __('app.nav.admission') }}
+                    </div>
+                </div>
+                @can('admission.periods.view')
+                    <x-responsive-nav-link :href="route('admission.periods.index')"
+                        :active="request()->routeIs('admission.periods.*')">
+                        {{ __('app.nav.admission_periods') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('admission.applicants.view')
+                    <x-responsive-nav-link :href="route('admission.applicants.index')"
+                        :active="request()->routeIs('admission.applicants.*')">
+                        {{ __('app.nav.applicants') }}
+                    </x-responsive-nav-link>
+                @endcan
+            @endif
+
             {{-- Master Data Group --}}
             @if(
-                (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
-                || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
-            )
+                    (auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->canAny(['master.students.view', 'master.classes.view', 'master.categories.view']))
+                    || (auth()->user()->hasAnyRole($masterDataFinanceRoles) && auth()->user()->canAny(['master.fee-types.view', 'master.fee-matrix.view']))
+                )
                 <div class="pt-2 pb-1 border-t border-gray-200">
-                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.master_data') }}</div>
+                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {{ __('app.nav.master_data') }}
+                    </div>
                 </div>
                 @if(auth()->user()->hasAnyRole($masterDataCoreRoles) && auth()->user()->can('master.students.view'))
                     <x-responsive-nav-link :href="route('master.students.index')"
@@ -294,9 +414,11 @@
             @endif
 
             {{-- Reports Group --}}
-            @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears']))
+            @if(auth()->user()->canAny(['reports.daily', 'reports.monthly', 'reports.arrears', 'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book']))
                 <div class="pt-2 pb-1 border-t border-gray-200">
-                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.reports') }}</div>
+                    <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {{ __('app.nav.reports') }}
+                    </div>
                 </div>
                 @can('reports.daily')
                     <x-responsive-nav-link :href="route('reports.daily')" :active="request()->routeIs('reports.daily')">
@@ -313,12 +435,39 @@
                         {{ __('Arrears Report') }}
                     </x-responsive-nav-link>
                 @endcan
+                @can('reports.ar-outstanding')
+                    <x-responsive-nav-link :href="route('reports.ar-outstanding')" :active="request()->routeIs('reports.ar-outstanding')">
+                        {{ __('AR Outstanding') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.collection')
+                    <x-responsive-nav-link :href="route('reports.collection')" :active="request()->routeIs('reports.collection')">
+                        {{ __('Collection Report') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.student-statement')
+                    <x-responsive-nav-link :href="route('reports.student-statement')" :active="request()->routeIs('reports.student-statement')">
+                        {{ __('Student Statement') }}
+                    </x-responsive-nav-link>
+                @endcan
+                @can('reports.cash-book')
+                    <x-responsive-nav-link :href="route('reports.cash-book')" :active="request()->routeIs('reports.cash-book')">
+                        {{ __('Cash Book') }}
+                    </x-responsive-nav-link>
+                @endcan
             @endif
+
+            @can('users.view')
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    {{ __('app.nav.users') }}
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         {{-- Responsive Language Toggle --}}
         <div class="pt-2 pb-1 border-t border-gray-200">
-            <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.language') }}</div>
+            <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('app.nav.language') }}
+            </div>
         </div>
         <form method="POST" action="{{ route('locale.switch') }}" class="px-4 py-2">
             @csrf
@@ -331,14 +480,17 @@
         {{-- Responsive Unit Switcher --}}
         @if(isset($currentUnit))
             <div class="pt-2 pb-1 border-t border-gray-200">
-                <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit: {{ $currentUnit->code }}</div>
+                <div class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit:
+                    {{ $currentUnit->code }}
+                </div>
             </div>
             @if(isset($switchableUnits) && $switchableUnits->count() > 1)
                 @foreach($switchableUnits as $unit)
                     <form method="POST" action="{{ route('unit.switch') }}">
                         @csrf
                         <input type="hidden" name="unit_id" value="{{ $unit->id }}">
-                        <button type="submit" class="block w-full ps-4 pe-4 py-2 text-start text-base font-medium {{ $unit->id === $currentUnit->id ? 'text-indigo-700 bg-indigo-50 border-l-4 border-indigo-400' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }} focus:outline-none transition duration-150 ease-in-out">
+                        <button type="submit"
+                            class="block w-full ps-4 pe-4 py-2 text-start text-base font-medium {{ $unit->id === $currentUnit->id ? 'text-indigo-700 bg-indigo-50 border-l-4 border-indigo-400' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }} focus:outline-none transition duration-150 ease-in-out">
                             {{ $unit->code }} &mdash; {{ $unit->name }}
                         </button>
                     </form>
@@ -357,6 +509,11 @@
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+                @can('settings.view')
+                    <x-responsive-nav-link :href="route('settings.edit')">
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @endcan
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">

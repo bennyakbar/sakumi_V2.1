@@ -20,15 +20,19 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewStrong!123',
+                'password_confirmation' => 'NewStrong!123',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertTrue(Hash::check('NewStrong!123', $user->refresh()->password));
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'security',
+            'description' => 'auth.password_updated',
+        ]);
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
@@ -40,12 +44,30 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewStrong!123',
+                'password_confirmation' => 'NewStrong!123',
             ]);
 
         $response
             ->assertSessionHasErrorsIn('updatePassword', 'current_password')
+            ->assertRedirect('/profile');
+    }
+
+    public function test_new_password_must_meet_strong_policy(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->put('/password', [
+                'current_password' => 'password',
+                'password' => 'weakpass',
+                'password_confirmation' => 'weakpass',
+            ]);
+
+        $response
+            ->assertSessionHasErrorsIn('updatePassword', 'password')
             ->assertRedirect('/profile');
     }
 }

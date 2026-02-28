@@ -99,7 +99,10 @@ class PostMigrationSmokeTest extends TestCase
             'class_id' => $class->id,
             'category_id' => $cat->id,
         ]);
-        $feeType = FeeType::factory()->create(['unit_id' => $this->mi->id]);
+        $feeType = FeeType::factory()->create([
+            'unit_id' => $this->mi->id,
+            'is_monthly' => false,
+        ]);
 
         $this->actAsUnit($this->miAdmin, $this->mi)
             ->post(route('transactions.store'), [
@@ -130,7 +133,10 @@ class PostMigrationSmokeTest extends TestCase
             'class_id' => $miClass->id,
             'category_id' => $miCat->id,
         ]);
-        $miFee = FeeType::factory()->create(['unit_id' => $this->mi->id]);
+        $miFee = FeeType::factory()->create([
+            'unit_id' => $this->mi->id,
+            'is_monthly' => false,
+        ]);
 
         $this->actAsUnit($this->miAdmin, $this->mi)
             ->post(route('transactions.store'), [
@@ -151,7 +157,10 @@ class PostMigrationSmokeTest extends TestCase
             'class_id' => $raClass->id,
             'category_id' => $raCat->id,
         ]);
-        $raFee = FeeType::factory()->create(['unit_id' => $this->ra->id]);
+        $raFee = FeeType::factory()->create([
+            'unit_id' => $this->ra->id,
+            'is_monthly' => false,
+        ]);
 
         $this->actAsUnit($this->raAdmin, $this->ra)
             ->post(route('transactions.store'), [

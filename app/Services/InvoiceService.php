@@ -4,17 +4,31 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Settlement;
 use App\Models\Student;
 use App\Models\StudentObligation;
+use App\Models\Unit;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class InvoiceService
 {
-    public function generateInvoiceNumber(): string
+    public function __construct(
+        private readonly ArrearsService $arrearsService,
+        private readonly SettlementService $settlementService,
+    ) {
+    }
+
+    public function generateInvoiceNumber(int $unitId): string
     {
+        $unitCode = Unit::withoutGlobalScope('unit')
+            ->whereKey($unitId)
+            ->value('code') ?? "U{$unitId}";
+        $unitCode = strtoupper((string) $unitCode);
         $year = now()->year;
 
-        $last = Invoice::withoutGlobalScope('unit')
+        $last = Invoice::query()
+            ->where('unit_id', $unitId)
             ->whereYear('created_at', $year)
             ->lockForUpdate()
             ->orderByDesc('id')
@@ -25,7 +39,7 @@ class InvoiceService
             $sequence = (int) $matches[1] + 1;
         }
 
-        return sprintf('INV-%s-%06d', $year, $sequence);
+        return sprintf('INV-%s-%s-%06d', $unitCode, $year, $sequence);
     }
 
     /**
@@ -48,6 +62,8 @@ class InvoiceService
             [$year, $month] = explode('-', $periodIdentifier);
             $month = (int) $month;
             $year = (int) $year;
+            // Ensure obligations are up to date, including student-level fee mappings.
+            $this->arrearsService->generateMonthlyObligations($month, $year);
         } elseif ($periodType === 'annual') {
             $year = (int) str_replace('AY', '', $periodIdentifier);
             $month = null;
@@ -111,7 +127,7 @@ class InvoiceService
         }
 
         DB::transaction(function () use ($student, $obligations, $periodType, $periodIdentifier, $userId, $dueDate, &$result) {
-            $number = $this->generateInvoiceNumber();
+            $number = $this->generateInvoiceNumber((int) $student->unit_id);
             $totalAmount = $obligations->sum('amount');
 
             $invoice = Invoice::create([
@@ -139,6 +155,8 @@ class InvoiceService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
+
             $result['created']++;
         });
     }
@@ -149,8 +167,6 @@ class InvoiceService
     public function createInvoice(int $studentId, array $obligationIds, array $data, int $userId): Invoice
     {
         return DB::transaction(function () use ($studentId, $obligationIds, $data, $userId) {
-            $number = $this->generateInvoiceNumber();
-
             $obligations = StudentObligation::whereIn('id', $obligationIds)
                 ->where('student_id', $studentId)
                 ->where('is_paid', false)
@@ -168,6 +184,7 @@ class InvoiceService
                 throw new \RuntimeException(__('message.obligations_already_invoiced'));
             }
 
+            $number = $this->generateInvoiceNumber((int) $obligations->first()->unit_id);
             $totalAmount = $obligations->sum('amount');
 
             // Determine period from obligations
@@ -202,22 +219,75 @@ class InvoiceService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
+
             return $invoice->load('items.feeType', 'student');
         });
     }
 
-    public function cancel(Invoice $invoice): Invoice
+    public function cancel(Invoice $invoice, ?int $userId = null, ?string $reason = null): Invoice
     {
         if ($invoice->status === 'paid') {
-            throw new \RuntimeException(__('message.cannot_cancel_paid_invoice'));
+            if (!$userId) {
+                throw new \RuntimeException(__('message.cannot_cancel_paid_invoice'));
+            }
+
+            return $this->voidWithPayments($invoice, $userId, $reason);
         }
 
         if ((float) $invoice->paid_amount > 0) {
-            throw new \RuntimeException(__('message.cannot_cancel_invoice_payments'));
+            if (!$userId) {
+                throw new \RuntimeException(__('message.cannot_cancel_invoice_payments'));
+            }
+
+            return $this->voidWithPayments($invoice, $userId, $reason);
         }
 
         $invoice->update(['status' => 'cancelled']);
 
         return $invoice->fresh();
+    }
+
+    private function voidWithPayments(Invoice $invoice, int $userId, ?string $reason = null): Invoice
+    {
+        // Ensure the acting user has settlement void permission before cascading
+        $user = Auth::user();
+        if ($user && !$user->can('settlements.void')) {
+            throw new \RuntimeException(__('message.cancel_paid_invoice_requires_void_permission'));
+        }
+
+        $reason = trim((string) ($reason ?: 'Invoice void with payment correction'));
+
+        return DB::transaction(function () use ($invoice, $userId, $reason) {
+            $settlements = Settlement::query()
+                ->where('status', 'completed')
+                ->whereHas('allocations', fn ($q) => $q->where('invoice_id', $invoice->id))
+                ->withCount('allocations')
+                ->with(['allocations' => fn ($q) => $q->where('invoice_id', $invoice->id)])
+                ->get();
+
+            foreach ($settlements as $settlement) {
+                if ((int) $settlement->allocations_count !== 1) {
+                    throw new \RuntimeException(__('message.invoice_void_requires_single_allocation_settlement', [
+                        'number' => $settlement->settlement_number,
+                    ]));
+                }
+
+                $this->settlementService->void(
+                    settlement: $settlement,
+                    userId: $userId,
+                    reason: $reason,
+                );
+            }
+
+            $invoice->refresh();
+            $invoice->recalculateFromAllocations();
+            $invoice->update([
+                'status' => 'cancelled',
+                'notes' => trim((string) ($invoice->notes ? $invoice->notes . "\n" : '') . 'VOID: ' . $reason),
+            ]);
+
+            return $invoice->fresh();
+        });
     }
 }

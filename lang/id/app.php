@@ -30,6 +30,7 @@ return [
         'create'         => 'Buat',
         'view'           => 'Lihat',
         'remove'         => 'Hapus',
+        'restore'        => 'Pulihkan',
         'pay'            => 'Bayar',
         'pay_now'        => 'Bayar Sekarang',
         'view_all'       => 'Lihat Semua',
@@ -47,6 +48,14 @@ return [
         'monthly'        => 'Bulanan',
         'one_time'       => 'Sekali Bayar',
         'annual'         => 'Tahunan',
+        'registered'     => 'Terdaftar',
+        'under_review'   => 'Sedang Direview',
+        'accepted'       => 'Diterima',
+        'rejected'       => 'Ditolak',
+        'enrolled'       => 'Terdaftar Siswa',
+        'draft'          => 'Draft',
+        'open'           => 'Dibuka',
+        'closed'         => 'Ditutup',
     ],
 
     // Label umum / header kolom
@@ -136,7 +145,11 @@ return [
         'log_out'        => 'Keluar',
         'master_data'    => 'Data Master',
         'reports'        => 'Laporan',
+        'users'          => 'User',
         'language'       => 'Bahasa',
+        'admission'      => 'Penerimaan',
+        'admission_periods' => 'Periode Penerimaan',
+        'applicants'     => 'Calon Siswa',
     ],
 
     // Pesan kosong
@@ -149,6 +162,7 @@ return [
         'fee_types'     => 'Tidak ada jenis biaya ditemukan.',
         'fee_matrices'  => 'Tidak ada matriks biaya ditemukan.',
         'categories'    => 'Tidak ada kategori ditemukan.',
+        'users'         => 'Tidak ada user ditemukan.',
         'entries_date'  => 'Tidak ada entri untuk tanggal ini.',
         'entries'       => 'Tidak ada entri ditemukan.',
         'transactions_short' => 'Tidak ada transaksi.',
@@ -156,6 +170,8 @@ return [
         'arrears'       => 'Tidak ada invoice jatuh tempo dengan tunggakan.',
         'no_invoices_student' => 'Tidak ada tagihan tertunggak untuk siswa ini.',
         'no_transactions_yet' => 'Belum ada transaksi.',
+        'admission_periods' => 'Tidak ada periode penerimaan ditemukan.',
+        'applicants'     => 'Tidak ada calon siswa ditemukan.',
     ],
 
     // Pesan error/flash

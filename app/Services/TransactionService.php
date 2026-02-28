@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\TransactionCreated;
+use App\Models\StudentObligation;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,7 @@ class TransactionService
                 'transaction_number' => $number,
                 'transaction_date' => $data['transaction_date'],
                 'type' => 'income',
-                'student_id' => null,
+                'student_id' => $data['student_id'] ?? null,
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'total_amount' => collect($items)->sum('amount'),
                 'description' => $data['description'] ?? null,
@@ -59,6 +60,19 @@ class TransactionService
                     'amount' => $item['amount'],
                     'month' => $item['month'] ?? null,
                     'year' => $item['year'] ?? null,
+                ]);
+            }
+
+            if (config('features.accounting_engine_v2')) {
+                $eventType = (string) ($data['accounting_event_type'] ?? 'payment.posted');
+                AccountingEngine::fromEvent($eventType, [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'total_amount' => (float) $transaction->total_amount,
+                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'idempotency_key' => "{$eventType}:transaction:{$transaction->id}",
                 ]);
             }
 
@@ -101,6 +115,18 @@ class TransactionService
                 ]);
             }
 
+            if (config('features.accounting_engine_v2')) {
+                AccountingEngine::fromEvent('expense.posted', [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'total_amount' => (float) $transaction->total_amount,
+                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'idempotency_key' => 'expense.posted:transaction:'.$transaction->id,
+                ]);
+            }
+
             return $transaction->load('items.feeType');
         });
     }
@@ -111,31 +137,45 @@ class TransactionService
             throw new \RuntimeException(__('message.transaction_already_cancelled'));
         }
 
-        $transaction->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-            'cancelled_by' => $userId,
-            'cancellation_reason' => $reason,
-        ]);
+        return DB::transaction(function () use ($transaction, $userId, $reason) {
+            $transaction->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancelled_by' => $userId,
+                'cancellation_reason' => $reason,
+            ]);
 
-        // Revert obligation payments
-        if ($transaction->type === 'income') {
-            $itemIds = $transaction->items->pluck('id');
+            // Revert obligation payments
+            if ($transaction->type === 'income') {
+                $itemIds = $transaction->items->pluck('id');
 
-            StudentObligation::whereIn('transaction_item_id', $itemIds)
-                ->update([
-                    'is_paid' => false,
-                    'paid_amount' => 0,
-                    'paid_at' => null,
-                    'transaction_item_id' => null,
+                StudentObligation::whereIn('transaction_item_id', $itemIds)
+                    ->update([
+                        'is_paid' => false,
+                        'paid_amount' => 0,
+                        'paid_at' => null,
+                        'transaction_item_id' => null,
+                    ]);
+
+                // Regenerate receipt with cancellation watermark
+                DB::afterCommit(function () use ($transaction) {
+                    $this->receiptService->generateCancelled($transaction);
+                });
+            }
+
+            if (config('features.accounting_engine_v2')) {
+                AccountingEngine::fromEvent('reversal.posted', [
+                    'unit_id' => $transaction->unit_id,
+                    'source_type' => 'transaction',
+                    'source_id' => $transaction->id,
+                    'effective_date' => now()->toDateString(),
+                    'created_by' => $userId,
+                    'reason' => $reason,
+                    'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
                 ]);
+            }
 
-            // Regenerate receipt with cancellation watermark
-            DB::afterCommit(function () use ($transaction) {
-                $this->receiptService->generateCancelled($transaction);
-            });
-        }
-
-        return $transaction->fresh();
+            return $transaction->fresh();
+        });
     }
 }

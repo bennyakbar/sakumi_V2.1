@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Master\StoreFeeTypeRequest;
 use App\Http\Requests\Master\UpdateFeeTypeRequest;
 use App\Models\FeeType;
+use App\Services\PermanentDeleteService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class FeeTypeController extends Controller
@@ -78,8 +81,42 @@ class FeeTypeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeType $feeType): RedirectResponse
+    public function destroy(Request $request, FeeType $feeType): RedirectResponse
     {
+        $permanentDelete = app(PermanentDeleteService::class);
+        if ($permanentDelete->isRequested($request)) {
+            $actor = $request->user();
+            if (!$actor || !$permanentDelete->isAllowedFor($actor)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_not_allowed')]);
+            }
+            if (!$permanentDelete->hasValidConfirmation($request)) {
+                return back()->withErrors(['delete' => __('message.permanent_delete_confirmation_invalid')]);
+            }
+
+            $blocking = $permanentDelete->onlyBlockingDependencies(
+                $permanentDelete->dependencyCounts(PermanentDeleteService::ENTITY_FEE_TYPE, (int) $feeType->id)
+            );
+            if (!empty($blocking)) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, $blocking, 'blocked');
+                return back()->withErrors([
+                    'delete' => __('message.permanent_delete_blocked_dependencies', [
+                        'details' => $permanentDelete->formatDependencies($blocking),
+                    ]),
+                ]);
+            }
+
+            try {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, [], 'attempt');
+                $feeType->forceDelete();
+            } catch (QueryException $e) {
+                $permanentDelete->logSnapshot($actor, PermanentDeleteService::ENTITY_FEE_TYPE, $feeType, [], 'failed', $e->getMessage());
+                return back()->withErrors(['delete' => __('message.permanent_delete_failed_fk')]);
+            }
+
+            return redirect()->route('master.fee-types.index')
+                ->with('success', __('message.fee_type_permanently_deleted'));
+        }
+
         if ($feeType->feeMatrix()->exists()) {
             return back()->with('error', __('message.fee_type_in_use'));
         }
@@ -89,4 +126,5 @@ class FeeTypeController extends Controller
         return redirect()->route('master.fee-types.index')
             ->with('success', __('message.fee_type_deleted'));
     }
+
 }

@@ -39,6 +39,18 @@ class MasterControllersTest extends TestCase
         $this->get(route('master.students.index'))->assertOk();
     }
 
+    public function test_student_index_shows_filter_controls(): void
+    {
+        $response = $this->get(route('master.students.index'));
+
+        $response->assertOk();
+        $response->assertSee('name="search"', false);
+        $response->assertSee('name="class_id"', false);
+        $response->assertSee('name="category_id"', false);
+        $response->assertSee('name="status"', false);
+        $response->assertSee('name="sort"', false);
+    }
+
     public function test_class_crud(): void
     {
         $this->post(route('master.classes.store'), [
@@ -59,6 +71,7 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.classes.destroy', $class))
             ->assertRedirect(route('master.classes.index'));
+        $this->assertSoftDeleted('classes', ['id' => $class->id]);
     }
 
     public function test_category_crud(): void
@@ -79,6 +92,7 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.categories.destroy', $category))
             ->assertRedirect(route('master.categories.index'));
+        $this->assertSoftDeleted('student_categories', ['id' => $category->id]);
     }
 
     public function test_fee_type_and_fee_matrix_crud(): void
@@ -125,6 +139,7 @@ class MasterControllersTest extends TestCase
 
         $this->delete(route('master.fee-matrix.destroy', $feeMatrix))
             ->assertRedirect(route('master.fee-matrix.index'));
+        $this->assertSoftDeleted('fee_matrix', ['id' => $feeMatrix->id]);
     }
 
     public function test_student_crud_and_show_page(): void
@@ -170,4 +185,5 @@ class MasterControllersTest extends TestCase
         $this->delete(route('master.students.destroy', $student))
             ->assertRedirect(route('master.students.index'));
     }
+
 }

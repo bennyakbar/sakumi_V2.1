@@ -30,6 +30,7 @@ return [
         'create'         => 'Create',
         'view'           => 'View',
         'remove'         => 'Remove',
+        'restore'        => 'Restore',
         'pay'            => 'Pay',
         'pay_now'        => 'Pay Now',
         'view_all'       => 'View All',
@@ -47,6 +48,14 @@ return [
         'monthly'        => 'Monthly',
         'one_time'       => 'One-time',
         'annual'         => 'Annual',
+        'registered'     => 'Registered',
+        'under_review'   => 'Under Review',
+        'accepted'       => 'Accepted',
+        'rejected'       => 'Rejected',
+        'enrolled'       => 'Enrolled',
+        'draft'          => 'Draft',
+        'open'           => 'Open',
+        'closed'         => 'Closed',
     ],
 
     // Common labels / column headers
@@ -136,7 +145,11 @@ return [
         'log_out'        => 'Log Out',
         'master_data'    => 'Master Data',
         'reports'        => 'Reports',
+        'users'          => 'Users',
         'language'       => 'Language',
+        'admission'      => 'Admission',
+        'admission_periods' => 'Admission Periods',
+        'applicants'     => 'Applicants',
     ],
 
     // Empty state messages
@@ -149,6 +162,7 @@ return [
         'fee_types'     => 'No fee types found.',
         'fee_matrices'  => 'No fee matrices found.',
         'categories'    => 'No categories found.',
+        'users'         => 'No users found.',
         'entries_date'  => 'No entries found for this date.',
         'entries'       => 'No entries found.',
         'transactions_short' => 'No transactions.',
@@ -156,6 +170,8 @@ return [
         'arrears'       => 'No overdue invoices with outstanding balance.',
         'no_invoices_student' => 'No outstanding invoices found for this student.',
         'no_transactions_yet' => 'No transactions yet.',
+        'admission_periods' => 'No admission periods found.',
+        'applicants'     => 'No applicants found.',
     ],
 
     // Error/flash messages (from controllers/middleware)

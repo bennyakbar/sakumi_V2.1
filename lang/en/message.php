@@ -16,6 +16,10 @@ return [
     'transaction_already_cancelled' => 'Transaction is already cancelled.',
     'invalid_transaction_type'     => 'Invalid transaction type.',
     'expense_not_authorized'       => 'You are not authorized to create expense transactions.',
+    'transaction_redirect_to_settlement' => 'This student has an active invoice (:invoice). Please use Settlement so invoice status is updated correctly.',
+    'student_has_unpaid_obligations_use_invoice' => 'This student still has unpaid obligations. Create/use an invoice and process payment through Settlement.',
+    'student_required_for_monthly_fee' => 'Transactions containing monthly fee items must select a student to avoid bypassing invoice-settlement flow.',
+    'monthly_fee_must_use_invoice' => 'Monthly fee items must be processed through Invoice/Settlement flow, not walk-in transactions.',
     'cancelled_by_admin'           => 'Cancelled by administrator',
 
     // Settlement
@@ -46,6 +50,22 @@ return [
     'obligations_already_invoiced' => 'Some obligations are already paid or already invoiced.',
     'cannot_cancel_paid_invoice'   => 'Cannot cancel a fully paid invoice.',
     'cannot_cancel_invoice_payments' => 'Cannot cancel an invoice with existing payments. Cancel the settlements first.',
+    'invoice_void_requires_single_allocation_settlement' => 'Cannot cancel: settlement :number covers multiple invoices. Please void that settlement first (Settlements > :number > Void), then retry cancelling this invoice.',
+    'cancel_paid_invoice_not_authorized' => 'You do not have permission to cancel paid invoices. Contact bendahara or super admin.',
+    'cancel_paid_invoice_requires_void_permission' => 'Cancelling a paid invoice requires settlement void permission. Contact bendahara or super admin.',
+    'hard_delete_not_allowed'      => 'Direct deletion is not allowed. Use the cancel/void workflow instead.',
+    'settings_updated'            => 'Settings updated successfully.',
+    'academic_year_must_be_consecutive' => 'Academic year must be consecutive, for example: 2025/2026.',
+    'permanent_delete_not_allowed' => 'Permanent delete is allowed only for superadmin and must be enabled in Settings.',
+    'permanent_delete_confirmation_invalid' => 'Permanent delete confirmation is invalid. Type exactly: HAPUS PERMANEN.',
+    'permanent_delete_blocked_dependencies' => 'Permanent delete is blocked because this data is already used: :details.',
+    'permanent_delete_failed_fk' => 'Permanent delete failed because related records are still locked by database constraints.',
+    'user_permanently_deleted' => 'User permanently deleted.',
+    'student_permanently_deleted' => 'Student permanently deleted.',
+    'class_permanently_deleted' => 'Class permanently deleted.',
+    'category_permanently_deleted' => 'Category permanently deleted.',
+    'fee_type_permanently_deleted' => 'Fee type permanently deleted.',
+    'fee_matrix_permanently_deleted' => 'Fee matrix permanently deleted.',
 
     // Master: Fee Type
     'fee_type_created'             => 'Fee Type created successfully.',
@@ -64,6 +84,10 @@ return [
     'student_updated'              => 'Student updated successfully.',
     'student_deleted'              => 'Student deleted successfully.',
     'student_import_success'       => 'Student import finished successfully.',
+    'student_fee_mapping_created'  => 'Student fee mapping created successfully.',
+    'student_fee_mapping_updated'  => 'Student fee mapping updated successfully.',
+    'student_fee_mapping_deactivated' => 'Student fee mapping deactivated successfully.',
+    'student_fee_mapping_overlap'  => 'The selected period overlaps with another active mapping for the same fee type.',
 
     // Master: Class
     'class_created'                => 'Class created successfully.',
@@ -76,6 +100,14 @@ return [
     'category_updated'             => 'Student Category updated successfully.',
     'category_deleted'             => 'Student Category deleted successfully.',
     'category_has_students'        => 'Cannot delete category because it has associated students.',
+
+    // User Management
+    'user_created'                 => 'User created successfully.',
+    'user_updated'                 => 'User updated successfully.',
+    'user_deleted'                 => 'User deactivated successfully.',
+    'user_password_reset'          => 'Temporary password generated successfully.',
+    'users_bulk_updated'           => ':count user(s) updated successfully.',
+    'cannot_deactivate_self'       => 'You cannot deactivate your own account.',
 
     // Middleware / Auth
     'no_unit_assigned'             => 'Your account has not been assigned to any unit. Contact administrator.',
@@ -92,6 +124,25 @@ return [
     'uncategorized'                => 'Uncategorized',
     'general'                      => 'General',
     'watermark_original'           => 'ORIGINAL',
+
+    // Admission (PSB)
+    'admission_period_created'     => 'Admission period created successfully.',
+    'admission_period_updated'     => 'Admission period updated successfully.',
+    'admission_period_deleted'     => 'Admission period deleted successfully.',
+    'admission_period_has_applicants' => 'Cannot delete period that still has applicants.',
+    'applicant_created'            => 'Applicant registered successfully.',
+    'applicant_updated'            => 'Applicant updated successfully.',
+    'applicant_deleted'            => 'Applicant deleted successfully.',
+    'applicant_reviewed'           => 'Applicant moved to review.',
+    'applicant_accepted'           => 'Applicant accepted.',
+    'applicant_rejected'           => 'Applicant rejected.',
+    'applicant_enrolled'           => 'Applicant enrolled as student successfully.',
+    'applicant_cannot_edit_enrolled' => 'Cannot edit an enrolled applicant.',
+    'applicant_cannot_delete_enrolled' => 'Cannot delete an enrolled applicant.',
+    'applicants_bulk_updated'      => ':count applicant(s) updated successfully.',
+    'admission_invalid_transition' => 'Invalid status transition.',
+    'admission_quota_exceeded'     => 'Class quota has been reached.',
+    'admission_invalid_status'     => 'Invalid status for bulk operation.',
 
     // Aging bucket labels
     'aging_0_30'                   => '0-30 days',
