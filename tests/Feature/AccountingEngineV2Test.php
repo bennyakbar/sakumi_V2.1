@@ -25,7 +25,7 @@ class AccountingEngineV2Test extends TestCase
     {
         parent::setUp();
 
-        config(['features.accounting_engine_v2' => true]);
+        // Accounting engine is now always enabled (mandatory).
     }
 
     public function test_it_posts_invoice_created_with_balanced_journal_entries(): void

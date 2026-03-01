@@ -301,7 +301,7 @@ class TransactionFlowTest extends TestCase
 
     public function test_cancel_income_transaction_posts_accounting_reversal_when_engine_enabled(): void
     {
-        config(['features.accounting_engine_v2' => true]);
+        // Accounting engine is now always enabled (mandatory).
         Setting::set('academic_year_current', '2025/2026');
 
         $user = User::factory()->create();

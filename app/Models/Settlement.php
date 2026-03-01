@@ -84,9 +84,35 @@ class Settlement extends Model
         return $this->hasMany(SettlementAllocation::class);
     }
 
+    /**
+     * Unallocated amount computed from live allocation data rather than
+     * the denormalized column, preventing drift.
+     */
     public function getUnallocatedAttribute(): float
     {
-        return (float) $this->total_amount - (float) $this->allocated_amount;
+        $allocatedSum = (float) $this->allocations()->sum('amount');
+
+        return (float) $this->total_amount - $allocatedSum;
+    }
+
+    /**
+     * Recalculate the denormalized allocated_amount column from actual
+     * allocation records so it stays in sync with reality.
+     *
+     * Called after any operation that could change allocation state
+     * (void, cancel).  Completed settlements are protected by a DB trigger
+     * so this only updates non-completed records.
+     */
+    public function recalculateAllocatedAmount(): void
+    {
+        if ($this->status === 'completed') {
+            return;
+        }
+
+        $sum = $this->allocations()->sum('amount');
+
+        $this->allocated_amount = $sum;
+        $this->saveQuietly();
     }
 
     public function isCancelled(): bool

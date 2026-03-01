@@ -63,18 +63,16 @@ class TransactionService
                 ]);
             }
 
-            if (config('features.accounting_engine_v2')) {
-                $eventType = (string) ($data['accounting_event_type'] ?? 'payment.posted');
-                AccountingEngine::fromEvent($eventType, [
-                    'unit_id' => $transaction->unit_id,
-                    'source_type' => 'transaction',
-                    'source_id' => $transaction->id,
-                    'total_amount' => (float) $transaction->total_amount,
-                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
-                    'created_by' => $userId,
-                    'idempotency_key' => "{$eventType}:transaction:{$transaction->id}",
-                ]);
-            }
+            $eventType = (string) ($data['accounting_event_type'] ?? 'payment.posted');
+            AccountingEngine::fromEvent($eventType, [
+                'unit_id' => $transaction->unit_id,
+                'source_type' => 'transaction',
+                'source_id' => $transaction->id,
+                'total_amount' => (float) $transaction->total_amount,
+                'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                'created_by' => $userId,
+                'idempotency_key' => "{$eventType}:transaction:{$transaction->id}",
+            ]);
 
             return $transaction;
         });
@@ -115,17 +113,15 @@ class TransactionService
                 ]);
             }
 
-            if (config('features.accounting_engine_v2')) {
-                AccountingEngine::fromEvent('expense.posted', [
-                    'unit_id' => $transaction->unit_id,
-                    'source_type' => 'transaction',
-                    'source_id' => $transaction->id,
-                    'total_amount' => (float) $transaction->total_amount,
-                    'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
-                    'created_by' => $userId,
-                    'idempotency_key' => 'expense.posted:transaction:'.$transaction->id,
-                ]);
-            }
+            AccountingEngine::fromEvent('expense.posted', [
+                'unit_id' => $transaction->unit_id,
+                'source_type' => 'transaction',
+                'source_id' => $transaction->id,
+                'total_amount' => (float) $transaction->total_amount,
+                'effective_date' => $transaction->transaction_date?->toDateString() ?? now()->toDateString(),
+                'created_by' => $userId,
+                'idempotency_key' => 'expense.posted:transaction:'.$transaction->id,
+            ]);
 
             return $transaction->load('items.feeType');
         });
@@ -163,17 +159,15 @@ class TransactionService
                 });
             }
 
-            if (config('features.accounting_engine_v2')) {
-                AccountingEngine::fromEvent('reversal.posted', [
-                    'unit_id' => $transaction->unit_id,
-                    'source_type' => 'transaction',
-                    'source_id' => $transaction->id,
-                    'effective_date' => now()->toDateString(),
-                    'created_by' => $userId,
-                    'reason' => $reason,
-                    'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
-                ]);
-            }
+            AccountingEngine::fromEvent('reversal.posted', [
+                'unit_id' => $transaction->unit_id,
+                'source_type' => 'transaction',
+                'source_id' => $transaction->id,
+                'effective_date' => now()->toDateString(),
+                'created_by' => $userId,
+                'reason' => $reason,
+                'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
+            ]);
 
             return $transaction->fresh();
         });

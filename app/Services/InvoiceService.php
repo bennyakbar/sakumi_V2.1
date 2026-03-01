@@ -129,10 +129,13 @@ class InvoiceService
         DB::transaction(function () use ($student, $obligations, $periodType, $periodIdentifier, $userId, $dueDate, &$result) {
             $number = $this->generateInvoiceNumber((int) $student->unit_id);
             $totalAmount = $obligations->sum('amount');
+            $firstObligation = $obligations->first();
 
             $invoice = Invoice::create([
                 'invoice_number' => $number,
                 'student_id' => $student->id,
+                'academic_year_id' => $firstObligation?->academic_year_id,
+                'student_enrollment_id' => $firstObligation?->student_enrollment_id,
                 'period_type' => $periodType,
                 'period_identifier' => $periodIdentifier,
                 'invoice_date' => now()->toDateString(),
@@ -155,7 +158,15 @@ class InvoiceService
                 ]);
             }
 
-            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
+            AccountingEngine::fromEvent('invoice.created', [
+                'unit_id' => $invoice->unit_id,
+                'source_type' => 'invoice',
+                'source_id' => $invoice->id,
+                'total_amount' => (float) $invoice->total_amount,
+                'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(),
+                'created_by' => $userId,
+                'idempotency_key' => 'invoice.created:'.$invoice->id,
+            ]);
 
             $result['created']++;
         });
@@ -193,9 +204,14 @@ class InvoiceService
             $periodIdentifier = $data['period_identifier']
                 ?? sprintf('%04d-%02d', $firstObligation->year, $firstObligation->month);
 
+            $academicYearId = $obligations->pluck('academic_year_id')->filter()->unique();
+            $enrollmentId = $obligations->pluck('student_enrollment_id')->filter()->unique();
+
             $invoice = Invoice::create([
                 'invoice_number' => $number,
                 'student_id' => $studentId,
+                'academic_year_id' => $academicYearId->count() === 1 ? $academicYearId->first() : null,
+                'student_enrollment_id' => $enrollmentId->count() === 1 ? $enrollmentId->first() : null,
                 'period_type' => $periodType,
                 'period_identifier' => $periodIdentifier,
                 'invoice_date' => $data['invoice_date'] ?? now()->toDateString(),
@@ -219,7 +235,15 @@ class InvoiceService
                 ]);
             }
 
-            if (config('features.accounting_engine_v2')) { AccountingEngine::fromEvent('invoice.created', ['unit_id' => $invoice->unit_id, 'source_type' => 'invoice', 'source_id' => $invoice->id, 'total_amount' => (float) $invoice->total_amount, 'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(), 'created_by' => $userId, 'idempotency_key' => 'invoice.created:'.$invoice->id]); }
+            AccountingEngine::fromEvent('invoice.created', [
+                'unit_id' => $invoice->unit_id,
+                'source_type' => 'invoice',
+                'source_id' => $invoice->id,
+                'total_amount' => (float) $invoice->total_amount,
+                'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(),
+                'created_by' => $userId,
+                'idempotency_key' => 'invoice.created:'.$invoice->id,
+            ]);
 
             return $invoice->load('items.feeType', 'student');
         });

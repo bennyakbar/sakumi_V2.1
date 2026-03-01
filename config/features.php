@@ -1,5 +1,8 @@
 <?php
 
 return [
-    'accounting_engine_v2' => (bool) env('ACCOUNTING_ENGINE_V2', false),
+    // Accounting engine is now mandatory — always enabled.
+    // The feature flag is retained only for backward-compatible config reads;
+    // it cannot be disabled.  All financial operations MUST post GL entries.
+    'accounting_engine_v2' => true,
 ];
