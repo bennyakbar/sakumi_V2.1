@@ -15,56 +15,81 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+        <div class="min-h-screen bg-gray-100"
+             x-data="{
+                 sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+                 mobileOpen: false,
+                 toggleCollapse() {
+                     this.sidebarCollapsed = !this.sidebarCollapsed;
+                     localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
+                 },
+                 toggleMobile() {
+                     this.mobileOpen = !this.mobileOpen;
+                 },
+                 closeMobile() {
+                     this.mobileOpen = false;
+                 }
+             }"
+             x-on:keydown.escape.window="closeMobile()"
+        >
+            {{-- Sidebar --}}
+            @include('layouts.sidebar')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+            {{-- Main content wrapper --}}
+            <div class="transition-all duration-300 ease-in-out lg:pl-64"
+                 :class="{ 'lg:pl-16': sidebarCollapsed, 'lg:pl-64': !sidebarCollapsed }">
 
-            <!-- Page Content -->
-            <main>
-                @if (session('success') || session('status') || $errors->any() || session('temporary_password'))
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
-                        @if (session('success'))
-                            <div class="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
-                                {{ session('success') }}
-                            </div>
-                        @endif
+                {{-- Top bar --}}
+                @include('layouts.topbar')
 
-                        @if (session('status'))
-                            <div class="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800">
-                                {{ session('status') }}
-                            </div>
-                        @endif
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="bg-white shadow">
+                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endisset
 
-                        @if (session('temporary_password'))
-                            <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
-                                <p class="font-semibold">Temporary Password</p>
-                                <p class="mt-1 font-mono">{{ session('temporary_password') }}</p>
-                                <p class="mt-1 text-xs">Share securely and require immediate password change.</p>
-                            </div>
-                        @endif
+                <!-- Page Content -->
+                <main>
+                    @if (session('success') || session('status') || $errors->any() || session('temporary_password'))
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
+                            @if (session('success'))
+                                <div class="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
 
-                        @if ($errors->any())
-                            <div class="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
-                                <ul class="list-disc ms-5">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                    </div>
-                @endif
+                            @if (session('status'))
+                                <div class="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800">
+                                    {{ session('status') }}
+                                </div>
+                            @endif
 
-                {{ $slot }}
-            </main>
+                            @if (session('temporary_password'))
+                                <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
+                                    <p class="font-semibold">Temporary Password</p>
+                                    <p class="mt-1 font-mono">{{ session('temporary_password') }}</p>
+                                    <p class="mt-1 text-xs">Share securely and require immediate password change.</p>
+                                </div>
+                            @endif
+
+                            @if ($errors->any())
+                                <div class="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+                                    <ul class="list-disc ms-5">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
 
         <script>
