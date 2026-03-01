@@ -16,8 +16,8 @@ class ReceiptVerificationService
             $issuedAt->format('Y-m-d H:i:s'),
         ]);
 
-        $appKey = (string) config('app.key', 'sakumi-default-key');
-        $raw = hash_hmac('sha256', $payload, $appKey);
+        $hmacKey = (string) (config('sakumi.receipt_hmac_key') ?: config('app.key', 'sakumi-default-key'));
+        $raw = hash_hmac('sha256', $payload, $hmacKey);
 
         return strtoupper(substr($raw, 0, 16));
     }

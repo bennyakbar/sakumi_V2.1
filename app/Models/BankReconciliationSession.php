@@ -12,6 +12,13 @@ class BankReconciliationSession extends Model
 {
     use BelongsToUnit, HasFactory;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (BankReconciliationSession $session) {
+            throw new \RuntimeException(__('message.hard_delete_not_allowed'));
+        });
+    }
+
     protected $fillable = [
         'unit_id',
         'bank_account_name',

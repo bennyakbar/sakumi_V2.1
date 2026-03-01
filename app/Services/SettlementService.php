@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DocumentSequence;
 use App\Models\Invoice;
 use App\Models\Settlement;
 use App\Models\SettlementAllocation;
@@ -13,17 +14,9 @@ class SettlementService
     public function generateSettlementNumber(): string
     {
         $year = now()->year;
+        $seqPrefix = "STL-{$year}";
 
-        $last = Settlement::withoutGlobalScope('unit')
-            ->whereYear('created_at', $year)
-            ->lockForUpdate()
-            ->orderByDesc('id')
-            ->value('settlement_number');
-
-        $sequence = 1;
-        if ($last && preg_match('/(\d{6})$/', $last, $matches)) {
-            $sequence = (int) $matches[1] + 1;
-        }
+        $sequence = DocumentSequence::next($seqPrefix);
 
         return sprintf('STL-%s-%06d', $year, $sequence);
     }

@@ -23,8 +23,10 @@ class Invoice extends Model
 
     protected $fillable = [
         'unit_id',
+        'academic_year_id',
         'invoice_number',
         'student_id',
+        'student_enrollment_id',
         'period_type',
         'period_identifier',
         'invoice_date',
@@ -49,13 +51,26 @@ class Invoice extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'paid_amount'])
+            ->logOnly([
+                'status', 'paid_amount', 'total_amount', 'student_id',
+                'invoice_date', 'due_date', 'notes',
+            ])
             ->logOnlyDirty();
     }
 
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function academicYear(): BelongsTo
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(StudentEnrollment::class, 'student_enrollment_id');
     }
 
     public function creator(): BelongsTo

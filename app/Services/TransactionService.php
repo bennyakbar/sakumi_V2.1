@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\TransactionCreated;
+use App\Models\DocumentSequence;
 use App\Models\Invoice;
 use App\Models\StudentObligation;
 use App\Models\Transaction;
@@ -19,18 +20,9 @@ class TransactionService
     {
         $prefix = $type === 'income' ? 'NF' : 'NK';
         $year = now()->year;
+        $seqPrefix = "{$prefix}-{$year}";
 
-        $last = Transaction::withoutGlobalScope('unit')
-            ->where('type', $type)
-            ->whereYear('created_at', $year)
-            ->lockForUpdate()
-            ->orderByDesc('id')
-            ->value('transaction_number');
-
-        $sequence = 1;
-        if ($last && preg_match('/(\d{6})$/', $last, $matches)) {
-            $sequence = (int) $matches[1] + 1;
-        }
+        $sequence = DocumentSequence::next($seqPrefix);
 
         return sprintf('%s-%s-%06d', $prefix, $year, $sequence);
     }

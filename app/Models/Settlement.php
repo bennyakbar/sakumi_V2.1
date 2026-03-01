@@ -55,7 +55,10 @@ class Settlement extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'cancellation_reason', 'void_reason'])
+            ->logOnly([
+                'status', 'total_amount', 'allocated_amount', 'payment_method',
+                'student_id', 'payment_date', 'cancellation_reason', 'void_reason',
+            ])
             ->logOnlyDirty();
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DocumentSequence;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Settlement;
@@ -26,18 +27,9 @@ class InvoiceService
             ->value('code') ?? "U{$unitId}";
         $unitCode = strtoupper((string) $unitCode);
         $year = now()->year;
+        $seqPrefix = "INV-{$unitCode}-{$year}";
 
-        $last = Invoice::query()
-            ->where('unit_id', $unitId)
-            ->whereYear('created_at', $year)
-            ->lockForUpdate()
-            ->orderByDesc('id')
-            ->value('invoice_number');
-
-        $sequence = 1;
-        if ($last && preg_match('/(\d{6})$/', $last, $matches)) {
-            $sequence = (int) $matches[1] + 1;
-        }
+        $sequence = DocumentSequence::next($seqPrefix);
 
         return sprintf('INV-%s-%s-%06d', $unitCode, $year, $sequence);
     }

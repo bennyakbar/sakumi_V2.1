@@ -49,10 +49,20 @@ class Transaction extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Transaction $transaction) {
+            throw new \RuntimeException(__('message.hard_delete_not_allowed'));
+        });
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'cancellation_reason'])
+            ->logOnly([
+                'status', 'total_amount', 'payment_method', 'student_id',
+                'transaction_date', 'cancellation_reason',
+            ])
             ->logOnlyDirty();
     }
 
