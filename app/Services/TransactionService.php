@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\TransactionCreated;
+use App\Models\Invoice;
 use App\Models\StudentObligation;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
@@ -145,13 +146,30 @@ class TransactionService
             if ($transaction->type === 'income') {
                 $itemIds = $transaction->items->pluck('id');
 
-                StudentObligation::whereIn('transaction_item_id', $itemIds)
+                $obligationIds = StudentObligation::whereIn('transaction_item_id', $itemIds)
+                    ->pluck('id');
+
+                StudentObligation::whereIn('id', $obligationIds)
                     ->update([
                         'is_paid' => false,
                         'paid_amount' => 0,
                         'paid_at' => null,
                         'transaction_item_id' => null,
                     ]);
+
+                // Recalculate any invoices linked to the reverted obligations
+                if ($obligationIds->isNotEmpty()) {
+                    $affectedInvoiceIds = \App\Models\InvoiceItem::whereIn('student_obligation_id', $obligationIds)
+                        ->pluck('invoice_id')
+                        ->unique();
+
+                    foreach ($affectedInvoiceIds as $invoiceId) {
+                        $invoice = Invoice::find($invoiceId);
+                        if ($invoice) {
+                            $invoice->recalculateFromAllocations();
+                        }
+                    }
+                }
 
                 // Regenerate receipt with cancellation watermark
                 DB::afterCommit(function () use ($transaction) {

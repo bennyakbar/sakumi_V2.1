@@ -287,20 +287,17 @@ class InvoiceService
                 ->where('status', 'completed')
                 ->whereHas('allocations', fn ($q) => $q->where('invoice_id', $invoice->id))
                 ->withCount('allocations')
-                ->with(['allocations' => fn ($q) => $q->where('invoice_id', $invoice->id)])
                 ->get();
 
             foreach ($settlements as $settlement) {
-                if ((int) $settlement->allocations_count !== 1) {
-                    throw new \RuntimeException(__('message.invoice_void_requires_single_allocation_settlement', [
-                        'number' => $settlement->settlement_number,
-                    ]));
-                }
-
+                // Void the entire settlement — SettlementService::void() properly
+                // recalculates all affected invoices, not just the target one.
                 $this->settlementService->void(
                     settlement: $settlement,
                     userId: $userId,
-                    reason: $reason,
+                    reason: $reason . ((int) $settlement->allocations_count > 1
+                        ? " (cascaded from invoice {$invoice->invoice_number}; settlement {$settlement->settlement_number} had {$settlement->allocations_count} allocations)"
+                        : ''),
                 );
             }
 

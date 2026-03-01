@@ -12,11 +12,23 @@ trait BelongsToUnit
     public static function bootBelongsToUnit(): void
     {
         static::addGlobalScope('unit', function (Builder $builder): void {
-            if ($unitId = session('current_unit_id')) {
+            $unitId = session('current_unit_id');
+
+            if ($unitId) {
                 $builder->where(
                     $builder->getModel()->qualifyColumn('unit_id'),
                     $unitId
                 );
+
+                return;
+            }
+
+            // Fail-closed: if no unit context is set and we're in an HTTP
+            // request (not CLI/queue), force an impossible WHERE so that
+            // no records are returned.  This prevents cross-unit data leakage
+            // when sessions expire or middleware is bypassed.
+            if (! app()->runningInConsole()) {
+                $builder->whereRaw('1 = 0');
             }
         });
 

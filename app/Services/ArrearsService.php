@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\FeeMatrix;
 use App\Models\Student;
 use App\Models\StudentFeeMapping;
+use App\Models\StudentEnrollment;
 use App\Models\StudentObligation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,10 @@ class ArrearsService
             $periodDate = Carbon::create($year, $month, 1)->startOfDay();
 
             foreach ($students as $student) {
-                $feeEntries = $this->resolveFeeEntriesForStudentAtDate($student, $periodDate);
+                $enrollment = $this->resolveEnrollmentAtDate($student, $periodDate);
+                $classId = $enrollment?->class_id ?? $student->class_id;
+                $academicYearId = $enrollment?->academic_year_id;
+                $feeEntries = $this->resolveFeeEntriesForStudentAtDate($student, $periodDate, (int) $classId);
 
                 foreach ($feeEntries as $entry) {
                     $existing = StudentObligation::query()
@@ -32,7 +36,10 @@ class ArrearsService
                     if (! $existing) {
                         StudentObligation::query()->create([
                             'unit_id' => $student->unit_id,
+                            'academic_year_id' => $academicYearId,
                             'student_id' => $student->id,
+                            'student_enrollment_id' => $enrollment?->id,
+                            'class_id_snapshot' => $classId,
                             'fee_type_id' => $entry->fee_type_id,
                             'month' => $month,
                             'year' => $year,
@@ -44,12 +51,12 @@ class ArrearsService
                         continue;
                     }
 
-                    // Keep obligations idempotent but allow tariff correction before payment/invoice posting.
-                    $hasActiveInvoice = $existing->invoiceItems()
-                        ->whereHas('invoice', fn ($q) => $q->where('status', '!=', 'cancelled'))
-                        ->exists();
+                    // Keep obligations idempotent but allow tariff correction only before
+                    // the obligation has EVER been referenced by any invoice (including cancelled).
+                    // Once invoiced, the amount is frozen to preserve audit trail integrity.
+                    $hasAnyInvoice = $existing->invoiceItems()->exists();
 
-                    if (! $existing->is_paid && ! $hasActiveInvoice && $existing->transaction_item_id === null) {
+                    if (! $existing->is_paid && ! $hasAnyInvoice && $existing->transaction_item_id === null) {
                         $newAmount = (float) $entry->amount;
                         if ((float) $existing->amount !== $newAmount) {
                             $existing->update([
@@ -71,7 +78,7 @@ class ArrearsService
      *
      * @return \Illuminate\Support\Collection<int, FeeMatrix>
      */
-    private function resolveFeeEntriesForStudentAtDate(Student $student, Carbon $periodDate)
+    private function resolveFeeEntriesForStudentAtDate(Student $student, Carbon $periodDate, int $classId)
     {
         $mappingEntries = StudentFeeMapping::query()
             ->where('student_id', $student->id)
@@ -105,8 +112,8 @@ class ArrearsService
         return FeeMatrix::query()
             ->where('is_active', true)
             ->whereHas('feeType', fn ($q) => $q->where('is_monthly', true)->where('is_active', true))
-            ->where(function ($q) use ($student) {
-                $q->whereNull('class_id')->orWhere('class_id', $student->class_id);
+            ->where(function ($q) use ($classId) {
+                $q->whereNull('class_id')->orWhere('class_id', $classId);
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('category_id')->orWhere('category_id', $student->category_id);
@@ -119,6 +126,18 @@ class ArrearsService
             ->get()
             ->unique('fee_type_id')
             ->values();
+    }
+
+    private function resolveEnrollmentAtDate(Student $student, Carbon $periodDate): ?StudentEnrollment
+    {
+        return StudentEnrollment::query()
+            ->where('student_id', $student->id)
+            ->whereDate('start_date', '<=', $periodDate->toDateString())
+            ->where(function ($q) use ($periodDate) {
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $periodDate->toDateString());
+            })
+            ->orderByDesc('start_date')
+            ->first();
     }
 
     public function getArrearsByStudent(int $studentId): array
