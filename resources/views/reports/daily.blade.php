@@ -53,7 +53,7 @@
                         <div>
                             <span class="text-gray-600">{{ __('report.net_cash') }}</span>
                             <span class="font-bold text-xl text-green-600">Rp
-                                {{ number_format($totalAmount, 0, ',', '.') }}</span>
+                                {{ formatRupiah($totalAmount) }}</span>
                         </div>
                     </div>
 
@@ -132,7 +132,7 @@
                                             </ul>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right {{ $entry['amount'] < 0 ? 'text-red-600' : 'text-gray-900' }}">
-                                            Rp {{ number_format($entry['amount'], 0, ',', '.') }}</td>
+                                            {{ formatRupiah($entry['amount']) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -148,7 +148,7 @@
                                         {{ __('app.label.total') }}</td>
                                     <td
                                         class="px-6 py-3 text-right text-xs font-bold text-gray-900 uppercase tracking-wider">
-                                        Rp {{ number_format($totalAmount, 0, ',', '.') }}</td>
+                                        {{ formatRupiah($totalAmount) }}</td>
                                 </tr>
                             </tfoot>
                         </table>

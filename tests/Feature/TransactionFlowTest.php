@@ -34,15 +34,25 @@ class TransactionFlowTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
     }
 
+    private function seedAccountingPrerequisites(): void
+    {
+        Setting::set('academic_year_current', '2025/2026');
+        $this->seed(ChartOfAccountsSeeder::class);
+        $this->seed(AccountMappingsSeeder::class);
+    }
+
     public function test_user_can_create_income_transaction_with_multiple_items(): void
     {
-        $user = User::factory()->create();
+        $unit = \App\Models\Unit::where('code', 'MI')->first();
+        $user = User::factory()->create(['unit_id' => $unit->id]);
         $user->assignRole('bendahara');
         $this->actingAs($user);
-        session(['current_unit_id' => $user->unit_id]);
+        session(['current_unit_id' => $unit->id]);
+
+        $this->seedAccountingPrerequisites();
 
         $this->mock(ReceiptService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('generate')->once()->andReturn('receipts/mock.pdf');
+            $mock->shouldReceive('generate')->andReturn('receipts/mock.pdf');
         });
 
         $feeA = FeeType::query()->create([

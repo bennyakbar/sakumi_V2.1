@@ -57,7 +57,7 @@ class ReportRowsExport implements FromCollection, ShouldAutoSize, WithColumnForm
 
     public static function accountingNumberFormat(): string
     {
-        return '#,##0;[Red]-#,##0';
+        return \App\Support\CurrencyFormatter::excelRupiahFormat();
     }
 
     public function registerEvents(): array

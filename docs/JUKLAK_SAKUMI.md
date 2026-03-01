@@ -1,20 +1,20 @@
 # JUKLAK SAKUMI
-## Petunjuk Kerja — Sistem Keuangan Sekolah (SAKUMI)
+## Petunjuk Pelaksanaan — Sistem Keuangan Sekolah (SAKUMI)
 
 **Versi:** 2.0  
 **Tanggal:** 26 Februari 2026  
-**Jenis Dokumen:** Petunjuk Kerja (JUKLAK) — Panduan Operasional Per Role
+**Jenis Dokumen:** Petunjuk Pelaksanaan (JUKLAK) — Panduan Operasional Per Role
 
 ---
 
 ## PENDAHULUAN
 
-Petunjuk Kerja (JUKLAK) ini adalah panduan praktis harian yang dipegang oleh masing-masing pengguna sesuai role-nya. JUKLAK berisi langkah-langkah ringkas, checklist, dan referensi cepat untuk pekerjaan rutin sehari-hari.
+Petunjuk Pelaksanaan (JUKLAK) ini adalah panduan praktis harian yang dipegang oleh masing-masing pengguna sesuai role-nya. JUKLAK berisi langkah-langkah ringkas, checklist, dan referensi cepat untuk pekerjaan rutin sehari-hari.
 
 > **Hubungan Dokumen:**  
 > SOP → kebijakan dan prinsip  
 > JUKNIS → cara teknis penggunaan fitur  
-> **JUKLAK → langkah kerja harian per role (dokumen ini)**
+> **JUKLAK → langkah pelaksanaan harian per role (dokumen ini)**
 
 ---
 
@@ -22,7 +22,7 @@ Petunjuk Kerja (JUKLAK) ini adalah panduan praktis harian yang dipegang oleh mas
 
 # JUKLAK-01: SUPER ADMINISTRATOR
 
-**Nama Dokumen:** Petunjuk Kerja Super Administrator  
+**Nama Dokumen:** Petunjuk Pelaksanaan Super Administrator  
 **Berlaku untuk:** Pengguna dengan role `super_admin`  
 **Dokumen ini adalah panduan harian dan referensi cepat.**
 
@@ -106,7 +106,7 @@ TANGGAL: _______________  PARAF: _______________
 
 # JUKLAK-02: ADMIN TATA USAHA
 
-**Nama Dokumen:** Petunjuk Kerja Admin Tata Usaha  
+**Nama Dokumen:** Petunjuk Pelaksanaan Admin Tata Usaha  
 **Berlaku untuk:** `admin_tu_mi` / `admin_tu_ra` / `admin_tu_dta`  
 **Dokumen ini adalah panduan harian dan referensi cepat.**
 
@@ -225,7 +225,7 @@ SORE (Akhir Hari):
 
 # JUKLAK-03: BENDAHARA
 
-**Nama Dokumen:** Petunjuk Kerja Bendahara  
+**Nama Dokumen:** Petunjuk Pelaksanaan Bendahara  
 **Berlaku untuk:** `bendahara`  
 **Dokumen ini adalah panduan harian dan referensi cepat.**
 
@@ -351,7 +351,7 @@ BULAN: _______________  PARAF: _______________
 
 # JUKLAK-04: KEPALA SEKOLAH
 
-**Nama Dokumen:** Petunjuk Kerja Kepala Sekolah  
+**Nama Dokumen:** Petunjuk Pelaksanaan Kepala Sekolah  
 **Berlaku untuk:** `kepala_sekolah`  
 **Dokumen ini adalah panduan pengawasan dan referensi laporan.**
 
@@ -440,7 +440,7 @@ BULAN: _______________  PARAF: _______________
 
 # JUKLAK-05: OPERATOR TATA USAHA
 
-**Nama Dokumen:** Petunjuk Kerja Operator Tata Usaha  
+**Nama Dokumen:** Petunjuk Pelaksanaan Operator Tata Usaha  
 **Berlaku untuk:** `operator_tu`
 
 ---
@@ -515,7 +515,7 @@ TANGGAL: _______________  PARAF: _______________
 
 # JUKLAK-06: AUDITOR
 
-**Nama Dokumen:** Petunjuk Kerja Auditor  
+**Nama Dokumen:** Petunjuk Pelaksanaan Auditor  
 **Berlaku untuk:** `auditor`
 
 ---
@@ -587,7 +587,7 @@ TANGGAL: _______________  PARAF: _______________
 
 # JUKLAK-07: KASIR
 
-**Nama Dokumen:** Petunjuk Kerja Kasir  
+**Nama Dokumen:** Petunjuk Pelaksanaan Kasir  
 **Berlaku untuk:** `cashier`
 
 ---

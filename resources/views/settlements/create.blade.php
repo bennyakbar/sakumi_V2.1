@@ -73,7 +73,7 @@
                                         :value="old('amount', (int) ($invoice->outstanding_amount ?? 0))"
                                         required min="1" max="{{ (int) ($invoice->outstanding_amount ?? 0) }}" step="1" />
                                     <p class="text-xs text-gray-500 mt-1">
-                                        {{ __('app.form.min_max', ['max' => number_format((float) ($invoice->outstanding_amount ?? 0), 0, ',', '.')]) }}
+                                        {{ __('app.form.min_max', ['max' => formatRupiah((float) ($invoice->outstanding_amount ?? 0))]) }}
                                     </p>
                                 </div>
                                 <div>
@@ -116,9 +116,9 @@
                                                         {{ $inv->period_identifier }}
                                                     </td>
                                                     <td class="px-4 py-4 text-sm text-gray-500">{{ $inv->due_date->format('d/m/Y') }}</td>
-                                                    <td class="px-4 py-4 text-sm text-gray-900 text-right">Rp {{ number_format($inv->total_amount, 0, ',', '.') }}</td>
-                                                    <td class="px-4 py-4 text-sm text-gray-500 text-right">Rp {{ number_format((float) ($inv->settled_amount ?? 0), 0, ',', '.') }}</td>
-                                                    <td class="px-4 py-4 text-sm font-medium text-red-600 text-right">Rp {{ number_format((float) ($inv->outstanding_amount ?? 0), 0, ',', '.') }}</td>
+                                                    <td class="px-4 py-4 text-sm text-gray-900 text-right">{{ formatRupiah($inv->total_amount) }}</td>
+                                                    <td class="px-4 py-4 text-sm text-gray-500 text-right">{{ formatRupiah((float) ($inv->settled_amount ?? 0)) }}</td>
+                                                    <td class="px-4 py-4 text-sm font-medium text-red-600 text-right">{{ formatRupiah((float) ($inv->outstanding_amount ?? 0)) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

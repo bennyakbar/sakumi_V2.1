@@ -81,22 +81,22 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ __('app.status.unpaid') }}</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">Rp {{ number_format($item->amount, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{{ formatRupiah($item->amount) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr class="bg-gray-50">
                                     <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">{{ __('app.label.total') }}</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">{{ formatRupiah($invoice->total_amount) }}</td>
                                 </tr>
                                 <tr class="bg-gray-50">
                                     <td colspan="3" class="px-6 py-4 text-sm font-bold text-green-700 text-right">{{ __('app.status.paid') }}</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp {{ number_format($invoice->paid_amount, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">{{ formatRupiah($invoice->paid_amount) }}</td>
                                 </tr>
                                 <tr class="bg-gray-50">
                                     <td colspan="3" class="px-6 py-4 text-sm font-bold text-red-700 text-right">{{ __('app.label.outstanding') }}</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-red-700 text-right">Rp {{ number_format($invoice->outstanding, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-red-700 text-right">{{ formatRupiah($invoice->outstanding) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -135,7 +135,7 @@
                                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">{{ __('app.status.cancelled') }}</span>
                                                 @endif
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($allocation->amount, 0, ',', '.') }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">{{ formatRupiah($allocation->amount) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

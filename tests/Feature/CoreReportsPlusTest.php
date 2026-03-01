@@ -180,7 +180,7 @@ class CoreReportsPlusTest extends TestCase
             ->assertSee('INV-CURR');
 
         $response->assertSee('Opening Balance');
-        $response->assertSee('Rp 200.000');
+        $response->assertSee('Rp 200.000,00');
 
         $this->assertNotNull($invoiceDuring->id);
     }
@@ -213,7 +213,7 @@ class CoreReportsPlusTest extends TestCase
             ->get(route('reports.cash-book', ['date' => now()->toDateString()]))
             ->assertOk()
             ->assertSee('Opening Balance')
-            ->assertSee('Rp 100.000')
+            ->assertSee('Rp 100.000,00')
             ->assertDontSee('999.999');
     }
 

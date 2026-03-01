@@ -46,7 +46,7 @@
                             <option value="">-- Select Fee Matrix --</option>
                             @foreach($feeMatrices as $matrix)
                                 <option value="{{ $matrix->id }}">
-                                    {{ $matrix->feeType?->name ?? '-' }} | {{ $matrix->schoolClass?->name ?? 'ALL CLASS' }} | {{ $matrix->category?->name ?? 'ALL CATEGORY' }} | Rp {{ number_format((float) $matrix->amount, 0, ',', '.') }}
+                                    {{ $matrix->feeType?->name ?? '-' }} | {{ $matrix->schoolClass?->name ?? 'ALL CLASS' }} | {{ $matrix->category?->name ?? 'ALL CATEGORY' }} | {{ formatRupiah((float) $matrix->amount) }}
                                 </option>
                             @endforeach
                         </select>
@@ -93,7 +93,7 @@
                                 <td class="px-4 py-3 text-sm">
                                     {{ $mapping->feeMatrix?->schoolClass?->name ?? 'ALL CLASS' }} /
                                     {{ $mapping->feeMatrix?->category?->name ?? 'ALL CATEGORY' }} -
-                                    Rp {{ number_format((float) ($mapping->feeMatrix?->amount ?? 0), 0, ',', '.') }}
+                                    {{ formatRupiah((float) ($mapping->feeMatrix?->amount ?? 0)) }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     {{ optional($mapping->effective_from)->format('Y-m-d') }}

@@ -1,0 +1,7 @@
+# Copy to /root/.pgpass (or backup user's home), then:
+# chmod 600 /root/.pgpass
+#
+# Format:
+# hostname:port:database:username:password
+
+127.0.0.1:5432:sakumi_real:sakumi:CHANGE_ME_STRONG_PASSWORD

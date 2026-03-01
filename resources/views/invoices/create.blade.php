@@ -68,7 +68,7 @@
                                                     </td>
                                                     <td class="px-4 py-4 text-sm text-gray-900">{{ $obligation->feeType->name }}</td>
                                                     <td class="px-4 py-4 text-sm text-gray-500">{{ sprintf('%02d/%d', $obligation->month, $obligation->year) }}</td>
-                                                    <td class="px-4 py-4 text-sm font-medium text-gray-900 text-right">Rp {{ number_format($obligation->amount, 0, ',', '.') }}</td>
+                                                    <td class="px-4 py-4 text-sm font-medium text-gray-900 text-right">{{ formatRupiah($obligation->amount) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

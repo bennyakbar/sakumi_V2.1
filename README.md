@@ -431,7 +431,7 @@ Didesain untuk tim operasional sekolah sekaligus tim teknis.
 Di-seed oleh `FixedLoginSeeder`:
 
 - Super Admin: `superadmin@sakumi.local` / `SuperAdmin#2026`
-- Admin TU MI: `admin.tu.mi@sakumi.local` / `AdminTU-MI#2026`
+    - Admin TU MI: `admin.tu.mi@sakumi.local` / `AdminTU-MI#2026`
 - Admin TU RA: `admin.tu.ra@sakumi.local` / `AdminTU-RA#2026`
 - Admin TU DTA: `admin.tu.dta@sakumi.local` / `AdminTU-DTA#2026`
 - Staff: `staff@sakumi.local` / `Staff#2026`

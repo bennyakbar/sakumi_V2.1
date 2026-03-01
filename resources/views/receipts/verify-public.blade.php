@@ -45,7 +45,7 @@
                 </div>
                 <div class="row">
                     <div class="label">Amount</div>
-                    <div class="value">Rp {{ number_format((float) ($transaction?->total_amount ?? 0), 0, ',', '.') }}</div>
+                    <div class="value">{{ formatRupiah((float) ($transaction?->total_amount ?? 0)) }}</div>
                 </div>
             </div>
         </div>

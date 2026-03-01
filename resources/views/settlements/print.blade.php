@@ -70,8 +70,8 @@
                                 <span style="text-transform:uppercase; font-size:8px; color:var(--muted)">{{ $allocation->invoice->period_type }}</span>
                                 {{ $allocation->invoice->period_identifier }}
                             </td>
-                            <td style="text-align:right; white-space:nowrap">Rp {{ number_format((float) $allocation->invoice->total_amount, 0, ',', '.') }}</td>
-                            <td class="c-amt">Rp {{ number_format((float) $allocation->amount, 0, ',', '.') }}</td>
+                            <td style="text-align:right; white-space:nowrap">{{ formatRupiah((float) $allocation->invoice->total_amount) }}</td>
+                            <td class="c-amt">{{ formatRupiah((float) $allocation->amount) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -86,7 +86,7 @@
     <x-slot:summary>
         <div class="total-box">
             <div class="total-head">{{ __('receipt.total.settlement') }}</div>
-            <div class="total-value">Rp {{ number_format((float) $settlement->total_amount, 0, ',', '.') }}</div>
+            <div class="total-value">{{ formatRupiah((float) $settlement->total_amount) }}</div>
         </div>
     </x-slot:summary>
 </x-print.document>

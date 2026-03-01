@@ -8,9 +8,12 @@ use App\Models\ExpenseFeeCategory;
 use App\Models\ExpenseFeeSubcategory;
 use App\Models\ExpenseEntry;
 use App\Models\FeeType;
+use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\Unit;
 use App\Models\User;
+use Database\Seeders\AccountMappingsSeeder;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\UnitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,6 +33,9 @@ class ExpenseAndReconciliationTest extends TestCase
 
         $this->seed(UnitSeeder::class);
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(ChartOfAccountsSeeder::class);
+        $this->seed(AccountMappingsSeeder::class);
+        Setting::set('academic_year_current', '2025/2026');
 
         $this->unit = Unit::query()->where('code', 'MI')->firstOrFail();
         $this->superAdmin = User::factory()->create(['unit_id' => $this->unit->id]);
@@ -154,9 +160,9 @@ class ExpenseAndReconciliationTest extends TestCase
             ]))
             ->assertOk()
             ->assertSee('ATK')
-            ->assertSee('100.000')
-            ->assertSee('80.000')
-            ->assertSee('20.000');
+            ->assertSee('100.000,00')
+            ->assertSee('80.000,00')
+            ->assertSee('20.000,00');
     }
 
     public function test_bank_reconciliation_lifecycle_requires_resolved_lines_before_close(): void

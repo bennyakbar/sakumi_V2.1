@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Report;
 
-use App\Exports\ArrearsAgingExport;
 use App\Exports\ReportRowsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
@@ -297,7 +296,13 @@ class ReportController extends Controller
         $filename = sprintf('ar-outstanding-%s.%s', $scope, $format);
         $writerType = $format === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        return Excel::download(new ReportRowsExport($rows), $filename, $writerType);
+        $fmt = ReportRowsExport::accountingNumberFormat();
+
+        return Excel::download(new ReportRowsExport($rows, [
+            'F' => $fmt,
+            'G' => $fmt,
+            'H' => $fmt,
+        ]), $filename, $writerType);
     }
 
     public function collection(Request $request): View
@@ -366,7 +371,9 @@ class ReportController extends Controller
         $filename = sprintf('collection-%s.%s', $scope, $format);
         $writerType = $format === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        return Excel::download(new ReportRowsExport($rows), $filename, $writerType);
+        return Excel::download(new ReportRowsExport($rows, [
+            'G' => ReportRowsExport::accountingNumberFormat(),
+        ]), $filename, $writerType);
     }
 
     public function studentStatement(Request $request): View
@@ -441,7 +448,13 @@ class ReportController extends Controller
         $filename = sprintf('student-statement-%s.%s', $scope, $format);
         $writerType = $format === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        return Excel::download(new ReportRowsExport($rows), $filename, $writerType);
+        $fmt = ReportRowsExport::accountingNumberFormat();
+
+        return Excel::download(new ReportRowsExport($rows, [
+            'D' => $fmt,
+            'E' => $fmt,
+            'F' => $fmt,
+        ]), $filename, $writerType);
     }
 
     public function cashBook(Request $request): View
@@ -490,7 +503,13 @@ class ReportController extends Controller
         $filename = sprintf('cash-book-%s.%s', $scope, $format);
         $writerType = $format === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        return Excel::download(new ReportRowsExport($rows), $filename, $writerType);
+        $fmt = ReportRowsExport::accountingNumberFormat();
+
+        return Excel::download(new ReportRowsExport($rows, [
+            'E' => $fmt,
+            'F' => $fmt,
+            'G' => $fmt,
+        ]), $filename, $writerType);
     }
 
     public function arrears(Request $request): View
@@ -610,7 +629,15 @@ class ReportController extends Controller
         $filename = sprintf('arrears-aging-%s.%s', $scope, $format);
         $writerType = $format === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        return Excel::download(new ArrearsAgingExport($rows), $filename, $writerType);
+        $fmt = ReportRowsExport::accountingNumberFormat();
+
+        return Excel::download(new ReportRowsExport($rows, [
+            'C' => $fmt,
+            'E' => $fmt,
+            'G' => $fmt,
+            'I' => $fmt,
+            'K' => $fmt,
+        ]), $filename, $writerType);
     }
 
     private function buildDailyEntries(bool $consolidated, string $date): Collection
@@ -649,7 +676,7 @@ class ReportController extends Controller
                 'items' => $settlement->allocations
                     ->map(function ($allocation) {
                         $invoiceNumber = $allocation->invoice->invoice_number ?? ('Invoice #' . $allocation->invoice_id);
-                        return $invoiceNumber . ' - Rp ' . number_format((float) $allocation->amount, 0, ',', '.');
+                        return $invoiceNumber . ' - ' . formatRupiah((float) $allocation->amount, 0);
                     })
                     ->values()
                     ->all(),
@@ -697,7 +724,7 @@ class ReportController extends Controller
                 'payment_method' => $transaction->payment_method ?? '-',
                 'cashier' => $transaction->creator?->name ?? '-',
                 'items' => $transaction->items
-                    ->map(fn ($item) => ($item->feeType->name ?? 'Item') . ' - Rp ' . number_format((float) $item->amount, 0, ',', '.'))
+                    ->map(fn ($item) => ($item->feeType->name ?? 'Item') . ' - ' . formatRupiah((float) $item->amount, 0))
                     ->values()
                     ->all(),
                 'amount' => $transaction->type === 'expense'
@@ -772,7 +799,7 @@ class ReportController extends Controller
             'payment_method' => $tx->payment_method ?? '-',
             'cashier' => $tx->creator?->name ?? '-',
             'description' => $tx->items
-                ->map(fn ($item) => ($item->feeType->name ?? 'Item') . ' - Rp ' . number_format((float) $item->amount, 0, ',', '.'))
+                ->map(fn ($item) => ($item->feeType->name ?? 'Item') . ' - ' . formatRupiah((float) $item->amount, 0))
                 ->implode('; '),
             'amount' => $tx->type === 'expense' ? -1 * (float) $tx->total_amount : (float) $tx->total_amount,
         ]);
@@ -790,7 +817,7 @@ class ReportController extends Controller
             'payment_method' => $stl->payment_method ?? '-',
             'cashier' => $stl->creator?->name ?? '-',
             'description' => $stl->allocations
-                ->map(fn ($allocation) => ($allocation->invoice?->invoice_number ?? ('Invoice #' . $allocation->invoice_id)) . ' - Rp ' . number_format((float) $allocation->amount, 0, ',', '.'))
+                ->map(fn ($allocation) => ($allocation->invoice?->invoice_number ?? ('Invoice #' . $allocation->invoice_id)) . ' - ' . formatRupiah((float) $allocation->amount, 0))
                 ->implode('; '),
             'amount' => (float) $stl->allocated_amount,
         ]);

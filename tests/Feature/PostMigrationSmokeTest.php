@@ -5,12 +5,15 @@ namespace Tests\Feature;
 use App\Models\FeeType;
 use App\Models\Invoice;
 use App\Models\SchoolClass;
+use App\Models\Setting;
 use App\Models\Settlement;
 use App\Models\Student;
 use App\Models\StudentCategory;
 use App\Models\Transaction;
 use App\Models\Unit;
 use App\Models\User;
+use Database\Seeders\AccountMappingsSeeder;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\UnitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,6 +34,9 @@ class PostMigrationSmokeTest extends TestCase
 
         $this->seed(UnitSeeder::class);
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(ChartOfAccountsSeeder::class);
+        $this->seed(AccountMappingsSeeder::class);
+        Setting::set('academic_year_current', '2025/2026');
 
         $this->mi = Unit::where('code', 'MI')->first();
         $this->ra = Unit::where('code', 'RA')->first();

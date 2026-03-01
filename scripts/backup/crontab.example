@@ -1,0 +1,17 @@
+# SAKUMI Production Backup Schedule (run as root)
+# Edit with: sudo crontab -e
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Optional alert target for all backup scripts
+ALERT_EMAIL=ops@example.com
+
+# 1) Primary priority: DB backup daily at 02:00
+0 2 * * * /home/abusyauqi/sakumi/scripts/backup/backup_db.sh
+
+# 2) File backup after DB completes
+15 2 * * * /home/abusyauqi/sakumi/scripts/backup/backup_files.sh
+
+# 3) Offsite upload after local backups
+35 2 * * * /home/abusyauqi/sakumi/scripts/backup/backup_offsite.sh

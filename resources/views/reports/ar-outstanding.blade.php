@@ -63,15 +63,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                         <div class="rounded-md border p-3 bg-gray-50">
                             <p class="text-xs text-gray-500 uppercase">Total Invoice</p>
-                            <p class="text-lg font-bold">Rp {{ number_format((float) ($summary->total_invoice ?? 0), 0, ',', '.') }}</p>
+                            <p class="text-lg font-bold">{{ formatRupiah((float) ($summary->total_invoice ?? 0)) }}</p>
                         </div>
                         <div class="rounded-md border p-3 bg-gray-50">
                             <p class="text-xs text-gray-500 uppercase">Total Settled</p>
-                            <p class="text-lg font-bold text-green-700">Rp {{ number_format((float) ($summary->total_settled ?? 0), 0, ',', '.') }}</p>
+                            <p class="text-lg font-bold text-green-700">{{ formatRupiah((float) ($summary->total_settled ?? 0)) }}</p>
                         </div>
                         <div class="rounded-md border p-3 bg-gray-50">
                             <p class="text-xs text-gray-500 uppercase">Total Outstanding</p>
-                            <p class="text-lg font-bold text-red-700">Rp {{ number_format((float) ($summary->total_outstanding ?? 0), 0, ',', '.') }}</p>
+                            <p class="text-lg font-bold text-red-700">{{ formatRupiah((float) ($summary->total_outstanding ?? 0)) }}</p>
                         </div>
                     </div>
 
@@ -103,9 +103,9 @@
                                         <td class="px-4 py-3 text-sm">{{ $row->student?->schoolClass?->name ?? '-' }}</td>
                                         <td class="px-4 py-3 text-sm">{{ $row->student?->category?->name ?? '-' }}</td>
                                         <td class="px-4 py-3 text-sm">{{ $row->due_date?->format('d/m/Y') ?? '-' }}</td>
-                                        <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) $row->total_amount, 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) ($row->settled_amount ?? 0), 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-right text-red-700 font-semibold">Rp {{ number_format((float) ($row->outstanding_amount ?? 0), 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) $row->total_amount) }}</td>
+                                        <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) ($row->settled_amount ?? 0)) }}</td>
+                                        <td class="px-4 py-3 text-sm text-right text-red-700 font-semibold">{{ formatRupiah((float) ($row->outstanding_amount ?? 0)) }}</td>
                                     </tr>
                                 @empty
                                     <tr>

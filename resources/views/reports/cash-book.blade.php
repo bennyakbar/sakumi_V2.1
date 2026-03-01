@@ -28,10 +28,10 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Opening Balance</p><p class="text-lg font-bold">Rp {{ number_format($summary['opening_balance'], 0, ',', '.') }}</p></div>
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Receipt</p><p class="text-lg font-bold text-green-700">Rp {{ number_format($summary['total_debit'], 0, ',', '.') }}</p></div>
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Expense</p><p class="text-lg font-bold text-red-700">Rp {{ number_format($summary['total_credit'], 0, ',', '.') }}</p></div>
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Closing Balance</p><p class="text-lg font-bold">Rp {{ number_format($summary['closing_balance'], 0, ',', '.') }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Opening Balance</p><p class="text-lg font-bold">{{ formatRupiah($summary['opening_balance']) }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Receipt</p><p class="text-lg font-bold text-green-700">{{ formatRupiah($summary['total_debit']) }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Expense</p><p class="text-lg font-bold text-red-700">{{ formatRupiah($summary['total_credit']) }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Closing Balance</p><p class="text-lg font-bold">{{ formatRupiah($summary['closing_balance']) }}</p></div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -53,7 +53,7 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr class="bg-yellow-50">
                                     <td class="px-4 py-3 text-sm" colspan="{{ $consolidated ? 7 : 6 }}">Opening Balance</td>
-                                    <td class="px-4 py-3 text-sm text-right font-semibold">Rp {{ number_format($summary['opening_balance'], 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm text-right font-semibold">{{ formatRupiah($summary['opening_balance']) }}</td>
                                 </tr>
                                 @forelse($entries as $entry)
                                     <tr>
@@ -64,9 +64,9 @@
                                         <td class="px-4 py-3 text-sm">{{ $entry['source'] }}</td>
                                         <td class="px-4 py-3 text-sm">{{ $entry['code'] }}</td>
                                         <td class="px-4 py-3 text-sm">{{ $entry['description'] }}</td>
-                                        <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) $entry['debit'], 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) $entry['credit'], 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-right font-semibold">Rp {{ number_format((float) $entry['balance'], 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) $entry['debit']) }}</td>
+                                        <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) $entry['credit']) }}</td>
+                                        <td class="px-4 py-3 text-sm text-right font-semibold">{{ formatRupiah((float) $entry['balance']) }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="{{ $consolidated ? 8 : 7 }}" class="px-4 py-4 text-sm text-gray-500 text-center">{{ __('app.empty.entries') }}</td></tr>

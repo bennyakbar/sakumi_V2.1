@@ -7,6 +7,7 @@ use App\Models\FeeType;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\SchoolClass;
+use App\Models\Setting;
 use App\Models\Student;
 use App\Models\StudentCategory;
 use App\Models\StudentFeeMapping;
@@ -14,6 +15,8 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\ArrearsService;
 use App\Services\InvoiceService;
+use Database\Seeders\AccountMappingsSeeder;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\UnitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,6 +35,9 @@ class StudentFeeMappingTest extends TestCase
 
         $this->seed(UnitSeeder::class);
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(ChartOfAccountsSeeder::class);
+        $this->seed(AccountMappingsSeeder::class);
+        Setting::set('academic_year_current', '2025/2026');
 
         $this->unit = Unit::query()->where('code', 'MI')->firstOrFail();
         $this->superAdmin = User::factory()->create(['unit_id' => $this->unit->id]);

@@ -14,7 +14,7 @@ class WhatsAppService
         $template = getSetting('notification_payment_template', '');
         $message = str_replace(
             ['{student_name}', '{fee_type}', '{amount}'],
-            [$student->name, $feeType, number_format($amount, 0, ',', '.')],
+            [$student->name, $feeType, formatRupiah($amount, 0)],
             $template
         );
 
@@ -26,7 +26,7 @@ class WhatsAppService
         $template = getSetting('notification_arrears_template', '');
         $message = str_replace(
             ['{student_name}', '{fee_type}', '{amount}'],
-            [$student->name, $feeType, number_format($amount, 0, ',', '.')],
+            [$student->name, $feeType, formatRupiah($amount, 0)],
             $template
         );
 

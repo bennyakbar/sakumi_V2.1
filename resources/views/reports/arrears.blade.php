@@ -65,7 +65,7 @@
                                 <div class="rounded-md border border-gray-200 p-3 bg-gray-50">
                                     <p class="text-xs text-gray-500 uppercase">{{ $summary['label'] }}</p>
                                     <p class="text-lg font-bold text-gray-900">{{ number_format($summary['count']) }}</p>
-                                    <p class="text-sm text-red-700">Rp {{ number_format($summary['amount'], 0, ',', '.') }}</p>
+                                    <p class="text-sm text-red-700">{{ formatRupiah($summary['amount']) }}</p>
                                 </div>
                             @endforeach
                         </div>
@@ -128,11 +128,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $arrear->due_date?->format('d/m/Y') ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                                            Rp {{ number_format((float) $arrear->total_amount, 0, ',', '.') }}</td>
+                                            {{ formatRupiah((float) $arrear->total_amount) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                                            Rp {{ number_format((float) ($arrear->settled_amount ?? 0), 0, ',', '.') }}</td>
+                                            {{ formatRupiah((float) ($arrear->settled_amount ?? 0)) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600 text-right">
-                                            Rp {{ number_format((float) ($arrear->outstanding_amount ?? 0), 0, ',', '.') }}</td>
+                                            {{ formatRupiah((float) ($arrear->outstanding_amount ?? 0)) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                                             {{ $arrear->aging_days ?? 0 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">

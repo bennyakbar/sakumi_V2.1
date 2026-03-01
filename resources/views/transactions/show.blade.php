@@ -68,14 +68,14 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">Rp
-                                            {{ number_format($item->amount, 0, ',', '.') }}</td>
+                                            {{ formatRupiah($item->amount) }}</td>
                                     </tr>
                                 @endforeach
                                 <tr class="bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
                                         {{ __('app.label.total') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                                        Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
+                                        {{ formatRupiah($transaction->total_amount) }}</td>
                                 </tr>
                             </tbody>
                         </table>

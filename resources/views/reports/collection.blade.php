@@ -52,9 +52,9 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Income</p><p class="text-lg font-bold text-green-700">Rp {{ number_format($totalIncome, 0, ',', '.') }}</p></div>
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Expense</p><p class="text-lg font-bold text-red-700">Rp {{ number_format($totalExpense, 0, ',', '.') }}</p></div>
-                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Net</p><p class="text-lg font-bold">Rp {{ number_format($net, 0, ',', '.') }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Income</p><p class="text-lg font-bold text-green-700">{{ formatRupiah($totalIncome) }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Expense</p><p class="text-lg font-bold text-red-700">{{ formatRupiah($totalExpense) }}</p></div>
+                        <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Net</p><p class="text-lg font-bold">{{ formatRupiah($net) }}</p></div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -85,7 +85,7 @@
                                         <td class="px-4 py-3 text-sm">{{ $entry['student'] }}</td>
                                         <td class="px-4 py-3 text-sm">{{ strtoupper($entry['payment_method']) }}</td>
                                         <td class="px-4 py-3 text-sm">{{ $entry['cashier'] }}</td>
-                                        <td class="px-4 py-3 text-sm text-right {{ $entry['amount'] < 0 ? 'text-red-700' : 'text-green-700' }}">Rp {{ number_format(abs((float) $entry['amount']), 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-sm text-right {{ $entry['amount'] < 0 ? 'text-red-700' : 'text-green-700' }}">{{ formatRupiah(abs((float) $entry['amount'])) }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="{{ $consolidated ? 9 : 8 }}" class="px-4 py-4 text-sm text-gray-500 text-center">{{ __('app.empty.entries') }}</td></tr>

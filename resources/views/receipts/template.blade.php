@@ -379,7 +379,7 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->feeType->name ?? '-' }}</td>
                         <td>{{ $item->description ?: '-' }}</td>
-                        <td class="text-right">Rp {{ number_format((float) $item->amount, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ formatRupiah((float) $item->amount) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -392,7 +392,7 @@
         <table class="total">
             <tr>
                 <td>{{ $isExpense ? __('receipt.total.expense') : __('receipt.total.payment') }}</td>
-                <td>Rp {{ number_format((float) $transaction->total_amount, 0, ',', '.') }}</td>
+                <td>{{ formatRupiah((float) $transaction->total_amount) }}</td>
             </tr>
         </table>
 

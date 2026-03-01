@@ -14,10 +14,10 @@
                     <div class="text-sm text-gray-700">Status: <span class="font-semibold">{{ strtoupper($bankReconciliation->status) }}</span></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
-                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Debit</p><p class="text-lg font-bold">Rp {{ number_format($summary['total_debit'], 0, ',', '.') }}</p></div>
-                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Credit</p><p class="text-lg font-bold">Rp {{ number_format($summary['total_credit'], 0, ',', '.') }}</p></div>
+                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Debit</p><p class="text-lg font-bold">{{ formatRupiah($summary['total_debit']) }}</p></div>
+                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Total Credit</p><p class="text-lg font-bold">{{ formatRupiah($summary['total_credit']) }}</p></div>
                     <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Unmatched</p><p class="text-lg font-bold">{{ $summary['unmatched_count'] }}</p></div>
-                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Unmatched Difference</p><p class="text-lg font-bold">Rp {{ number_format($summary['difference'], 0, ',', '.') }}</p></div>
+                    <div class="rounded-md border p-3 bg-gray-50"><p class="text-xs text-gray-500 uppercase">Unmatched Difference</p><p class="text-lg font-bold">{{ formatRupiah($summary['difference']) }}</p></div>
                 </div>
             </div>
 
@@ -55,7 +55,7 @@
                                     <td class="px-4 py-3 text-sm">{{ $line->description ?: '-' }}</td>
                                     <td class="px-4 py-3 text-sm">{{ $line->reference ?: '-' }}</td>
                                     <td class="px-4 py-3 text-sm">{{ strtoupper($line->type) }}</td>
-                                    <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) $line->amount, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) $line->amount) }}</td>
                                     <td class="px-4 py-3 text-sm">{{ strtoupper($line->match_status) }}</td>
                                     <td class="px-4 py-3 text-sm">
                                         @if($line->match_status !== 'matched')
@@ -64,7 +64,7 @@
                                                 <select name="transaction_id" class="border-gray-300 rounded-md text-sm" required>
                                                     <option value="">Tx</option>
                                                     @foreach($transactions as $tx)
-                                                        <option value="{{ $tx->id }}">{{ $tx->transaction_number }} (Rp {{ number_format((float) $tx->total_amount, 0, ',', '.') }})</option>
+                                                        <option value="{{ $tx->id }}">{{ $tx->transaction_number }} ({{ formatRupiah((float) $tx->total_amount) }})</option>
                                                     @endforeach
                                                 </select>
                                                 <button type="submit" class="text-indigo-600 hover:text-indigo-900">Match</button>

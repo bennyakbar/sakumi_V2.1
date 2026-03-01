@@ -35,7 +35,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">{{ __('dashboard.net_cash_today') }}</p>
-                                <p class="text-2xl font-bold text-green-600">Rp {{ number_format($todayIncome, 0, ',', '.') }}</p>
+                                <p class="text-2xl font-bold text-green-600">{{ formatRupiah($todayIncome) }}</p>
                             </div>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">{{ __('dashboard.net_cash_month') }}</p>
-                                <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($monthIncome, 0, ',', '.') }}</p>
+                                <p class="text-2xl font-bold text-blue-600">{{ formatRupiah($monthIncome) }}</p>
                             </div>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">{{ __('dashboard.total_arrears') }}</p>
-                                <p class="text-2xl font-bold text-red-600">Rp {{ number_format($totalArrears, 0, ',', '.') }}</p>
+                                <p class="text-2xl font-bold text-red-600">{{ formatRupiah($totalArrears) }}</p>
                             </div>
                         </div>
                     </div>
@@ -95,9 +95,9 @@
                                     @foreach($unitBreakdown as $ub)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $ub['name'] }} ({{ $ub['code'] }})</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-right">Rp {{ number_format($ub['today_income'], 0, ',', '.') }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 text-right">Rp {{ number_format($ub['month_income'], 0, ',', '.') }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-right">Rp {{ number_format($ub['arrears'], 0, ',', '.') }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-right">{{ formatRupiah($ub['today_income']) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 text-right">{{ formatRupiah($ub['month_income']) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-right">{{ formatRupiah($ub['arrears']) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -149,7 +149,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $transaction->transaction_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->student->name ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->student->schoolClass->name ?? '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">{{ formatRupiah($transaction->total_amount) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -196,7 +196,7 @@
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                return 'Rp ' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
                             }
                         }
                     }
@@ -205,7 +205,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(context.raw);
+                                return context.dataset.label + ': Rp ' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(context.raw);
                             }
                         }
                     }

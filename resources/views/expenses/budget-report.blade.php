@@ -68,9 +68,9 @@
                                 <tr>
                                     <td class="px-4 py-3 text-sm">{{ $row['category'] }}</td>
                                     <td class="px-4 py-3 text-sm">{{ $row['subcategory'] }}</td>
-                                    <td class="px-4 py-3 text-sm text-right">Rp {{ number_format($row['planned'], 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-sm text-right">Rp {{ number_format($row['realized'], 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-sm text-right {{ $row['variance'] < 0 ? 'text-red-700' : 'text-green-700' }}">Rp {{ number_format($row['variance'], 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm text-right">{{ formatRupiah($row['planned']) }}</td>
+                                    <td class="px-4 py-3 text-sm text-right">{{ formatRupiah($row['realized']) }}</td>
+                                    <td class="px-4 py-3 text-sm text-right {{ $row['variance'] < 0 ? 'text-red-700' : 'text-green-700' }}">{{ formatRupiah($row['variance']) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">No budget data for selected period.</td></tr>

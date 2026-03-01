@@ -52,7 +52,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $matrix->feeType->name ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp
-                                            {{ number_format($matrix->amount, 0, ',', '.') }}</td>
+                                            {{ formatRupiah($matrix->amount) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             @can('master.fee-matrix.edit')
                                                 <a href="{{ route('master.fee-matrix.edit', $matrix) }}"

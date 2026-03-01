@@ -16,9 +16,19 @@ class SettlementService
         $year = now()->year;
         $seqPrefix = "STL-{$year}";
 
-        $sequence = DocumentSequence::next($seqPrefix);
+        $this->syncSettlementSequenceFloor($seqPrefix, $year);
 
-        return sprintf('STL-%s-%06d', $year, $sequence);
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $sequence = DocumentSequence::next($seqPrefix);
+            $candidate = sprintf('STL-%s-%06d', $year, $sequence);
+
+            // Guard against stale sequence state after migrations/backfills.
+            if (! Settlement::query()->where('settlement_number', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        throw new \RuntimeException('Failed to reserve unique settlement number after retries.');
     }
 
     /**
@@ -41,7 +51,7 @@ class SettlementService
 
             // BR-06: Total allocation must not exceed settlement amount
             if ($totalAllocated > (float) $data['total_amount']) {
-                throw new \RuntimeException(__('message.allocation_exceeds_settlement', ['allocated' => number_format($totalAllocated, 0, ',', '.'), 'total' => number_format($data['total_amount'], 0, ',', '.')]));
+                throw new \RuntimeException(__('message.allocation_exceeds_settlement', ['allocated' => formatRupiah($totalAllocated), 'total' => formatRupiah($data['total_amount'])]));
             }
 
             // Validate each allocation
@@ -75,7 +85,7 @@ class SettlementService
                     $outstanding = 0;
                 }
                 if ($amount > $outstanding) {
-                    throw new \RuntimeException(__('message.allocation_exceeds_outstanding', ['number' => $invoice->invoice_number, 'allocated' => number_format($amount, 0, ',', '.'), 'outstanding' => number_format($outstanding, 0, ',', '.')]));
+                    throw new \RuntimeException(__('message.allocation_exceeds_outstanding', ['number' => $invoice->invoice_number, 'allocated' => formatRupiah($amount), 'outstanding' => formatRupiah($outstanding)]));
                 }
             }
 
@@ -275,5 +285,42 @@ class SettlementService
                 }
             }
         }
+    }
+
+    private function syncSettlementSequenceFloor(string $seqPrefix, int $year): void
+    {
+        $latestNumber = Settlement::query()
+            ->where('settlement_number', 'like', "STL-{$year}-%")
+            ->orderByDesc('settlement_number')
+            ->value('settlement_number');
+
+        $maxSequence = 0;
+        if (is_string($latestNumber) && preg_match('/(\d{6})$/', $latestNumber, $matches)) {
+            $maxSequence = (int) $matches[1];
+        }
+
+        if ($maxSequence <= 0) {
+            return;
+        }
+
+        DB::transaction(function () use ($seqPrefix, $maxSequence): void {
+            $record = DocumentSequence::query()
+                ->lockForUpdate()
+                ->where('prefix', $seqPrefix)
+                ->first();
+
+            if (! $record) {
+                DocumentSequence::query()->create([
+                    'prefix' => $seqPrefix,
+                    'last_sequence' => $maxSequence,
+                ]);
+
+                return;
+            }
+
+            if ((int) $record->last_sequence < $maxSequence) {
+                $record->update(['last_sequence' => $maxSequence]);
+            }
+        });
     }
 }

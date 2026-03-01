@@ -72,7 +72,7 @@
                                     <td class="px-4 py-3 text-sm">
                                         <span class="px-2 py-1 rounded-full text-xs font-semibold {{ in_array($entry->status, ['posted', 'approved']) ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">{{ strtoupper($entry->status) }}</span>
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-right">Rp {{ number_format((float) $entry->amount, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm text-right">{{ formatRupiah((float) $entry->amount) }}</td>
                                     <td class="px-4 py-3 text-sm">
                                         @if($entry->status === 'draft' && auth()->user()->can('expenses.approve'))
                                             <form method="POST" action="{{ route('expenses.approve', $entry) }}" onsubmit="return confirm('Approve and post this expense?');">

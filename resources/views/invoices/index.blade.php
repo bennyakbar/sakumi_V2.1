@@ -84,9 +84,9 @@
                                             {{ $invoice->period_identifier }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $invoice->due_date->format('d/m/Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">{{ formatRupiah($invoice->total_amount) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right {{ $invoice->outstanding > 0 ? 'text-red-600' : 'text-green-600' }}">
-                                            Rp {{ number_format($invoice->outstanding, 0, ',', '.') }}
+                                            {{ formatRupiah($invoice->outstanding) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if($invoice->status === 'unpaid')

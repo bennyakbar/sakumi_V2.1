@@ -70,7 +70,7 @@
                             <td class="c-note">
                                 <div class="item-note">{{ $item->description ?: '-' }}</div>
                             </td>
-                            <td class="c-amt">Rp {{ number_format((float) $item->amount, 0, ',', '.') }}</td>
+                            <td class="c-amt">{{ formatRupiah((float) $item->amount) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -85,7 +85,7 @@
     <x-slot:summary>
         <div class="total-box">
             <div class="total-head">{{ __('receipt.total.expense') }}</div>
-            <div class="total-value">Rp {{ number_format((float) $transaction->total_amount, 0, ',', '.') }}</div>
+            <div class="total-value">{{ formatRupiah((float) $transaction->total_amount) }}</div>
         </div>
     </x-slot:summary>
 </x-print.document>

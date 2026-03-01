@@ -127,7 +127,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $transaction->student->schoolClass->name ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp
-                                            {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
+                                            {{ formatRupiah($transaction->total_amount) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if($transaction->status == 'completed')
                                                 <span

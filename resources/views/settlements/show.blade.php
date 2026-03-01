@@ -49,15 +49,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         <div class="bg-gray-50 rounded-lg p-4">
                             <p class="text-sm text-gray-500">{{ __('Total Payment') }}</p>
-                            <p class="text-xl font-bold text-gray-900">Rp {{ number_format($settlement->total_amount, 0, ',', '.') }}</p>
+                            <p class="text-xl font-bold text-gray-900">{{ formatRupiah($settlement->total_amount) }}</p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <p class="text-sm text-gray-500">{{ __('app.label.allocated') }}</p>
-                            <p class="text-xl font-bold text-green-600">Rp {{ number_format($settlement->allocated_amount, 0, ',', '.') }}</p>
+                            <p class="text-xl font-bold text-green-600">{{ formatRupiah($settlement->allocated_amount) }}</p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <p class="text-sm text-gray-500">{{ __('app.label.unallocated') }}</p>
-                            <p class="text-xl font-bold {{ $settlement->unallocated > 0 ? 'text-yellow-600' : 'text-gray-600' }}">Rp {{ number_format($settlement->unallocated, 0, ',', '.') }}</p>
+                            <p class="text-xl font-bold {{ $settlement->unallocated > 0 ? 'text-yellow-600' : 'text-gray-600' }}">{{ formatRupiah($settlement->unallocated) }}</p>
                         </div>
                     </div>
 
@@ -99,8 +99,8 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">{{ __('app.status.cancelled') }}</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">Rp {{ number_format($allocation->invoice->total_amount, 0, ',', '.') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 text-right">Rp {{ number_format($allocation->amount, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{{ formatRupiah($allocation->invoice->total_amount) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 text-right">{{ formatRupiah($allocation->amount) }}</td>
                                     </tr>
                                 @empty
                                     <tr>

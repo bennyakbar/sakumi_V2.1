@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Buku Kas Darurat - Cetak A4</title>
+  <style>
+    @page { size: A4 portrait; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Times New Roman", serif; font-size: 11px; color: #111; }
+    .sheet { width: 190mm; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 18px; text-align: center; }
+    .sub { text-align: center; margin-bottom: 8px; font-size: 11px; }
+    .row { display: flex; gap: 8px; margin-bottom: 4px; }
+    .cell { flex: 1; border-bottom: 1px solid #333; min-height: 18px; padding: 2px 4px; }
+    .label { white-space: nowrap; font-weight: bold; margin-right: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #222; padding: 2px 3px; vertical-align: middle; }
+    th { text-align: center; font-size: 10px; }
+    td { height: 18px; }
+    .small { font-size: 10px; }
+    .summary { margin-top: 8px; }
+    .sign { margin-top: 10px; }
+    .sign td { height: 30px; text-align: center; vertical-align: bottom; }
+    .footer { margin-top: 6px; font-size: 10px; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <h1>BUKU KAS DARURAT</h1>
+    <div class="sub">Digunakan hanya saat SAKUMI gangguan / mode insiden</div>
+
+    <div class="row">
+      <div class="cell"><span class="label">Instansi / Unit:</span></div>
+      <div class="cell"><span class="label">Tanggal:</span></div>
+      <div class="cell"><span class="label">Shift:</span></div>
+      <div class="cell"><span class="label">No Buku Kas:</span></div>
+    </div>
+    <div class="row">
+      <div class="cell"><span class="label">Mulai Insiden:</span></div>
+      <div class="cell"><span class="label">Ditetapkan Oleh:</span></div>
+      <div class="cell"><span class="label">Dibuka Oleh:</span></div>
+      <div class="cell"><span class="label">Diperiksa Oleh:</span></div>
+    </div>
+    <div class="row">
+      <div class="cell"><span class="label">Saldo Kas Awal:</span></div>
+      <div class="cell"><span class="label">Mata Uang:</span>IDR</div>
+      <div class="cell"><span class="label">Ref Mode Manual:</span></div>
+      <div class="cell"><span class="label">Halaman:</span>1</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:3%;">#</th>
+          <th style="width:6%;">Waktu</th>
+          <th style="width:12%;">No Referensi</th>
+          <th style="width:6%;">Jenis</th>
+          <th style="width:11%;">Pembayar/Penerima</th>
+          <th style="width:8%;">Siswa/NIS</th>
+          <th style="width:13%;">Uraian</th>
+          <th style="width:8%;">Metode</th>
+          <th style="width:7%;">Masuk</th>
+          <th style="width:7%;">Keluar</th>
+          <th style="width:8%;">Saldo</th>
+          <th style="width:6%;">Petugas</th>
+          <th style="width:5%;">Verif</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>10</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>11</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>12</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>13</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>14</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>15</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <table class="summary">
+      <tr>
+        <td><b>Total Uang Masuk</b></td>
+        <td></td>
+        <td><b>Total Uang Keluar</b></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><b>Saldo Akhir Seharusnya</b></td>
+        <td></td>
+        <td><b>Kas Fisik Aktual</b></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><b>Selisih (+/-)</b></td>
+        <td></td>
+        <td><b>Penjelasan Selisih</b></td>
+        <td></td>
+      </tr>
+    </table>
+
+    <table class="sign">
+      <tr>
+        <td>Disusun Oleh (Kasir)</td>
+        <td>Diverifikasi Oleh (Supervisor/Bendahara)</td>
+        <td>Disetujui Oleh (Pimpinan)</td>
+      </tr>
+    </table>
+
+    <div class="footer small">
+      Aturan: dilarang tipe-x/penghapus, koreksi dengan coret 1 garis + paraf, setiap baris wajib petugas dan verifikator.
+    </div>
+
+    <div class="no-print" style="margin-top:10px;">
+      <button onclick="window.print()">Cetak / Simpan PDF</button>
+    </div>
+  </div>
+</body>
+</html>

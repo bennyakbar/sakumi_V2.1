@@ -64,8 +64,8 @@
                                             <span class="text-xs text-gray-400">({{ $settlement->student->schoolClass->name ?? '-' }})</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ucfirst($settlement->payment_method) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($settlement->total_amount, 0, ',', '.') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">Rp {{ number_format($settlement->allocated_amount, 0, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">{{ formatRupiah($settlement->total_amount) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{{ formatRupiah($settlement->allocated_amount) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if($settlement->status === 'completed')
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ __('app.status.completed') }}</span>

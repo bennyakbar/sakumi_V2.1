@@ -67,7 +67,7 @@
                         <div>
                             <span class="text-gray-600">{{ __('report.net_cash') }}</span>
                             <span class="font-bold text-xl text-green-600">Rp
-                                {{ number_format($totalAmount, 0, ',', '.') }}</span>
+                                {{ formatRupiah($totalAmount) }}</span>
                         </div>
                     </div>
 
@@ -93,7 +93,7 @@
                                                 <td class="px-6 py-3 text-sm text-gray-900">
                                                     {{ \Carbon\Carbon::parse($date)->format('d M') }}</td>
                                                 <td class="px-6 py-3 text-sm text-gray-900 text-right">Rp
-                                                    {{ number_format($total, 0, ',', '.') }}</td>
+                                                    {{ formatRupiah($total) }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -166,7 +166,7 @@
                                                 <td class="px-6 py-3 text-sm text-gray-900">
                                                     {{ $entry->student_name }}</td>
                                                 <td class="px-6 py-3 text-sm text-right {{ $entry->amount < 0 ? 'text-red-600' : 'text-gray-900' }}">Rp
-                                                    {{ number_format($entry->amount, 0, ',', '.') }}</td>
+                                                    {{ formatRupiah($entry->amount) }}</td>
                                             </tr>
                                         @empty
                                             <tr>

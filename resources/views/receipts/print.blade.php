@@ -25,7 +25,7 @@
     statusBadge="paid"
     :footerNote="__('receipt.footer.official_receipt')"
     :totalLabel="__('receipt.total.payment')"
-    :totalValue="'Rp ' . number_format((float) $transaction->total_amount, 0, ',', '.')"
+    :totalValue="formatRupiah((float) $transaction->total_amount)"
 >
     <x-slot:meta>
         <div class="meta-grid">
@@ -80,7 +80,7 @@
                             <td class="c-note">
                                 <div class="item-note">{{ $item->description ?: '-' }}</div>
                             </td>
-                            <td class="c-amt">Rp {{ number_format((float) $item->amount, 0, ',', '.') }}</td>
+                            <td class="c-amt">{{ formatRupiah((float) $item->amount) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -92,7 +92,7 @@
                         <tr class="summary-row">
                             <td class="c-no">+</td>
                             <td colspan="2">{{ __('receipt.footer.items_condensed', ['count' => $remainingCount]) }}</td>
-                            <td class="c-amt">Rp {{ number_format($remainingAmount, 0, ',', '.') }}</td>
+                            <td class="c-amt">{{ formatRupiah($remainingAmount) }}</td>
                         </tr>
                     @endif
                 </tbody>
@@ -103,7 +103,7 @@
     <x-slot:summary>
         <div class="total-box">
             <div class="total-head">{{ __('receipt.total.payment') }}</div>
-            <div class="total-value">Rp {{ number_format((float) $transaction->total_amount, 0, ',', '.') }}</div>
+            <div class="total-value">{{ formatRupiah((float) $transaction->total_amount) }}</div>
         </div>
     </x-slot:summary>
 </x-print.document>

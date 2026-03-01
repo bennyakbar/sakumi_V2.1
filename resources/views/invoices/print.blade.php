@@ -79,7 +79,7 @@
                                     -
                                 @endif
                             </td>
-                            <td class="c-amt">Rp {{ number_format($item->amount, 0, ',', '.') }}</td>
+                            <td class="c-amt">{{ formatRupiah($item->amount) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -95,15 +95,15 @@
         <table class="totals-table">
             <tr>
                 <td>{{ __('receipt.total.invoice') }}</td>
-                <td>Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
+                <td>{{ formatRupiah($invoice->total_amount) }}</td>
             </tr>
             <tr>
                 <td>{{ __('receipt.total.paid') }}</td>
-                <td>Rp {{ number_format($invoice->paid_amount, 0, ',', '.') }}</td>
+                <td>{{ formatRupiah($invoice->paid_amount) }}</td>
             </tr>
             <tr>
                 <td>{{ __('receipt.total.outstanding') }}</td>
-                <td>Rp {{ number_format($invoice->outstanding, 0, ',', '.') }}</td>
+                <td>{{ formatRupiah($invoice->outstanding) }}</td>
             </tr>
         </table>
     </x-slot:summary>

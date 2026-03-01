@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Invoice;
 use App\Models\SchoolClass;
+use App\Models\Setting;
 use App\Models\Settlement;
 use App\Models\SettlementAllocation;
 use App\Models\Student;
@@ -11,6 +12,8 @@ use App\Models\StudentCategory;
 use App\Models\Transaction;
 use App\Models\Unit;
 use App\Models\User;
+use Database\Seeders\AccountMappingsSeeder;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\UnitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,6 +41,9 @@ class ConsolidatedReportTest extends TestCase
 
         $this->seed(UnitSeeder::class);
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(ChartOfAccountsSeeder::class);
+        $this->seed(AccountMappingsSeeder::class);
+        Setting::set('academic_year_current', '2025/2026');
 
         $this->mi = Unit::where('code', 'MI')->first();
         $this->ra = Unit::where('code', 'RA')->first();
@@ -186,7 +192,7 @@ class ConsolidatedReportTest extends TestCase
             ->assertSee($this->miTransaction->transaction_number)
             ->assertSee('Settlement')
             ->assertSee('Transaksi Langsung')
-            ->assertSee('Rp 350.000');
+            ->assertSee('Rp 350.000,00');
     }
 
     // ─── Monthly Report ──────────────────────────────────────────
@@ -354,13 +360,13 @@ class ConsolidatedReportTest extends TestCase
         $this->actAsUnit($this->superAdmin, $this->mi)
             ->get(route('reports.daily', ['date' => today()->toDateString()]))
             ->assertOk()
-            ->assertSee('Rp 300.000');
+            ->assertSee('Rp 300.000,00');
 
         $this->actAsUnit($this->superAdmin, $this->mi)
             ->get(route('reports.arrears'))
             ->assertOk()
             ->assertSee('INV-E2E-000001')
-            ->assertSee('Rp 700.000');
+            ->assertSee('Rp 700.000,00');
 
         $this->actAsUnit($this->superAdmin, $this->mi)
             ->post(route('settlements.store'), [
