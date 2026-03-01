@@ -21,9 +21,9 @@
     class="fixed inset-y-0 left-0 z-50 lg:z-0 flex w-64 flex-col bg-white border-r border-gray-200 transition-all duration-300 ease-in-out"
 >
     {{-- Logo --}}
-    <div class="flex h-14 shrink-0 items-center justify-center border-b border-gray-100 px-4">
-        <a href="{{ route('dashboard') }}" class="flex items-center">
-            <x-application-logo class="block h-10 w-auto" />
+    <div class="flex h-20 shrink-0 items-center justify-center border-b border-gray-100 px-3">
+        <a href="{{ route('dashboard') }}" class="flex h-16 items-center" aria-label="SAKUMI dashboard">
+            <x-application-logo class="block h-16 w-auto object-contain" />
         </a>
     </div>
 

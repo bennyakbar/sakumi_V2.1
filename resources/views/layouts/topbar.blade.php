@@ -1,7 +1,7 @@
 {{-- Top bar --}}
 <header class="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
     {{-- Left: mobile hamburger + logo --}}
-    <div class="flex items-center gap-x-3">
+    <div class="flex min-w-0 items-center gap-x-3">
         {{-- Mobile hamburger --}}
         <button @click="toggleMobile()" class="lg:hidden -ml-1 rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-150">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -9,9 +9,9 @@
             </svg>
         </button>
 
-        {{-- Logo (mobile only, hidden on desktop since sidebar has logo) --}}
-        <a href="{{ route('dashboard') }}" class="lg:hidden flex items-center">
-            <x-application-logo class="block h-8 w-auto" />
+        {{-- Logo --}}
+        <a href="{{ route('dashboard') }}" class="flex h-9 shrink-0 items-center sm:h-10 lg:hidden" aria-label="SAKUMI dashboard">
+            <x-application-logo class="block h-8 w-auto object-contain sm:h-9" />
         </a>
     </div>
 
