@@ -67,6 +67,16 @@ class Student extends Model
         return $this->hasMany(StudentObligation::class);
     }
 
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
+
+    public function currentEnrollment(): HasOne
+    {
+        return $this->hasOne(StudentEnrollment::class)->where('is_current', true);
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);

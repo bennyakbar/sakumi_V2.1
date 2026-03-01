@@ -14,7 +14,10 @@ class StudentObligation extends Model
 
     protected $fillable = [
         'unit_id',
+        'academic_year_id',
         'student_id',
+        'student_enrollment_id',
+        'class_id_snapshot',
         'fee_type_id',
         'month',
         'year',
@@ -40,6 +43,21 @@ class StudentObligation extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function academicYear(): BelongsTo
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(StudentEnrollment::class, 'student_enrollment_id');
+    }
+
+    public function classSnapshot(): BelongsTo
+    {
+        return $this->belongsTo(SchoolClass::class, 'class_id_snapshot');
     }
 
     public function feeType(): BelongsTo

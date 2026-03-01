@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\CategoryController;
 use App\Http\Controllers\Master\ClassController;
 use App\Http\Controllers\Master\FeeMatrixController;
 use App\Http\Controllers\Master\FeeTypeController;
+use App\Http\Controllers\Master\PromotionBatchController;
 use App\Http\Controllers\Master\StudentController;
 use App\Http\Controllers\Master\StudentFeeMappingController;
 use App\Http\Controllers\ProfileController;
@@ -98,6 +99,25 @@ Route::middleware('auth')->group(function () {
             Route::delete('students/{student}/fee-mappings/{studentFeeMapping}', [StudentFeeMappingController::class, 'destroy'])
                 ->middleware('can:master.student-fee-mappings.delete')
                 ->name('students.fee-mappings.destroy');
+
+            Route::get('promotions', [PromotionBatchController::class, 'index'])
+                ->middleware('can:master.students.view')
+                ->name('promotions.index');
+            Route::get('promotions/create', [PromotionBatchController::class, 'create'])
+                ->middleware('can:master.students.edit')
+                ->name('promotions.create');
+            Route::post('promotions', [PromotionBatchController::class, 'store'])
+                ->middleware('can:master.students.edit')
+                ->name('promotions.store');
+            Route::get('promotions/{promotion}', [PromotionBatchController::class, 'show'])
+                ->middleware('can:master.students.view')
+                ->name('promotions.show');
+            Route::post('promotions/{promotion}/approve', [PromotionBatchController::class, 'approve'])
+                ->middleware('can:master.students.edit')
+                ->name('promotions.approve');
+            Route::post('promotions/{promotion}/apply', [PromotionBatchController::class, 'apply'])
+                ->middleware('can:master.students.edit')
+                ->name('promotions.apply');
 
             Route::get('classes', [ClassController::class, 'index'])
                 ->middleware('can:master.classes.view')
