@@ -11,5 +11,11 @@ Schedule::command('arrears:remind')->weeklyOn(1, '09:00');
 // Auto-lock fiscal periods past grace window — daily at 01:00
 Schedule::command('fiscal:auto-lock')->dailyAt('01:00');
 
-// Encrypted daily backup — every day at 02:00
-Schedule::command('backup:run')->dailyAt('02:00');
+// Refresh reporting materialized views — every 15 minutes
+Schedule::command('reports:refresh-views')->everyFifteenMinutes();
+
+// Prune activity log beyond retention window — daily at 03:00
+Schedule::command('activitylog:prune')->dailyAt('03:00');
+
+// Encrypted daily backup — every day at 04:00
+Schedule::command('backup:run')->dailyAt('04:00');

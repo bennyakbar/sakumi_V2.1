@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\Unit;
+use App\Services\UnitContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ trait BelongsToUnit
     public static function bootBelongsToUnit(): void
     {
         static::addGlobalScope('unit', function (Builder $builder): void {
-            $unitId = session('current_unit_id');
+            $unitId = app(UnitContext::class)->id();
 
             if ($unitId) {
                 $builder->where(
@@ -33,8 +34,11 @@ trait BelongsToUnit
         });
 
         static::creating(function (Model $model): void {
-            if (! $model->unit_id && $unitId = session('current_unit_id')) {
-                $model->unit_id = $unitId;
+            if (! $model->unit_id) {
+                $unitId = app(UnitContext::class)->id();
+                if ($unitId) {
+                    $model->unit_id = $unitId;
+                }
             }
         });
     }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Events\ObligationGenerated;
 use App\Models\Unit;
 use App\Services\ArrearsService;
+use App\Services\UnitContext;
 use Illuminate\Console\Command;
 
 class GenerateMonthlyObligations extends Command
@@ -36,8 +37,10 @@ class GenerateMonthlyObligations extends Command
 
         $totalCreated = 0;
 
+        $unitContext = app(UnitContext::class);
+
         foreach ($units as $unit) {
-            session(['current_unit_id' => $unit->id]);
+            $unitContext->set($unit->id);
             $this->info("Generating obligations for {$unit->code} {$month}/{$year}...");
 
             $count = $arrearsService->generateMonthlyObligations($month, $year);
@@ -49,7 +52,7 @@ class GenerateMonthlyObligations extends Command
             }
         }
 
-        session()->forget('current_unit_id');
+        $unitContext->clear();
         $this->info("Total: {$totalCreated} obligation(s) created.");
 
         return self::SUCCESS;

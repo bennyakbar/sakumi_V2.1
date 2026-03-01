@@ -7,6 +7,7 @@ use App\Events\ObligationGenerated;
 use App\Listeners\BumpDashboardCacheVersion;
 use App\Listeners\SendPaymentNotification;
 use App\Listeners\UpdateInvoiceStatus;
+use App\Services\UnitContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -19,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->scoped(UnitContext::class);
+
         $this->enforceSakumiMode();
     }
 

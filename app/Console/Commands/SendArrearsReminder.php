@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Student;
 use App\Models\StudentObligation;
 use App\Models\Unit;
+use App\Services\UnitContext;
 use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 
@@ -32,8 +33,10 @@ class SendArrearsReminder extends Command
 
         $totalSent = 0;
 
+        $unitContext = app(UnitContext::class);
+
         foreach ($units as $unit) {
-            session(['current_unit_id' => $unit->id]);
+            $unitContext->set($unit->id);
             $this->info("Processing unit: {$unit->code}");
 
             $sent = $this->sendRemindersForUnit($whatsAppService);
@@ -41,7 +44,7 @@ class SendArrearsReminder extends Command
             $this->info("  Sent {$sent} reminder(s) for {$unit->code}.");
         }
 
-        session()->forget('current_unit_id');
+        $unitContext->clear();
         $this->info("Total: {$totalSent} arrears reminder(s) sent.");
 
         return self::SUCCESS;

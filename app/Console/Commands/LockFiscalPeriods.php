@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\FiscalPeriod;
 use App\Models\Unit;
+use App\Services\UnitContext;
 use Illuminate\Console\Command;
 
 class LockFiscalPeriods extends Command
@@ -33,8 +34,10 @@ class LockFiscalPeriods extends Command
 
         $totalLocked = 0;
 
+        $unitContext = app(UnitContext::class);
+
         foreach ($units as $unit) {
-            session(['current_unit_id' => $unit->id]);
+            $unitContext->set($unit->id);
 
             $periods = FiscalPeriod::where('is_locked', false)
                 ->where('ends_on', '<=', $cutoff)
@@ -52,7 +55,7 @@ class LockFiscalPeriods extends Command
             }
         }
 
-        session()->forget('current_unit_id');
+        $unitContext->clear();
         $this->info("Total: {$totalLocked} fiscal period(s) auto-locked.");
 
         return self::SUCCESS;
