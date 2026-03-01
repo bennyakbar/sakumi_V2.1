@@ -23,7 +23,9 @@
 php artisan about
 
 # Cek via endpoint health (butuh app running)
-curl -s http://localhost/health/live | python3 -m json.tool
+# Sesuaikan BASE_URL, misalnya http://localhost:8000 jika pakai `php artisan serve`
+BASE_URL=${BASE_URL:-http://localhost:8000}
+curl -s "$BASE_URL/health/live" | python3 -m json.tool
 ```
 
 > **Ekspektasi output `health/live`:**
@@ -118,10 +120,11 @@ du -sh storage/logs/laravel.log
 
 Jika log terlalu besar:
 ```bash
-# Bersihkan log (hati-hati: data lama hilang)
-php artisan log:clear
+# Pilih salah satu opsi di bawah:
+# Opsi A: kosongkan log aktif (hati-hati: data lama hilang)
+: > storage/logs/laravel.log
 
-# Atau rotasi manual
+# Opsi B: rotasi manual (simpan arsip log lama)
 mv storage/logs/laravel.log storage/logs/laravel-$(date +%Y%m%d).log
 touch storage/logs/laravel.log
 ```

@@ -1,0 +1,32 @@
+digraph G {
+  label="Manual Flow Operasional Aplikasi Sakumi.md - diagram 1";
+  labelloc="t";
+  fontsize=16;
+  fontname="Arial";
+  rankdir=TB;
+  bgcolor="white";
+  node [fontname="Arial", fontsize=10, style="rounded,filled", fillcolor="#f8fafc", color="#334155"];
+  edge [fontname="Arial", fontsize=9, color="#475569"];
+  "A" [label="Setup User, Role, Unit, Master Data", shape=box];
+  "B" [label="Generate Kewajiban Bulanan", shape=box];
+  "C" [label="Generate / Buat Invoice", shape=box];
+  "D" [label="Penerimaan Pembayaran via Settlement", shape=box];
+  "E" [label="Transaksi Langsung Non-Tagihan", shape=box];
+  "F" [label="Update Status Invoice & Piutang", shape=box];
+  "G" [label="Cetak Kwitansi + Verifikasi", shape=box];
+  "H" [label="Laporan Harian/Bulanan/AR/Collection/Cash Book", shape=box];
+  "I" [label="Evaluasi KPI & Pengambilan Keputusan", shape=box];
+  "J" [label="Tindak Lanjut: Penagihan, Koreksi, Rekonsiliasi, Kebijakan", shape=box];
+  "A" -> "B";
+  "B" -> "C";
+  "C" -> "D";
+  "A" -> "E";
+  "D" -> "F";
+  "E" -> "G";
+  "D" -> "G";
+  "F" -> "H";
+  "E" -> "H";
+  "G" -> "H";
+  "H" -> "I";
+  "I" -> "J";
+}

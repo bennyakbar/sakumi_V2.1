@@ -1,0 +1,73 @@
+digraph G {
+  label="OPERATIONAL_HANDBOOK_EN.md - diagram 1";
+  labelloc="t";
+  fontsize=16;
+  fontname="Arial";
+  rankdir=TB;
+  bgcolor="white";
+  node [fontname="Arial", fontsize=10, style="rounded,filled", fillcolor="#f8fafc", color="#334155"];
+  edge [fontname="Arial", fontsize=9, color="#475569"];
+  subgraph "cluster_Foundation" {
+    label="Yayasan (Foundation)";
+    color="#cbd5e1";
+    style="rounded";
+    "BND" [label="Bendahara", shape=box];
+    "SA" [label="Super Admin", shape=box];
+  }
+  subgraph "cluster_Units" {
+    label="School Units";
+    color="#cbd5e1";
+    style="rounded";
+    "DTA" [label="DTA Unit", shape=box];
+    "MI" [label="MI Unit", shape=box];
+    "RA" [label="RA Unit", shape=box];
+  }
+  subgraph "cluster_Modules" {
+    label="Core Modules";
+    color="#cbd5e1";
+    style="rounded";
+    "ADM" [label="Admission / PSB", shape=box];
+    "BNK" [label="Bank Reconciliation", shape=box];
+    "EXP" [label="Expenses", shape=box];
+    "INV" [label="Invoicing", shape=box];
+    "MST" [label="Master Data", shape=box];
+    "RPT" [label="Reports", shape=box];
+    "STL" [label="Settlements", shape=box];
+    "TXN" [label="Transactions", shape=box];
+  }
+  subgraph "cluster_Data" {
+    label="Financial Records";
+    color="#cbd5e1";
+    style="rounded";
+    "AUD" [label="Audit Log", shape=box];
+    "OBL" [label="Student Obligations", shape=box];
+    "RCP" [label="Receipts", shape=box];
+  }
+  "Modules" [label="Modules", shape=box];
+  "Units" [label="Units", shape=box];
+  "SA" -> "Units" [label="manages"];
+  "SA" -> "Modules" [label="configures"];
+  "BND" -> "INV" [label="oversees"];
+  "BND" -> "STL" [label="oversees"];
+  "BND" -> "EXP" [label="oversees"];
+  "BND" -> "BNK" [label="oversees"];
+  "MI" -> "ADM";
+  "MI" -> "MST";
+  "RA" -> "ADM";
+  "RA" -> "MST";
+  "DTA" -> "ADM";
+  "DTA" -> "MST";
+  "ADM" -> "MST" [label="enrollment"];
+  "MST" -> "OBL" [label="fee mapping"];
+  "OBL" -> "INV" [label="generates"];
+  "INV" -> "STL" [label="payments"];
+  "STL" -> "RCP" [label="issues"];
+  "TXN" -> "RCP" [label="issues"];
+  "EXP" -> "TXN" [label="posts"];
+  "INV" -> "RPT";
+  "STL" -> "RPT";
+  "TXN" -> "RPT";
+  "EXP" -> "RPT";
+  "BNK" -> "TXN" [label="matches"];
+  "Modules" -> "AUD";
+}

@@ -1,0 +1,54 @@
+digraph G {
+  label="OPERATIONAL_HANDBOOK_ID.md - diagram 8";
+  labelloc="t";
+  fontsize=16;
+  fontname="Arial";
+  rankdir=TB;
+  bgcolor="white";
+  node [fontname="Arial", fontsize=10, style="rounded,filled", fillcolor="#f8fafc", color="#334155"];
+  edge [fontname="Arial", fontsize=9, color="#475569"];
+  subgraph "cluster_sg_1" {
+    label="Log Audit";
+    color="#cbd5e1";
+    style="rounded";
+    "B" [label="Masukkan nama bank, periode, saldo awal", shape=box];
+    "C" [label="Impor rekening koran CSV", shape=box];
+    "H" [label="Status baris: matched", shape=box];
+    "K" [label="Status baris: unmatched", shape=box];
+    "M" [label="Tutup Sesi", shape=box];
+    "O" [label="Log: create_session", shape=box];
+    "P" [label="Log: import_csv + jumlah baris", shape=box];
+    "Q" [label="Log: match_line", shape=box];
+    "R" [label="Log: unmatch_line", shape=box];
+    "S" [label="Log: close_session", shape=box];
+  }
+  "A" [label="Buat Sesi", shape=box];
+  "D" [label="Baris dibuat: unmatched", shape=box];
+  "E" [label="Untuk setiap baris", shape=diamond];
+  "F" [label="Pilih transaksi sistem untuk dicocokkan", shape=box];
+  "G" [label="Transaksi valid?", shape=diamond];
+  "I" [label="Error: transaksi tidak valid", shape=box];
+  "J" [label="Perlu batalkan pencocokan?", shape=diamond];
+  "L" [label="Semua baris cocok?", shape=diamond];
+  "N" [label="Sesi hanya-baca", shape=box];
+  "A" -> "B" [label="status: draft"];
+  "B" -> "C";
+  "C" -> "D" [label="status: in_review"];
+  "D" -> "E";
+  "E" -> "F";
+  "F" -> "G";
+  "G" -> "H" [label="completed + unit sama"];
+  "G" -> "I" [label="tidak valid"];
+  "H" -> "J";
+  "J" -> "K" [label="Ya"];
+  "K" -> "E";
+  "J" -> "L" [label="Tidak"];
+  "L" -> "E" [label="Tidak"];
+  "L" -> "M" [label="Ya"];
+  "M" -> "N" [label="status: closed"];
+  "B" -> "O";
+  "C" -> "P";
+  "H" -> "Q";
+  "K" -> "R";
+  "M" -> "S";
+}

@@ -18,8 +18,6 @@ Petunjuk Pelaksanaan (JUKLAK) ini adalah panduan praktis harian yang dipegang ol
 
 ---
 
----
-
 # JUKLAK-01: SUPER ADMINISTRATOR
 
 **Nama Dokumen:** Petunjuk Pelaksanaan Super Administrator  
@@ -70,7 +68,7 @@ Petunjuk Pelaksanaan (JUKLAK) ini adalah panduan praktis harian yang dipegang ol
 2. Buka **Users → Edit** akun yang bersangkutan.
 3. Hilangkan centang **Is Active**.
 4. Klik **Update**.
-5. Dokumen tanggal penonaktifan untuk arsip.
+5. Dokumentasikan tanggal penonaktifan untuk arsip.
 
 ---
 
@@ -99,8 +97,6 @@ TANGGAL: _______________  PARAF: _______________
 □ Monitor failed_jobs ≤ 10: □ OK / □ Melebihi (tindak lanjut: ________)
 □ Logout sebelum meninggalkan workstation
 ```
-
----
 
 ---
 
@@ -216,10 +212,8 @@ SORE (Akhir Hari):
 ## 5. Hal yang DILARANG (Admin TU)
 - ❌ Edit data keuangan historis langsung (harus cancel + buat ulang)
 - ❌ Berbagi akun/password
-- ❌ Menyetujui send pembatalan tanpa alasan jelas
+- ❌ Menyetujui setiap pembatalan tanpa alasan jelas
 - ❌ Input pembayaran hari esok dengan tanggal hari ini untuk mengejar target
-
----
 
 ---
 
@@ -347,8 +341,6 @@ BULAN: _______________  PARAF: _______________
 
 ---
 
----
-
 # JUKLAK-04: KEPALA SEKOLAH
 
 **Nama Dokumen:** Petunjuk Pelaksanaan Kepala Sekolah  
@@ -436,8 +428,6 @@ BULAN: _______________  PARAF: _______________
 
 ---
 
----
-
 # JUKLAK-05: OPERATOR TATA USAHA
 
 **Nama Dokumen:** Petunjuk Pelaksanaan Operator Tata Usaha  
@@ -511,8 +501,6 @@ TANGGAL: _______________  PARAF: _______________
 
 ---
 
----
-
 # JUKLAK-06: AUDITOR
 
 **Nama Dokumen:** Petunjuk Pelaksanaan Auditor  
@@ -580,8 +568,6 @@ TANGGAL: _______________  PARAF: _______________
 | Settlement periode X | `UNITKODE_Audit_Settlement_YYYYMMDD_AUD.xlsx` |
 | Activity Log | `UNITKODE_AuditLog_YYYYMMDD_AUD.xlsx` |
 | Arrears Aging | `UNITKODE_Audit_Aging_YYYYMMDD_AUD.xlsx` |
-
----
 
 ---
 
@@ -692,8 +678,6 @@ PENUTUPAN:
 □ Catatan selisih sudah diserahkan ke Bendahara
 □ Logout
 ```
-
----
 
 ---
 
