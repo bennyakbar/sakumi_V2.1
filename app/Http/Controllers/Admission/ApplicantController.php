@@ -12,6 +12,7 @@ use App\Models\Applicant;
 use App\Models\SchoolClass;
 use App\Models\StudentCategory;
 use App\Services\AdmissionService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,15 +65,28 @@ class ApplicantController extends Controller
         $data = $request->validated();
         $unitId = (int) session('current_unit_id');
 
-        DB::transaction(function () use ($data, $unitId, $request) {
-            $data['registration_number'] = $this->admissionService->generateRegistrationNumber($unitId);
-            $data['created_by'] = $request->user()->id;
-            $data['status'] = 'registered';
-            Applicant::create($data);
-        });
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            try {
+                DB::transaction(function () use ($data, $unitId, $request) {
+                    $data['registration_number'] = $this->admissionService->generateRegistrationNumber($unitId);
+                    $data['created_by'] = $request->user()->id;
+                    $data['status'] = 'registered';
+                    Applicant::create($data);
+                });
 
-        return redirect()->route('admission.applicants.index')
-            ->with('success', __('message.applicant_created'));
+                return redirect()->route('admission.applicants.index')
+                    ->with('success', __('message.applicant_created'));
+            } catch (UniqueConstraintViolationException $e) {
+                $isRegNumberCollision = str_contains($e->getMessage(), 'applicants.registration_number');
+                if (! $isRegNumberCollision || $attempt === 2) {
+                    throw $e;
+                }
+            }
+        }
+
+        return back()->withErrors([
+            'registration_number' => __('message.unexpected_error'),
+        ]);
     }
 
     public function show(Applicant $applicant): View
@@ -181,13 +195,36 @@ class ApplicantController extends Controller
             'rejection_reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $updated = $this->admissionService->bulkUpdateStatus(
+        $targetStatus = (string) $request->input('status');
+        $requiredPermission = match ($targetStatus) {
+            'under_review' => 'admission.applicants.review',
+            'accepted' => 'admission.applicants.accept',
+            'rejected' => 'admission.applicants.reject',
+            default => null,
+        };
+
+        abort_unless(
+            $requiredPermission && $request->user()->can($requiredPermission),
+            403
+        );
+
+        $result = $this->admissionService->bulkUpdateStatus(
             $request->input('ids'),
-            $request->input('status'),
+            $targetStatus,
             auth()->id(),
             $request->input('rejection_reason'),
         );
 
-        return back()->with('success', __('message.applicants_bulk_updated', ['count' => $updated]));
+        $response = back()->with('success', __('message.applicants_bulk_updated', ['count' => $result['updated']]));
+
+        if (! empty($result['failed'])) {
+            $failedIds = collect($result['failed'])
+                ->pluck('id')
+                ->implode(', ');
+
+            $response->with('error', __('message.unexpected_error').' (Failed IDs: '.$failedIds.')');
+        }
+
+        return $response;
     }
 }

@@ -250,7 +250,6 @@ class SettlementService
                             'is_paid' => true,
                             'paid_amount' => $item->amount,
                             'paid_at' => now(),
-                            'transaction_item_id' => null,
                         ]);
                     }
                 }
@@ -278,7 +277,6 @@ class SettlementService
                                 'is_paid' => false,
                                 'paid_amount' => 0,
                                 'paid_at' => null,
-                                'transaction_item_id' => null,
                             ]);
                         }
                     }

@@ -111,7 +111,10 @@ class InvoiceService
             $q->whereHas('invoice', fn ($iq) => $iq->where('status', '!=', 'cancelled'));
         });
 
-        $obligations = $obligationQuery->with('feeType')->get();
+        $obligations = $obligationQuery
+            ->lockForUpdate()
+            ->with('feeType')
+            ->get();
 
         if ($obligations->isEmpty()) {
             $result['skipped']++;
@@ -176,6 +179,7 @@ class InvoiceService
                 ->whereDoesntHave('invoiceItems', function ($q) {
                     $q->whereHas('invoice', fn ($iq) => $iq->where('status', '!=', 'cancelled'));
                 })
+                ->lockForUpdate()
                 ->with('feeType')
                 ->get();
 

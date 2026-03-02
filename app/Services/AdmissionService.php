@@ -25,20 +25,36 @@ class AdmissionService
             ->value('code') ?? "U{$unitId}";
         $unitCode = strtoupper((string) $unitCode);
         $year = now()->year;
+        $prefix = sprintf('REG-%s-%s-', $unitCode, $year);
 
-        $last = Applicant::withoutGlobalScope('unit')
-            ->where('unit_id', $unitId)
-            ->where('registration_number', 'like', "REG-{$unitCode}-{$year}-%")
+        $existingNumbers = Applicant::withoutGlobalScope('unit')
+            ->withTrashed()
+            ->where('registration_number', 'like', "{$prefix}%")
             ->lockForUpdate()
-            ->orderByDesc('id')
-            ->value('registration_number');
+            ->pluck('registration_number');
 
         $sequence = 1;
-        if ($last && preg_match('/(\d{4})$/', $last, $matches)) {
-            $sequence = (int) $matches[1] + 1;
+        $pattern = '/^'.preg_quote($prefix, '/').'(\d+)$/';
+
+        foreach ($existingNumbers as $registrationNumber) {
+            if (! preg_match($pattern, $registrationNumber, $matches)) {
+                continue;
+            }
+
+            $sequence = max($sequence, ((int) $matches[1]) + 1);
         }
 
-        return sprintf('REG-%s-%s-%04d', $unitCode, $year, $sequence);
+        do {
+            $candidate = sprintf('%s%04d', $prefix, $sequence);
+            $exists = Applicant::withoutGlobalScope('unit')
+                ->withTrashed()
+                ->where('registration_number', $candidate)
+                ->lockForUpdate()
+                ->exists();
+            $sequence++;
+        } while ($exists);
+
+        return $candidate;
     }
 
     public function moveToReview(Applicant $applicant, int $userId): Applicant
@@ -58,33 +74,41 @@ class AdmissionService
 
     public function accept(Applicant $applicant, int $userId): Applicant
     {
-        if ($applicant->status !== 'under_review') {
-            throw new \RuntimeException(__('message.admission_invalid_transition'));
-        }
+        return DB::transaction(function () use ($applicant, $userId) {
+            $lockedApplicant = Applicant::whereKey($applicant->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        // Check quota
-        $quota = AdmissionPeriodQuota::where('admission_period_id', $applicant->admission_period_id)
-            ->where('class_id', $applicant->target_class_id)
-            ->first();
-
-        if ($quota) {
-            $acceptedCount = Applicant::where('admission_period_id', $applicant->admission_period_id)
-                ->where('target_class_id', $applicant->target_class_id)
-                ->whereIn('status', ['accepted', 'enrolled'])
-                ->count();
-
-            if ($acceptedCount >= $quota->quota) {
-                throw new \RuntimeException(__('message.admission_quota_exceeded'));
+            if ($lockedApplicant->status !== 'under_review') {
+                throw new \RuntimeException(__('message.admission_invalid_transition'));
             }
-        }
 
-        $applicant->update([
-            'status' => 'accepted',
-            'status_changed_at' => now()->toDateString(),
-            'status_changed_by' => $userId,
-        ]);
+            // Check quota under lock to prevent concurrent over-acceptance.
+            $quota = AdmissionPeriodQuota::where('admission_period_id', $lockedApplicant->admission_period_id)
+                ->where('class_id', $lockedApplicant->target_class_id)
+                ->lockForUpdate()
+                ->first();
 
-        return $applicant->fresh();
+            if ($quota) {
+                $acceptedCount = Applicant::where('admission_period_id', $lockedApplicant->admission_period_id)
+                    ->where('target_class_id', $lockedApplicant->target_class_id)
+                    ->whereIn('status', ['accepted', 'enrolled'])
+                    ->lockForUpdate()
+                    ->count();
+
+                if ($acceptedCount >= $quota->quota) {
+                    throw new \RuntimeException(__('message.admission_quota_exceeded'));
+                }
+            }
+
+            $lockedApplicant->update([
+                'status' => 'accepted',
+                'status_changed_at' => now()->toDateString(),
+                'status_changed_by' => $userId,
+            ]);
+
+            return $lockedApplicant->fresh();
+        });
     }
 
     public function reject(Applicant $applicant, int $userId, ?string $reason = null): Applicant
@@ -213,9 +237,13 @@ class AdmissionService
         });
     }
 
-    public function bulkUpdateStatus(array $ids, string $status, int $userId, ?string $reason = null): int
+    /**
+     * @return array{updated: int, failed: array<int, array{id:int, reason:string}>}
+     */
+    public function bulkUpdateStatus(array $ids, string $status, int $userId, ?string $reason = null): array
     {
         $updated = 0;
+        $failed = [];
         $applicants = Applicant::whereIn('id', $ids)->get();
 
         foreach ($applicants as $applicant) {
@@ -227,12 +255,18 @@ class AdmissionService
                     default => throw new \RuntimeException(__('message.admission_invalid_status')),
                 };
                 $updated++;
-            } catch (\Throwable) {
-                // Skip individual failures in bulk operation
+            } catch (\Throwable $e) {
+                $failed[] = [
+                    'id' => (int) $applicant->id,
+                    'reason' => $e->getMessage(),
+                ];
             }
         }
 
-        return $updated;
+        return [
+            'updated' => $updated,
+            'failed' => $failed,
+        ];
     }
 
     private function generateNis(int $unitId): string
@@ -244,6 +278,7 @@ class AdmissionService
         $year = now()->year;
 
         $last = Student::withoutGlobalScope('unit')
+            ->withTrashed()
             ->where('unit_id', $unitId)
             ->where('nis', 'like', "{$year}{$unitCode}%")
             ->lockForUpdate()
