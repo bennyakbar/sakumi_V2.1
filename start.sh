@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 # Usage:
 #   ./start.sh          - Start server with current DB mode
@@ -6,16 +8,21 @@
 #   ./start.sh real     - Switch to real DB, then start server
 
 # Ensure we are in the correct directory
-if [ ! -f "artisan" ]; then
+if [[ ! -f "artisan" ]]; then
     echo "Error: artisan not found. Please run this script from the sakumi root directory."
     exit 1
 fi
 
-PORT=8002
+PORT="${SAKUMI_PORT:-8002}"
 HOST=127.0.0.1
 
 # Switch DB mode if argument given
-if [ -n "${1:-}" ]; then
+if [[ -n "${1:-}" ]]; then
+    if [[ "$1" != "dummy" && "$1" != "real" ]]; then
+        echo "Usage: ./start.sh [dummy|real]"
+        exit 1
+    fi
+
     echo "Switching to $1 mode..."
     bash scripts/switch-env.sh "$1"
     echo ""
@@ -32,8 +39,17 @@ echo "==================================="
 # Check if port is in use
 if lsof -i :$PORT > /dev/null 2>&1; then
     echo "Port $PORT in use - killing old process..."
-    PID=$(lsof -t -i:$PORT)
-    kill -9 $PID 2>/dev/null || true
+    PID="$(lsof -t -iTCP:$PORT -sTCP:LISTEN 2>/dev/null || true)"
+    if [[ -n "$PID" ]]; then
+        kill $PID 2>/dev/null || true
+        sleep 1
+    fi
+
+    if lsof -i :$PORT > /dev/null 2>&1; then
+        echo "Port $PORT is still occupied."
+        echo "Use another port, e.g.: SAKUMI_PORT=8003 ./start.sh ${1:-}"
+        exit 1
+    fi
 fi
 
 # Start npm run dev in background if not running

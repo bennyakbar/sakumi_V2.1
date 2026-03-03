@@ -12,6 +12,9 @@ class FixedLoginSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure all permissions/roles exist before assigning them to users.
+        $this->call(RolePermissionSeeder::class);
+
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         $defaultUnitId = Unit::query()->where('code', 'MI')->value('id')
             ?? Unit::query()->orderBy('id')->value('id');
@@ -23,6 +26,7 @@ class FixedLoginSeeder extends Seeder
         ];
 
         $staffRole = Role::firstOrCreate(['name' => 'staff']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $adminTuMiRole = Role::firstOrCreate(['name' => 'admin_tu_mi']);
         $adminTuRaRole = Role::firstOrCreate(['name' => 'admin_tu_ra']);
         $adminTuDtaRole = Role::firstOrCreate(['name' => 'admin_tu_dta']);
@@ -50,6 +54,16 @@ class FixedLoginSeeder extends Seeder
             'reports.student-statement',
             'reports.cash-book',
         ]);
+
+        User::updateOrCreate(
+            ['email' => 'superadmin@sakumi.local'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('SuperAdmin#2026'),
+                'is_active' => true,
+                'unit_id' => $defaultUnitId,
+            ]
+        )->syncRoles([$superAdminRole->name]);
 
         User::updateOrCreate(
             ['email' => 'admin.tu.mi@sakumi.local'],
