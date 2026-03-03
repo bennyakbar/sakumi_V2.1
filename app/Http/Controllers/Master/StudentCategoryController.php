@@ -45,14 +45,6 @@ class StudentCategoryController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(StudentCategory $studentCategory)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(StudentCategory $category): View // Using $category to match route model binding if not strictly typed in route, but let's stick to convention. 

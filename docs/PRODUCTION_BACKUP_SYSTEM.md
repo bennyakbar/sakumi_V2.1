@@ -32,10 +32,14 @@ Required ownership/permissions:
 ## Scripts
 Location:
 - [common.sh](/home/abusyauqi/sakumi/scripts/backup/common.sh)
-- [backup_db.sh](/home/abusyauqi/sakumi/scripts/backup/backup_db.sh)
+- [backup_db.sh](/home/abusyauqi/sakumi/scripts/backup/backup_db.sh) — daily DB backup (gzip)
+- [backup_db_7z.sh](/home/abusyauqi/sakumi/scripts/backup/backup_db_7z.sh) — daily DB backup (7z, max compression, /var/backups/sakumi)
 - [backup_files.sh](/home/abusyauqi/sakumi/scripts/backup/backup_files.sh)
 - [backup_offsite.sh](/home/abusyauqi/sakumi/scripts/backup/backup_offsite.sh)
 - [backup_run_all.sh](/home/abusyauqi/sakumi/scripts/backup/backup_run_all.sh)
+- [restore_test.sh](/home/abusyauqi/sakumi/scripts/backup/restore_test.sh) — weekly restore validation
+
+For detailed maintenance SOP, see [SOP_BACKUP_MAINTENANCE.md](/home/abusyauqi/sakumi/docs/SOP_BACKUP_MAINTENANCE.md).
 
 Make executable:
 
