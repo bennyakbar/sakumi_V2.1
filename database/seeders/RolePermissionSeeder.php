@@ -10,7 +10,32 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $guard = 'web';
+
+        $registrar = app()[\Spatie\Permission\PermissionRegistrar::class];
+        $registrar->forgetCachedPermissions();
+
+        // ── Clean rebuild: wipe stale/duplicate permissions and re-create ──
+        // This is safe: only permission definitions and role↔permission pivots
+        // are reset. User↔role assignments (model_has_roles) are NOT touched.
+        \DB::statement('TRUNCATE TABLE model_has_permissions, role_has_permissions, permissions CASCADE');
+
+        // Normalise guard_name on all existing roles.
+        \DB::table('roles')->whereNot('guard_name', $guard)->update(['guard_name' => $guard]);
+
+        // Merge legacy 'superadmin' role into 'super_admin'.
+        $legacySuperadmin = \DB::table('roles')->where('name', 'superadmin')->first();
+        $canonicalSuperAdmin = \DB::table('roles')->where('name', 'super_admin')->first();
+
+        if ($legacySuperadmin && $canonicalSuperAdmin) {
+            \DB::table('model_has_roles')
+                ->where('role_id', $legacySuperadmin->id)
+                ->update(['role_id' => $canonicalSuperAdmin->id]);
+            \DB::table('roles')->where('id', $legacySuperadmin->id)->delete();
+        }
+
+        // Force Spatie to reload from a clean state.
+        $registrar->forgetCachedPermissions();
 
         $permissions = [
             // Master Data
@@ -58,15 +83,18 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            Permission::create([
+                'name' => $permission,
+                'guard_name' => $guard,
+            ]);
         }
 
         // Super Admin — full access
-        $superAdmin = Role::firstOrCreate(['name' => 'super_admin']);
-        $superAdmin->syncPermissions(Permission::all());
+        $superAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => $guard]);
+        $superAdmin->syncPermissions(Permission::query()->where('guard_name', $guard)->get());
 
         // Bendahara — financial operations + reporting
-        $bendahara = Role::firstOrCreate(['name' => 'bendahara']);
+        $bendahara = Role::firstOrCreate(['name' => 'bendahara', 'guard_name' => $guard]);
         $bendahara->syncPermissions([
             'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
@@ -91,7 +119,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Kepala Sekolah — view-only + reporting
-        $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah']);
+        $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah', 'guard_name' => $guard]);
         $kepalaSekolah->syncPermissions([
             'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
@@ -115,7 +143,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Operator TU — operations (master data + create financial docs, no cancel)
-        $operatorTu = Role::firstOrCreate(['name' => 'operator_tu']);
+        $operatorTu = Role::firstOrCreate(['name' => 'operator_tu', 'guard_name' => $guard]);
         $operatorTu->syncPermissions([
             'admission.periods.view', 'admission.periods.create', 'admission.periods.edit', 'admission.periods.delete',
             'admission.applicants.view', 'admission.applicants.create', 'admission.applicants.edit', 'admission.applicants.delete',
@@ -166,13 +194,13 @@ class RolePermissionSeeder extends Seeder
             'audit.view',
             'notifications.view',
         ];
-        Role::firstOrCreate(['name' => 'admin_tu'])->syncPermissions($adminTuUnitPermissions); // legacy compatibility
-        Role::firstOrCreate(['name' => 'admin_tu_mi'])->syncPermissions($adminTuUnitPermissions);
-        Role::firstOrCreate(['name' => 'admin_tu_ra'])->syncPermissions($adminTuUnitPermissions);
-        Role::firstOrCreate(['name' => 'admin_tu_dta'])->syncPermissions($adminTuUnitPermissions);
+        Role::firstOrCreate(['name' => 'admin_tu', 'guard_name' => $guard])->syncPermissions($adminTuUnitPermissions); // legacy compatibility
+        Role::firstOrCreate(['name' => 'admin_tu_mi', 'guard_name' => $guard])->syncPermissions($adminTuUnitPermissions);
+        Role::firstOrCreate(['name' => 'admin_tu_ra', 'guard_name' => $guard])->syncPermissions($adminTuUnitPermissions);
+        Role::firstOrCreate(['name' => 'admin_tu_dta', 'guard_name' => $guard])->syncPermissions($adminTuUnitPermissions);
 
         // Auditor — view-only all data, audit log
-        $auditor = Role::firstOrCreate(['name' => 'auditor']);
+        $auditor = Role::firstOrCreate(['name' => 'auditor', 'guard_name' => $guard]);
         $auditor->syncPermissions([
             'admission.periods.view', 'admission.applicants.view',
             'dashboard.view',
@@ -195,7 +223,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Cashier — can print only first-time (reprint is guarded in service)
-        $cashier = Role::firstOrCreate(['name' => 'cashier']);
+        $cashier = Role::firstOrCreate(['name' => 'cashier', 'guard_name' => $guard]);
         $cashier->syncPermissions([
             'dashboard.view',
             'transactions.view', 'transactions.create',
