@@ -1,0 +1,7 @@
+[
+  {
+    "id": "deploy-sakumi",
+    "execute-command": "/var/www/sakumi/deploy.sh",
+    "command-working-directory": "/var/www/sakumi"
+  }
+]
