@@ -16,6 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasFactory, HasRoles, LogsActivity, Notifiable;
+   protected $guard_name = 'web';
 
     protected $fillable = [
         'name',

@@ -28,7 +28,7 @@ Route::get('/receipts/verify/{transactionNumber}', [\App\Http\Controllers\Receip
 
 // Authenticated diagnostics
 Route::get('/health', [HealthCheckController::class, 'check'])
-    ->middleware(['auth', 'role:super_admin']);
+    ->middleware('role:super_admin|admin_tu_mi|admin_tu_ra|admin_tu_dta|bendahara|kepala_sekolah|operator_tu|auditor');
 
 Route::get('/', function () {
     return auth()->check()
@@ -46,7 +46,13 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
 })->name('locale.switch');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'can:dashboard.view', 'throttle:dashboard-read'])->name('dashboard');
+    ->middleware([
+    'auth',
+    'verified',
+    'role:super_admin,admin_tu_mi,admin_tu_ra,admin_tu_dta,bendahara,kepala_sekolah,operator_tu,auditor',
+    'throttle:dashboard-read'
+])   
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::post('/unit/switch', \App\Http\Controllers\UnitSwitchController::class)->name('unit.switch');
