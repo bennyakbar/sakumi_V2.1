@@ -24,3 +24,9 @@ yarn-error.log
 /.vscode
 /.zed
 /_portable_exports
+# Temporary files
+*.swp
+*.swo
+*.log
+*.tmp
+*.bak
