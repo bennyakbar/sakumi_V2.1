@@ -30,3 +30,5 @@ yarn-error.log
 *.log
 *.tmp
 *.bak
+node_modules/
+vendor/
