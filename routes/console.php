@@ -8,6 +8,9 @@ Schedule::command('obligations:generate')->monthlyOn(1, '00:00');
 // Arrears reminders via WhatsApp — every Monday at 09:00
 Schedule::command('arrears:remind')->weeklyOn(1, '09:00');
 
+// Monthly invoice generation from templates — 1st of every month at 00:30
+Schedule::command('invoices:generate-monthly')->monthlyOn(1, '00:30');
+
 // Auto-lock fiscal periods past grace window — daily at 01:00
 Schedule::command('fiscal:auto-lock')->dailyAt('01:00');
 

@@ -299,6 +299,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{invoice}', [\App\Http\Controllers\Invoice\InvoiceController::class, 'destroy'])
             ->middleware('can:invoices.cancel')
             ->name('destroy');
+
+        // Monthly invoice generation from templates
+        Route::get('/generate-monthly', [\App\Http\Controllers\Invoice\MonthlyInvoiceController::class, 'create'])
+            ->middleware('can:invoices.generate')
+            ->name('generate-monthly');
+        Route::post('/generate-monthly', [\App\Http\Controllers\Invoice\MonthlyInvoiceController::class, 'store'])
+            ->middleware('can:invoices.generate')
+            ->name('generate-monthly.run');
     });
 
     // Settlements
