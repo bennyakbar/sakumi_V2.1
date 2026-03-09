@@ -32,3 +32,5 @@ yarn-error.log
 *.bak
 node_modules/
 vendor/
+database/sakumi_dummy.sqlite
+sakumi_dummy.sqlite

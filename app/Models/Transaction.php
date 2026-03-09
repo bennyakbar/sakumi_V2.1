@@ -38,6 +38,7 @@ class Transaction extends Model
         'cancelled_by',
         'cancellation_reason',
         'created_by',
+        'updated_by',
     ];
 
     protected function casts(): array
@@ -51,6 +52,12 @@ class Transaction extends Model
 
     protected static function booted(): void
     {
+        static::updating(function (Transaction $transaction) {
+            if (auth()->check() && ! $transaction->isDirty('updated_by')) {
+                $transaction->updated_by = auth()->id();
+            }
+        });
+
         static::deleting(function (Transaction $transaction) {
             throw new \RuntimeException(__('message.hard_delete_not_allowed'));
         });
@@ -94,6 +101,11 @@ class Transaction extends Model
     public function canceller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function items(): HasMany

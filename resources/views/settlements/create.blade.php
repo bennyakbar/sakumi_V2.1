@@ -25,7 +25,7 @@
                         </div>
                     @endif
 
-                    {{-- Step 1: Select Student --}}
+                    {{-- Step 1: Select Student + Mode --}}
                     <form method="GET" action="{{ route('settlements.create') }}" class="mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="md:col-span-2">
@@ -41,99 +41,249 @@
                                     @endforeach
                                 </select>
                             </div>
+                            @if($selectedStudentId)
+                                <div class="flex items-end">
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="multi" value="1" {{ $multiMode ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            onchange="this.form.submit()">
+                                        <span class="ml-2 text-sm text-gray-600">{{ __('Multi-invoice mode') }}</span>
+                                    </label>
+                                </div>
+                            @endif
                         </div>
                     </form>
 
                     @if($selectedStudentId && $outstandingInvoices->isNotEmpty())
-                        {{-- Step 2: Settlement + Allocation --}}
-                        <form method="POST" action="{{ route('settlements.store') }}" id="settlementForm">
-                            @csrf
-                            <input type="hidden" name="student_id" value="{{ $selectedStudentId }}">
-                            <input type="hidden" name="invoice_id" value="{{ (int) ($selectedInvoiceId ?: ($outstandingInvoices->first()->id ?? 0)) }}">
+                        @if($multiMode)
+                            {{-- ═══════ MULTI-INVOICE MODE ═══════ --}}
+                            <form method="POST" action="{{ route('settlements.store') }}" id="settlementFormMulti">
+                                @csrf
+                                <input type="hidden" name="student_id" value="{{ $selectedStudentId }}">
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-t border-gray-200 pt-4">
-                                <div>
-                                    <x-input-label for="payment_date" :value="__('Payment Date')" />
-                                    <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date"
-                                        :value="old('payment_date', date('Y-m-d'))" required />
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-t border-gray-200 pt-4">
+                                    <div>
+                                        <x-input-label for="payment_date" :value="__('Payment Date')" />
+                                        <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date"
+                                            :value="old('payment_date', date('Y-m-d'))" required />
+                                    </div>
+                                    <div>
+                                        <x-input-label for="payment_method" :value="__('Payment Method')" />
+                                        <select id="payment_method" name="payment_method"
+                                            class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full" required>
+                                            <option value="cash" {{ old('payment_method', 'cash') === 'cash' ? 'selected' : '' }}>{{ __('app.payment.cash') }}</option>
+                                            <option value="transfer" {{ old('payment_method') === 'transfer' ? 'selected' : '' }}>{{ __('app.payment.transfer') }}</option>
+                                            <option value="qris" {{ old('payment_method') === 'qris' ? 'selected' : '' }}>{{ __('app.payment.qris') }}</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <x-input-label for="payment_amount" :value="__('Total Payment Amount')" />
+                                        <x-text-input id="payment_amount" class="block mt-1 w-full" type="number" name="payment_amount"
+                                            :value="old('payment_amount')"
+                                            required min="1" step="1" />
+                                        <p class="text-xs text-gray-500 mt-1" id="allocationSummary"></p>
+                                    </div>
+                                    <div>
+                                        <x-input-label for="reference_number" :value="__('Reference Number (Optional)')" />
+                                        <x-text-input id="reference_number" class="block mt-1 w-full" type="text" name="reference_number"
+                                            :value="old('reference_number')" :placeholder="__('app.placeholder.transfer_ref')" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-input-label for="notes" :value="__('Notes (Optional)')" />
+                                        <textarea id="notes" name="notes" rows="2"
+                                            class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">{{ old('notes') }}</textarea>
+                                    </div>
                                 </div>
-                                <div>
-                                    <x-input-label for="payment_method" :value="__('Payment Method')" />
-                                    <select id="payment_method" name="payment_method"
-                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full" required>
-                                        <option value="cash" {{ old('payment_method', 'cash') === 'cash' ? 'selected' : '' }}>{{ __('app.payment.cash') }}</option>
-                                        <option value="transfer" {{ old('payment_method') === 'transfer' ? 'selected' : '' }}>{{ __('app.payment.transfer') }}</option>
-                                        <option value="qris" {{ old('payment_method') === 'qris' ? 'selected' : '' }}>{{ __('app.payment.qris') }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    @php $invoice = $outstandingInvoices->first(); @endphp
-                                    <x-input-label for="amount" :value="__('Payment Amount')" />
-                                    <x-text-input id="amount" class="block mt-1 w-full" type="number" name="amount"
-                                        :value="old('amount', (int) ($invoice->outstanding_amount ?? 0))"
-                                        required min="1" max="{{ (int) ($invoice->outstanding_amount ?? 0) }}" step="1" />
-                                    <p class="text-xs text-gray-500 mt-1">
-                                        {{ __('app.form.min_max', ['max' => formatRupiah((float) ($invoice->outstanding_amount ?? 0))]) }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <x-input-label for="reference_number" :value="__('Reference Number (Optional)')" />
-                                    <x-text-input id="reference_number" class="block mt-1 w-full" type="text" name="reference_number"
-                                        :value="old('reference_number')" :placeholder="__('app.placeholder.transfer_ref')" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-input-label for="notes" :value="__('Notes (Optional)')" />
-                                    <textarea id="notes" name="notes" rows="2"
-                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">{{ old('notes') }}</textarea>
-                                </div>
-                            </div>
 
-                            {{-- Invoice Snapshot --}}
-                            <div class="border-t border-gray-200 pt-4 mb-6">
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Invoice Summary') }}</h3>
-                                <p class="text-sm text-gray-500 mb-4">{{ __('app.form.payment_applied') }}</p>
+                                {{-- Multi-Invoice Allocation Table --}}
+                                <div class="border-t border-gray-200 pt-4 mb-6">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Allocate Payment to Invoices') }}</h3>
+                                    <p class="text-sm text-gray-500 mb-4">{{ __('Enter the amount to allocate to each invoice. Leave 0 to skip.') }}</p>
 
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.code') }}</th>
-                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.period') }}</th>
-                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.due_date') }}</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.total') }}</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.status.paid') }}</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.outstanding') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach($outstandingInvoices as $inv)
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
                                                 <tr>
-                                                    <td class="px-4 py-4 text-sm font-medium text-gray-900">
-                                                        {{ $inv->invoice_number }}
-                                                    </td>
-                                                    <td class="px-4 py-4 text-sm text-gray-500">
-                                                        <span class="text-xs uppercase text-gray-400">{{ $inv->period_type }}</span>
-                                                        {{ $inv->period_identifier }}
-                                                    </td>
-                                                    <td class="px-4 py-4 text-sm text-gray-500">{{ $inv->due_date->format('d/m/Y') }}</td>
-                                                    <td class="px-4 py-4 text-sm text-gray-900 text-right">{{ formatRupiah($inv->total_amount) }}</td>
-                                                    <td class="px-4 py-4 text-sm text-gray-500 text-right">{{ formatRupiah((float) ($inv->settled_amount ?? 0)) }}</td>
-                                                    <td class="px-4 py-4 text-sm font-medium text-red-600 text-right">{{ formatRupiah((float) ($inv->outstanding_amount ?? 0)) }}</td>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.code') }}</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.period') }}</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.due_date') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.total') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.outstanding') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('Allocation') }}</th>
                                                 </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                @foreach($outstandingInvoices as $idx => $inv)
+                                                    <tr>
+                                                        <td class="px-4 py-4 text-sm font-medium text-gray-900">
+                                                            {{ $inv->invoice_number }}
+                                                        </td>
+                                                        <td class="px-4 py-4 text-sm text-gray-500">
+                                                            <span class="text-xs uppercase text-gray-400">{{ $inv->period_type }}</span>
+                                                            {{ $inv->period_identifier }}
+                                                        </td>
+                                                        <td class="px-4 py-4 text-sm text-gray-500">{{ $inv->due_date->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-4 text-sm text-gray-900 text-right">{{ formatRupiah($inv->total_amount) }}</td>
+                                                        <td class="px-4 py-4 text-sm font-medium text-red-600 text-right">{{ formatRupiah((float) ($inv->outstanding_amount ?? 0)) }}</td>
+                                                        <td class="px-4 py-4 text-right">
+                                                            <input type="hidden" name="allocations[{{ $idx }}][invoice_id]" value="{{ $inv->id }}">
+                                                            <input type="number"
+                                                                name="allocations[{{ $idx }}][amount]"
+                                                                class="allocation-input w-32 text-right border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm"
+                                                                value="{{ old("allocations.{$idx}.amount", 0) }}"
+                                                                min="0"
+                                                                max="{{ (int) ($inv->outstanding_amount ?? 0) }}"
+                                                                step="1"
+                                                                data-max="{{ (int) ($inv->outstanding_amount ?? 0) }}">
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                            <tfoot class="bg-gray-50">
+                                                <tr>
+                                                    <td colspan="5" class="px-4 py-3 text-sm font-semibold text-gray-700 text-right">{{ __('Total Allocated') }}:</td>
+                                                    <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right" id="totalAllocated">Rp 0</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="flex justify-end space-x-4">
-                                <a href="{{ route('settlements.index') }}"
-                                    class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
-                                    {{ __('app.button.cancel') }}
-                                </a>
-                                <x-primary-button>{{ __('Create Settlement') }}</x-primary-button>
-                            </div>
-                        </form>
+                                <div class="flex justify-end space-x-4">
+                                    <a href="{{ route('settlements.index') }}"
+                                        class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
+                                        {{ __('app.button.cancel') }}
+                                    </a>
+                                    <x-primary-button>{{ __('Create Settlement') }}</x-primary-button>
+                                </div>
+                            </form>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const inputs = document.querySelectorAll('.allocation-input');
+                                    const totalEl = document.getElementById('totalAllocated');
+                                    const summaryEl = document.getElementById('allocationSummary');
+                                    const paymentInput = document.getElementById('payment_amount');
+
+                                    function recalc() {
+                                        let sum = 0;
+                                        inputs.forEach(function (input) {
+                                            const val = parseInt(input.value) || 0;
+                                            const max = parseInt(input.dataset.max) || 0;
+                                            if (val > max) input.value = max;
+                                            sum += (parseInt(input.value) || 0);
+                                        });
+                                        totalEl.textContent = 'Rp ' + sum.toLocaleString('id-ID');
+                                        const payment = parseInt(paymentInput.value) || 0;
+                                        if (payment > 0 && sum > payment) {
+                                            summaryEl.textContent = 'Total alokasi (Rp ' + sum.toLocaleString('id-ID') + ') melebihi jumlah pembayaran!';
+                                            summaryEl.classList.add('text-red-600');
+                                            summaryEl.classList.remove('text-gray-500');
+                                        } else {
+                                            summaryEl.textContent = '';
+                                            summaryEl.classList.remove('text-red-600');
+                                            summaryEl.classList.add('text-gray-500');
+                                        }
+                                    }
+
+                                    inputs.forEach(function (input) {
+                                        input.addEventListener('input', recalc);
+                                    });
+                                    if (paymentInput) paymentInput.addEventListener('input', recalc);
+                                    recalc();
+                                });
+                            </script>
+                        @else
+                            {{-- ═══════ SINGLE-INVOICE MODE (LEGACY) ═══════ --}}
+                            <form method="POST" action="{{ route('settlements.store') }}" id="settlementForm">
+                                @csrf
+                                <input type="hidden" name="student_id" value="{{ $selectedStudentId }}">
+                                <input type="hidden" name="invoice_id" value="{{ (int) ($selectedInvoiceId ?: ($outstandingInvoices->first()->id ?? 0)) }}">
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-t border-gray-200 pt-4">
+                                    <div>
+                                        <x-input-label for="payment_date" :value="__('Payment Date')" />
+                                        <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date"
+                                            :value="old('payment_date', date('Y-m-d'))" required />
+                                    </div>
+                                    <div>
+                                        <x-input-label for="payment_method" :value="__('Payment Method')" />
+                                        <select id="payment_method" name="payment_method"
+                                            class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full" required>
+                                            <option value="cash" {{ old('payment_method', 'cash') === 'cash' ? 'selected' : '' }}>{{ __('app.payment.cash') }}</option>
+                                            <option value="transfer" {{ old('payment_method') === 'transfer' ? 'selected' : '' }}>{{ __('app.payment.transfer') }}</option>
+                                            <option value="qris" {{ old('payment_method') === 'qris' ? 'selected' : '' }}>{{ __('app.payment.qris') }}</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        @php $invoice = $outstandingInvoices->first(); @endphp
+                                        <x-input-label for="amount" :value="__('Payment Amount')" />
+                                        <x-text-input id="amount" class="block mt-1 w-full" type="number" name="amount"
+                                            :value="old('amount', (int) ($invoice->outstanding_amount ?? 0))"
+                                            required min="1" max="{{ (int) ($invoice->outstanding_amount ?? 0) }}" step="1" />
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            {{ __('app.form.min_max', ['max' => formatRupiah((float) ($invoice->outstanding_amount ?? 0))]) }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <x-input-label for="reference_number" :value="__('Reference Number (Optional)')" />
+                                        <x-text-input id="reference_number" class="block mt-1 w-full" type="text" name="reference_number"
+                                            :value="old('reference_number')" :placeholder="__('app.placeholder.transfer_ref')" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-input-label for="notes" :value="__('Notes (Optional)')" />
+                                        <textarea id="notes" name="notes" rows="2"
+                                            class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">{{ old('notes') }}</textarea>
+                                    </div>
+                                </div>
+
+                                {{-- Invoice Snapshot --}}
+                                <div class="border-t border-gray-200 pt-4 mb-6">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Invoice Summary') }}</h3>
+                                    <p class="text-sm text-gray-500 mb-4">{{ __('app.form.payment_applied') }}</p>
+
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.code') }}</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.period') }}</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('app.label.due_date') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.total') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.status.paid') }}</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('app.label.outstanding') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                @foreach($outstandingInvoices as $inv)
+                                                    <tr>
+                                                        <td class="px-4 py-4 text-sm font-medium text-gray-900">
+                                                            {{ $inv->invoice_number }}
+                                                        </td>
+                                                        <td class="px-4 py-4 text-sm text-gray-500">
+                                                            <span class="text-xs uppercase text-gray-400">{{ $inv->period_type }}</span>
+                                                            {{ $inv->period_identifier }}
+                                                        </td>
+                                                        <td class="px-4 py-4 text-sm text-gray-500">{{ $inv->due_date->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-4 text-sm text-gray-900 text-right">{{ formatRupiah($inv->total_amount) }}</td>
+                                                        <td class="px-4 py-4 text-sm text-gray-500 text-right">{{ formatRupiah((float) ($inv->settled_amount ?? 0)) }}</td>
+                                                        <td class="px-4 py-4 text-sm font-medium text-red-600 text-right">{{ formatRupiah((float) ($inv->outstanding_amount ?? 0)) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end space-x-4">
+                                    <a href="{{ route('settlements.index') }}"
+                                        class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
+                                        {{ __('app.button.cancel') }}
+                                    </a>
+                                    <x-primary-button>{{ __('Create Settlement') }}</x-primary-button>
+                                </div>
+                            </form>
+                        @endif
                     @elseif($selectedStudentId && $outstandingInvoices->isEmpty())
                         <div class="border-t border-gray-200 pt-4">
                             <p class="text-gray-500 text-center py-8">{{ __('app.empty.no_invoices_student') }}</p>

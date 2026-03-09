@@ -20,6 +20,7 @@ return [
     'student_has_unpaid_obligations_use_invoice' => 'This student still has unpaid obligations. Create/use an invoice and process payment through Settlement.',
     'student_required_for_monthly_fee' => 'Transactions containing monthly fee items must select a student to avoid bypassing invoice-settlement flow.',
     'monthly_fee_must_use_invoice' => 'Monthly fee items must be processed through Invoice/Settlement flow, not walk-in transactions.',
+    'student_payment_must_use_settlement' => 'Student payments for tuition/monthly fees must be recorded through the Settlement module.',
     'cancelled_by_admin'           => 'Cancelled by administrator',
 
     // Settlement

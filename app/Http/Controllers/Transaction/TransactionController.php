@@ -185,7 +185,17 @@ class TransactionController extends Controller
                 ->where('is_monthly', true)
                 ->exists();
 
+            // ── Cash separation enforcement ──
+            // Student payments (tuition/monthly fees) MUST go through settlements.
+            // Transactions must not record student tuition or invoice payments directly.
             if ($transactionType === 'income' && $studentId) {
+                // Hard block: monthly/tuition fee types must always use settlement
+                if ($hasMonthlyFee) {
+                    return back()->withInput()->withErrors([
+                        'student_id' => __('message.student_payment_must_use_settlement'),
+                    ]);
+                }
+
                 $openInvoice = Invoice::query()
                     ->where('student_id', $studentId)
                     ->whereIn('status', ['unpaid', 'partially_paid'])
@@ -209,12 +219,6 @@ class TransactionController extends Controller
                 if ($hasUnpaidObligation) {
                     return back()->withInput()->withErrors([
                         'student_id' => __('message.student_has_unpaid_obligations_use_invoice'),
-                    ]);
-                }
-
-                if ($hasMonthlyFee) {
-                    return back()->withInput()->withErrors([
-                        'student_id' => __('message.monthly_fee_must_use_invoice'),
                     ]);
                 }
             }

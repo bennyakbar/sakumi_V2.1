@@ -20,6 +20,7 @@ return [
     'student_has_unpaid_obligations_use_invoice' => 'Siswa masih memiliki kewajiban belum dibayar. Buat/gunakan invoice lalu lakukan pembayaran lewat Settlement.',
     'student_required_for_monthly_fee' => 'Transaksi dengan fee bulanan wajib memilih siswa agar tidak melewati alur invoice-settlement.',
     'monthly_fee_must_use_invoice' => 'Fee bulanan wajib diproses lewat alur Invoice/Settlement, bukan transaksi walk-in.',
+    'student_payment_must_use_settlement' => 'Pembayaran siswa untuk SPP/fee bulanan wajib dicatat melalui modul Settlement.',
     'cancelled_by_admin'           => 'Dibatalkan oleh administrator',
 
     // Pembayaran (Settlement)

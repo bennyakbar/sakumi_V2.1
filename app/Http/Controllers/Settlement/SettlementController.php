@@ -54,6 +54,7 @@ class SettlementController extends Controller
         $students = Student::with('schoolClass')->where('status', 'active')->orderBy('name')->get();
         $selectedStudentId = $request->input('student_id');
         $selectedInvoiceId = $request->input('invoice_id');
+        $multiMode = (bool) $request->input('multi', false);
         $outstandingInvoices = collect();
 
         if ($selectedStudentId) {
@@ -81,24 +82,40 @@ class SettlementController extends Controller
                 ->filter(fn (Invoice $invoice) => $invoice->outstanding_amount > 0)
                 ->values();
 
-            if (!$selectedInvoiceId && $outstandingInvoices->isNotEmpty()) {
-                $selectedInvoiceId = (int) $outstandingInvoices->first()->id;
-            }
+            // In single-invoice mode (legacy), filter to selected invoice
+            if (! $multiMode) {
+                if (!$selectedInvoiceId && $outstandingInvoices->isNotEmpty()) {
+                    $selectedInvoiceId = (int) $outstandingInvoices->first()->id;
+                }
 
-            if ($selectedInvoiceId) {
-                $outstandingInvoices = $outstandingInvoices
-                    ->where('id', (int) $selectedInvoiceId)
-                    ->values();
+                if ($selectedInvoiceId) {
+                    $outstandingInvoices = $outstandingInvoices
+                        ->where('id', (int) $selectedInvoiceId)
+                        ->values();
+                }
             }
         }
 
-        return view('settlements.create', compact('students', 'outstandingInvoices', 'selectedStudentId', 'selectedInvoiceId'));
+        return view('settlements.create', compact('students', 'outstandingInvoices', 'selectedStudentId', 'selectedInvoiceId', 'multiMode'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $unitId = session('current_unit_id');
+        $isMultiMode = $request->has('allocations');
 
+        if ($isMultiMode) {
+            return $this->storeMultiInvoice($request, $unitId);
+        }
+
+        return $this->storeSingleInvoice($request, $unitId);
+    }
+
+    /**
+     * Legacy single-invoice settlement flow (backward compatible).
+     */
+    private function storeSingleInvoice(Request $request, $unitId): RedirectResponse
+    {
         $validated = $request->validate([
             'student_id' => ['required', Rule::exists('students', 'id')->where('unit_id', $unitId)],
             'invoice_id' => ['required', Rule::exists('invoices', 'id')->where('unit_id', $unitId)],
@@ -161,6 +178,73 @@ class SettlementController extends Controller
                 ->with('success', __('message.settlement_created', ['number' => $settlement->settlement_number]));
         } catch (\Throwable $e) {
             Log::error('Failed to create settlement', ['message' => $e->getMessage()]);
+            return back()->withInput()->with('error', __('message.settlement_create_failed', ['error' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Multi-invoice settlement flow.
+     */
+    private function storeMultiInvoice(Request $request, $unitId): RedirectResponse
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', Rule::exists('students', 'id')->where('unit_id', $unitId)],
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|in:cash,transfer,qris',
+            'payment_amount' => 'required|numeric|min:1',
+            'reference_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:1000',
+            'allocations' => 'required|array|min:1',
+            'allocations.*.invoice_id' => ['required', Rule::exists('invoices', 'id')->where('unit_id', $unitId)],
+            'allocations.*.amount' => 'required|numeric|min:0',
+        ]);
+
+        $allocationItems = collect($validated['allocations'])
+            ->filter(fn (array $item) => (float) $item['amount'] > 0);
+
+        if ($allocationItems->isEmpty()) {
+            return back()->withInput()->withErrors([
+                'allocations' => __('message.settlement_min_allocation'),
+            ]);
+        }
+
+        $totalAllocated = $allocationItems->sum('amount');
+        $paymentAmount = (float) $validated['payment_amount'];
+
+        if ($totalAllocated > $paymentAmount) {
+            return back()->withInput()->withErrors([
+                'payment_amount' => __('message.allocation_exceeds_settlement', [
+                    'allocated' => formatRupiah($totalAllocated),
+                    'total' => formatRupiah($paymentAmount),
+                ]),
+            ]);
+        }
+
+        // Build allocations array: [invoice_id => amount]
+        $allocations = [];
+        foreach ($allocationItems as $item) {
+            $invoiceId = (int) $item['invoice_id'];
+            $allocations[$invoiceId] = (float) $item['amount'];
+        }
+
+        try {
+            $settlement = $this->settlementService->createSettlement(
+                data: [
+                    'student_id' => (int) $validated['student_id'],
+                    'payment_date' => $validated['payment_date'],
+                    'payment_method' => $validated['payment_method'],
+                    'total_amount' => $paymentAmount,
+                    'reference_number' => $validated['reference_number'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ],
+                allocations: $allocations,
+                userId: (int) auth()->id(),
+            );
+
+            return redirect()->route('settlements.show', $settlement)
+                ->with('success', __('message.settlement_created', ['number' => $settlement->settlement_number]));
+        } catch (\Throwable $e) {
+            Log::error('Failed to create multi-invoice settlement', ['message' => $e->getMessage()]);
             return back()->withInput()->with('error', __('message.settlement_create_failed', ['error' => $e->getMessage()]));
         }
     }

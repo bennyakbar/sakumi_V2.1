@@ -16,6 +16,12 @@ class Settlement extends Model
 
     protected static function booted(): void
     {
+        static::updating(function (Settlement $settlement) {
+            if (auth()->check() && ! $settlement->isDirty('updated_by')) {
+                $settlement->updated_by = auth()->id();
+            }
+        });
+
         static::deleting(function (Settlement $settlement) {
             throw new \RuntimeException(__('message.hard_delete_not_allowed'));
         });
@@ -39,6 +45,7 @@ class Settlement extends Model
         'voided_at',
         'voided_by',
         'void_reason',
+        'updated_by',
     ];
 
     protected function casts(): array
@@ -80,6 +87,11 @@ class Settlement extends Model
     public function voider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function allocations(): HasMany

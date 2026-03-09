@@ -16,6 +16,12 @@ class Invoice extends Model
 
     protected static function booted(): void
     {
+        static::updating(function (Invoice $invoice) {
+            if (auth()->check() && ! $invoice->isDirty('updated_by')) {
+                $invoice->updated_by = auth()->id();
+            }
+        });
+
         static::deleting(function (Invoice $invoice) {
             throw new \RuntimeException(__('message.hard_delete_not_allowed'));
         });
@@ -36,6 +42,7 @@ class Invoice extends Model
         'status',
         'notes',
         'created_by',
+        'updated_by',
     ];
 
     protected function casts(): array
@@ -76,6 +83,11 @@ class Invoice extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function items(): HasMany
