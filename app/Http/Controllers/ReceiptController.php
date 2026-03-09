@@ -62,6 +62,8 @@ class ReceiptController extends Controller
             return view('receipts.reprint-reason', [
                 'transaction' => $transaction,
                 'receipt' => $receipt,
+                'printRoute' => route('receipts.print', $transaction),
+                'referenceNumber' => $transaction->transaction_number,
             ]);
         }
 

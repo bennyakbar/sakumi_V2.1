@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reprint Reason - {{ $transaction->transaction_number }}</title>
+    <title>Reprint Reason - {{ $referenceNumber ?? 'Unknown' }}</title>
     <style>
         body { margin: 0; font-family: Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; }
         .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -20,9 +20,15 @@
 
 <body>
     <div class="wrap">
-        <form method="GET" action="{{ route('receipts.print', $transaction) }}" class="card">
+        @if(!isset($receipt) || !isset($printRoute))
+        <div class="card">
+            <h1>Transaction Not Found</h1>
+            <p>The transaction you are trying to reprint could not be found.</p>
+        </div>
+        @else
+        <form method="GET" action="{{ $printRoute }}" class="card">
             <h1>Reprint Authorization</h1>
-            <p>Receipt {{ $transaction->transaction_number }} has been printed {{ $receipt->print_count }} time(s). Please provide reprint reason.</p>
+            <p>Receipt {{ $referenceNumber ?? 'Unknown' }} has been printed {{ $receipt->print_count }} time(s). Please provide reprint reason.</p>
 
             <div class="row">
                 <label for="reason_type">Reason</label>
@@ -42,6 +48,7 @@
 
             <button type="submit">Continue to Print</button>
         </form>
+        @endif
     </div>
 
     <script>
@@ -57,4 +64,3 @@
 </body>
 
 </html>
-

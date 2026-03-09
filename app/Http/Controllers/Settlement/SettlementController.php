@@ -298,6 +298,8 @@ class SettlementController extends Controller
                 'transaction' => null,
                 'settlement' => $settlement,
                 'receipt' => $receipt,
+                'printRoute' => route('settlements.print', $settlement),
+                'referenceNumber' => $settlement->settlement_number,
             ]);
         }
 
