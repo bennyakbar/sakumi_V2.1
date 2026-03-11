@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\ExpenseEntry;
 use App\Models\Invoice;
 use App\Models\Settlement;
 use App\Models\Transaction;
@@ -114,6 +115,15 @@ class DashboardController extends Controller
         $chartData = $this->reportService->getChartData(6, $consolidated);
         $unitBreakdown = $metrics['unitBreakdown'];
 
+        $pendingExpenseDrafts = 0;
+        if (auth()->user()->can('expenses.approve')) {
+            $draftsQuery = ExpenseEntry::where('status', 'draft');
+            if ($consolidated) {
+                $draftsQuery->withoutGlobalScope('unit');
+            }
+            $pendingExpenseDrafts = $draftsQuery->count();
+        }
+
         return view('dashboard', compact(
             'todayIncome',
             'monthIncome',
@@ -123,6 +133,7 @@ class DashboardController extends Controller
             'scope',
             'consolidated',
             'unitBreakdown',
+            'pendingExpenseDrafts',
         ));
     }
 

@@ -60,9 +60,37 @@
                 </x-finance.summary>
             </div>
 
+            {{-- Budget Warning --}}
+            @if(session('budget_warning'))
+                @php $bw = session('budget_warning'); @endphp
+                <div class="rounded-lg border border-amber-300 bg-amber-50 p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="h-5 w-5 text-amber-500 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-amber-800">{{ __('Budget Exceeded') }}</h3>
+                            <p class="mt-1 text-sm text-amber-700">
+                                {{ __('Budget for :subcategory will be exceeded by :amount (:pct% of budget).', [
+                                    'subcategory' => $bw['subcategory'],
+                                    'amount' => formatRupiah($bw['exceeds_by']),
+                                    'pct' => $bw['percentage'],
+                                ]) }}
+                            </p>
+                            <div class="mt-2 grid grid-cols-3 gap-3 text-xs text-amber-700">
+                                <div>{{ __('Budget') }}: <span class="font-semibold">{{ formatRupiah($bw['budget']) }}</span></div>
+                                <div>{{ __('Spent') }}: <span class="font-semibold">{{ formatRupiah($bw['spent']) }}</span></div>
+                                <div>{{ __('Remaining') }}: <span class="font-semibold">{{ formatRupiah($bw['remaining']) }}</span></div>
+                            </div>
+                            <p class="mt-2 text-xs text-amber-600">{{ __('Check the box below and resubmit to confirm.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Create Expense Form --}}
             <x-finance.card :title="__('Create Expense Draft')" :subtitle="__('Enter a new expense entry for approval')">
-                <form method="POST" action="{{ route('expenses.store') }}" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     @csrf
                     <div class="md:col-span-2">
                         <label for="fee_type_id" class="block text-xs font-medium text-slate-500 mb-1">{{ __('Expense Fee Type') }}</label>
@@ -114,7 +142,27 @@
                                   class="block w-full rounded-lg border-slate-300 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
                         <x-input-error :messages="$errors->get('description')" class="mt-1" />
                     </div>
+                    <div>
+                        <label for="receipt" class="block text-xs font-medium text-slate-500 mb-1">{{ __('Receipt') }}</label>
+                        <input type="file" id="receipt" name="receipt" accept=".jpg,.jpeg,.png,.pdf"
+                               class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200" />
+                        <x-input-error :messages="$errors->get('receipt')" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="supporting_doc" class="block text-xs font-medium text-slate-500 mb-1">{{ __('Supporting Document') }}</label>
+                        <input type="file" id="supporting_doc" name="supporting_doc" accept=".jpg,.jpeg,.png,.pdf"
+                               class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200" />
+                        <x-input-error :messages="$errors->get('supporting_doc')" class="mt-1" />
+                    </div>
+                    <div></div>
                     <div class="md:col-span-3 flex items-center gap-3">
+                        @if(session('budget_warning'))
+                            <label class="inline-flex items-center gap-2 text-sm text-amber-700">
+                                <input type="checkbox" name="confirm_over_budget" value="1"
+                                       class="rounded border-amber-400 text-amber-600 focus:ring-amber-500" required />
+                                {{ __('I confirm this expense exceeds the budget') }}
+                            </label>
+                        @endif
                         <button type="submit"
                                 class="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-150">
                             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -208,6 +256,28 @@
                                     </span>
                                 </div>
                             @endif
+                            @if($entry->receipt_path || $entry->supporting_doc_path)
+                                <div class="flex items-center gap-2 mt-1">
+                                    @if($entry->receipt_path)
+                                        <a href="{{ Storage::disk('public')->url($entry->receipt_path) }}" target="_blank"
+                                           class="inline-flex items-center gap-x-1 text-xs text-indigo-600 hover:text-indigo-800">
+                                            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                                            </svg>
+                                            {{ __('Receipt') }}
+                                        </a>
+                                    @endif
+                                    @if($entry->supporting_doc_path)
+                                        <a href="{{ Storage::disk('public')->url($entry->supporting_doc_path) }}" target="_blank"
+                                           class="inline-flex items-center gap-x-1 text-xs text-indigo-600 hover:text-indigo-800">
+                                            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                                            </svg>
+                                            {{ __('Doc') }}
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
                         <td class="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">
                             {{ formatRupiah((float) $entry->amount) }}
@@ -240,9 +310,16 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                         </svg>
                                     </a>
-                                @else
-                                    <span class="text-sm text-slate-300">-</span>
                                 @endif
+                                @can('expenses.create')
+                                    <a href="{{ route('expenses.duplicate', $entry) }}"
+                                       class="inline-flex items-center rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors duration-150"
+                                       title="{{ __('Duplicate as new draft') }}">
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                                        </svg>
+                                    </a>
+                                @endcan
                             </div>
                         </td>
                     </tr>

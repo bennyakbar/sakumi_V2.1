@@ -59,6 +59,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subcategory</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planned</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Estimated</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Realized</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Variance</th>
                             </tr>
@@ -69,11 +70,12 @@
                                     <td class="px-4 py-3 text-sm">{{ $row['category'] }}</td>
                                     <td class="px-4 py-3 text-sm">{{ $row['subcategory'] }}</td>
                                     <td class="px-4 py-3 text-sm text-right">{{ formatRupiah($row['planned']) }}</td>
+                                    <td class="px-4 py-3 text-sm text-right text-slate-500">{{ formatRupiah($row['estimated']) }}</td>
                                     <td class="px-4 py-3 text-sm text-right">{{ formatRupiah($row['realized']) }}</td>
                                     <td class="px-4 py-3 text-sm text-right {{ $row['variance'] < 0 ? 'text-red-700' : 'text-green-700' }}">{{ formatRupiah($row['variance']) }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">No budget data for selected period.</td></tr>
+                                <tr><td colspan="6" class="px-4 py-4 text-sm text-gray-500 text-center">No budget data for selected period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

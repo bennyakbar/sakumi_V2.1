@@ -82,6 +82,29 @@
                 </x-finance.summary>
             </div>
 
+            {{-- Pending Expense Drafts --}}
+            @if(($pendingExpenseDrafts ?? 0) > 0)
+                <a href="{{ route('expenses.index', ['status' => 'draft']) }}"
+                   class="block rounded-lg border border-amber-200 bg-amber-50 p-4 hover:bg-amber-100 transition-colors duration-150">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
+                            <svg class="h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-amber-800">
+                                {{ $pendingExpenseDrafts }} {{ trans_choice('expense draft pending approval|expense drafts pending approval', $pendingExpenseDrafts) }}
+                            </p>
+                            <p class="text-xs text-amber-600">{{ __('Click to review and approve') }}</p>
+                        </div>
+                        <svg class="h-5 w-5 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </div>
+                </a>
+            @endif
+
             {{-- Per-Unit Breakdown (consolidated only) --}}
             @if(($consolidated ?? false) && !empty($unitBreakdown))
                 <x-finance.table compact>

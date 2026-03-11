@@ -397,6 +397,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/budgets', [ExpenseController::class, 'storeBudget'])
             ->middleware('can:expenses.budget.manage')
             ->name('budgets.store');
+        Route::get('/{expense}/duplicate', [ExpenseController::class, 'duplicate'])
+            ->middleware('can:expenses.create')
+            ->name('duplicate');
     });
 
     // Admission (PSB)

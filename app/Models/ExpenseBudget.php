@@ -6,10 +6,12 @@ use App\Models\Concerns\BelongsToUnit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ExpenseBudget extends Model
 {
-    use BelongsToUnit, HasFactory;
+    use BelongsToUnit, HasFactory, LogsActivity;
 
     protected $fillable = [
         'unit_id',
@@ -21,6 +23,16 @@ class ExpenseBudget extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'budget_amount', 'expense_fee_subcategory_id',
+                'year', 'month', 'notes',
+            ])
+            ->logOnlyDirty();
+    }
 
     protected function casts(): array
     {

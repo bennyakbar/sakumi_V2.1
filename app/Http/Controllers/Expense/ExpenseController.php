@@ -52,6 +52,8 @@ class ExpenseController extends Controller
             'vendor_name' => ['nullable', 'string', 'max:150'],
             'amount' => ['required', 'numeric', 'gt:0'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+            'supporting_doc' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ]);
 
         $feeType = FeeType::query()->with('expenseFeeSubcategory')->findOrFail((int) $validated['fee_type_id']);
@@ -59,10 +61,29 @@ class ExpenseController extends Controller
             return back()->withInput()->withErrors(['fee_type_id' => 'Selected fee type is not configured as expense fee type.']);
         }
 
-        $this->expenseManagementService->createDraft([
+        $budgetWarning = $this->expenseManagementService->checkBudget(
+            (int) $feeType->expense_fee_subcategory_id,
+            $validated['entry_date'],
+            (float) $validated['amount'],
+        );
+
+        if ($budgetWarning && ! $request->boolean('confirm_over_budget')) {
+            return back()->withInput()->with('budget_warning', $budgetWarning);
+        }
+
+        $data = [
             ...$validated,
             'expense_fee_subcategory_id' => $feeType->expense_fee_subcategory_id,
-        ], (int) auth()->id());
+        ];
+
+        if ($request->hasFile('receipt')) {
+            $data['receipt_path'] = $request->file('receipt')->store('expenses/receipts', 'public');
+        }
+        if ($request->hasFile('supporting_doc')) {
+            $data['supporting_doc_path'] = $request->file('supporting_doc')->store('expenses/supporting-docs', 'public');
+        }
+
+        $this->expenseManagementService->createDraft($data, (int) auth()->id());
 
         return redirect()->route('expenses.index')->with('success', 'Expense draft created.');
     }
@@ -77,6 +98,18 @@ class ExpenseController extends Controller
         }
     }
 
+    public function duplicate(ExpenseEntry $expense): RedirectResponse
+    {
+        return redirect()->route('expenses.index')->withInput([
+            'fee_type_id' => $expense->fee_type_id,
+            'payment_method' => $expense->payment_method,
+            'vendor_name' => $expense->vendor_name,
+            'amount' => $expense->amount,
+            'description' => $expense->description,
+            'entry_date' => now()->toDateString(),
+        ]);
+    }
+
     public function budgetVsRealization(Request $request): View
     {
         $month = (int) $request->input('month', now()->month);
@@ -89,21 +122,29 @@ class ExpenseController extends Controller
             ->get();
 
         $realization = ExpenseEntry::query()
-            ->select('expense_fee_subcategory_id', DB::raw('SUM(amount) as realized_amount'))
+            ->select(
+                'expense_fee_subcategory_id',
+                DB::raw('SUM(amount) as realized_amount'),
+                DB::raw('SUM(estimated_amount) as estimated_total'),
+            )
             ->whereIn('status', ['approved', 'posted'])
-            ->whereMonth('entry_date', $month)
-            ->whereYear('entry_date', $year)
+            ->where('period_year', $year)
+            ->where('period_month', $month)
             ->groupBy('expense_fee_subcategory_id')
-            ->pluck('realized_amount', 'expense_fee_subcategory_id');
+            ->get()
+            ->keyBy('expense_fee_subcategory_id');
 
         $rows = $budgets->map(function (ExpenseBudget $budget) use ($realization) {
-            $realized = (float) ($realization[$budget->expense_fee_subcategory_id] ?? 0);
+            $row = $realization[$budget->expense_fee_subcategory_id] ?? null;
+            $realized = (float) ($row?->realized_amount ?? 0);
+            $estimated = (float) ($row?->estimated_total ?? 0);
             $planned = (float) $budget->budget_amount;
 
             return [
                 'category' => $budget->subcategory?->category?->name ?? '-',
                 'subcategory' => $budget->subcategory?->name ?? '-',
                 'planned' => $planned,
+                'estimated' => $estimated,
                 'realized' => $realized,
                 'variance' => $planned - $realized,
             ];
