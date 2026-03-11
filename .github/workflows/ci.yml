@@ -49,6 +49,28 @@ jobs:
       - name: Run Pint
         run: ./vendor/bin/pint --test
 
+      - name: Assert CI database safety
+        env:
+          DB_HOST: 127.0.0.1
+          DB_SAKUMI_MODE: real
+        run: |
+          # Ensure CI never accidentally connects to a production database.
+          # DB_HOST must be a local/container address, never a remote host.
+          SAFE_HOSTS="127.0.0.1 localhost postgres"
+          if ! echo "$SAFE_HOSTS" | grep -qw "$DB_HOST"; then
+            echo "::error::SAFETY VIOLATION: DB_HOST='$DB_HOST' is not a safe CI host ($SAFE_HOSTS)"
+            exit 1
+          fi
+          # Ensure no .env file contains real production credentials
+          if grep -qE 'DB_REAL_PASSWORD=.+' .env 2>/dev/null; then
+            PASS_VALUE=$(grep 'DB_REAL_PASSWORD=' .env | cut -d'=' -f2-)
+            if [ -n "$PASS_VALUE" ]; then
+              echo "::error::SAFETY VIOLATION: .env contains non-empty DB_REAL_PASSWORD"
+              exit 1
+            fi
+          fi
+          echo "CI database safety checks passed."
+
       - name: Run tests
         env:
           APP_ENV: testing

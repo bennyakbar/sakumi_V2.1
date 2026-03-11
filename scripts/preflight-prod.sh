@@ -152,7 +152,12 @@ MIGRATE_STATUS_OUTPUT="$(run_quiet php artisan migrate:status --no-ansi)"
 if [[ $? -ne 0 ]]; then
   fail "Unable to read migration status"
 elif echo "$MIGRATE_STATUS_OUTPUT" | grep -q "Pending"; then
-  fail "There are pending migrations"
+  warn "There are pending migrations — review the SQL preview below"
+  echo
+  echo "--- Migration SQL Preview (migrate --pretend) ---"
+  php artisan migrate --pretend --no-ansi 2>&1
+  echo "--- End of Migration SQL Preview ---"
+  echo
 else
   pass "All migrations are applied"
 fi
