@@ -1,0 +1,12 @@
+flowchart TD
+    A[Setup Master Data] --> B[Generate Obligations]
+    B --> C[Generate Invoice]
+    C --> D[Distribusi Invoice ke Wali]
+    D --> E{Wali Bayar?}
+    E -->|Ya| F[Settlement - Terima Pembayaran]
+    E -->|Belum| G[Monitoring Tunggakan]
+    G --> D
+    F --> H[Alokasi ke Invoice]
+    H --> I[Update Status Invoice]
+    I --> J[Cetak Kuitansi]
+    J --> K[Laporan Keuangan]

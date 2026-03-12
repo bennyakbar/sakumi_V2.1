@@ -37,43 +37,46 @@ class BankReconciliationService
             return 0;
         }
 
-        $header = fgetcsv($handle) ?: [];
         $count = 0;
 
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) !== count($header)) {
-                continue;
-            }
+        try {
+            $header = fgetcsv($handle) ?: [];
 
-            $item = array_combine($header, $row);
-            if (!$item) {
-                continue;
-            }
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) !== count($header)) {
+                    continue;
+                }
 
-            $amount = (float) ($item['amount'] ?? 0);
-            $type = strtolower((string) ($item['type'] ?? 'debit'));
-            if (!in_array($type, ['debit', 'credit'], true)) {
-                $type = $amount < 0 ? 'credit' : 'debit';
-            }
-            $amount = abs($amount);
+                $item = array_combine($header, $row);
+                if (!$item) {
+                    continue;
+                }
 
-            if ($amount <= 0 || empty($item['date'])) {
-                continue;
-            }
+                $amount = (float) ($item['amount'] ?? 0);
+                $type = strtolower((string) ($item['type'] ?? 'debit'));
+                if (!in_array($type, ['debit', 'credit'], true)) {
+                    $type = $amount < 0 ? 'credit' : 'debit';
+                }
+                $amount = abs($amount);
 
-            BankReconciliationLine::create([
-                'bank_reconciliation_session_id' => $session->id,
-                'line_date' => $item['date'],
-                'description' => $item['description'] ?? null,
-                'reference' => $item['reference'] ?? null,
-                'amount' => $amount,
-                'type' => $type,
-                'match_status' => 'unmatched',
-            ]);
-            $count++;
+                if ($amount <= 0 || empty($item['date'])) {
+                    continue;
+                }
+
+                BankReconciliationLine::create([
+                    'bank_reconciliation_session_id' => $session->id,
+                    'line_date' => $item['date'],
+                    'description' => $item['description'] ?? null,
+                    'reference' => $item['reference'] ?? null,
+                    'amount' => $amount,
+                    'type' => $type,
+                    'match_status' => 'unmatched',
+                ]);
+                $count++;
+            }
+        } finally {
+            fclose($handle);
         }
-
-        fclose($handle);
 
         if ($count > 0 && $session->status === 'draft') {
             $session->update([

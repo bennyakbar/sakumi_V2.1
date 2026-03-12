@@ -59,7 +59,7 @@ class StudentFeeMapping extends Model
             return false;
         }
 
-        if ($this->effective_from->gt($date)) {
+        if ($this->effective_from && $this->effective_from->gt($date)) {
             return false;
         }
 

@@ -54,7 +54,9 @@ class SettlementService
                 throw new \RuntimeException(__('message.allocation_exceeds_settlement', ['allocated' => formatRupiah($totalAllocated), 'total' => formatRupiah($data['total_amount'])]));
             }
 
-            // Validate each allocation
+            // Validate each allocation and keep locked references to prevent
+            // race conditions — never re-fetch unlocked after validation.
+            $lockedInvoices = [];
             foreach ($allocations as $invoiceId => $amount) {
                 if ($amount <= 0) {
                     continue;
@@ -87,6 +89,8 @@ class SettlementService
                 if ($amount > $outstanding) {
                     throw new \RuntimeException(__('message.allocation_exceeds_outstanding', ['number' => $invoice->invoice_number, 'allocated' => formatRupiah($amount), 'outstanding' => formatRupiah($outstanding)]));
                 }
+
+                $lockedInvoices[$invoiceId] = $invoice;
             }
 
             $settlement = Settlement::create([
@@ -102,7 +106,8 @@ class SettlementService
                 'created_by' => $userId,
             ]);
 
-            // Create allocations and update invoice statuses
+            // Create allocations and update invoice statuses using the
+            // already-locked references to avoid race conditions.
             foreach ($allocations as $invoiceId => $amount) {
                 if ($amount <= 0) {
                     continue;
@@ -114,8 +119,8 @@ class SettlementService
                     'amount' => $amount,
                 ]);
 
-                $invoice = Invoice::find($invoiceId);
-                $invoice->recalculateFromAllocations();
+                $lockedInvoices[$invoiceId]->refresh();
+                $lockedInvoices[$invoiceId]->recalculateFromAllocations();
             }
 
             // Also update linked StudentObligations as paid
@@ -242,6 +247,13 @@ class SettlementService
 
         foreach ($allocations as $allocation) {
             $invoice = $allocation->invoice;
+            if (! $invoice) {
+                Log::warning('Settlement allocation references missing invoice', [
+                    'allocation_id' => $allocation->id,
+                    'settlement_id' => $settlement->id,
+                ]);
+                continue;
+            }
             if ($invoice->status === 'paid') {
                 // Mark all obligations on this invoice as paid
                 foreach ($invoice->items as $item) {
@@ -267,6 +279,13 @@ class SettlementService
 
         foreach ($allocations as $allocation) {
             $invoice = $allocation->invoice;
+            if (! $invoice) {
+                Log::warning('Settlement allocation references missing invoice during revert', [
+                    'allocation_id' => $allocation->id,
+                    'settlement_id' => $settlement->id,
+                ]);
+                continue;
+            }
             // If the invoice is no longer paid, revert obligations
             if ($invoice->status !== 'paid') {
                 foreach ($invoice->items as $item) {

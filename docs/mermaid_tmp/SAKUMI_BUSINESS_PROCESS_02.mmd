@@ -1,0 +1,14 @@
+flowchart LR
+    A[ArrearsService] --> B{Student Fee Mapping?}
+    B -->|Ada| C[Gunakan mapping individual]
+    B -->|Tidak ada| D[Gunakan Fee Matrix]
+    C --> E[Buat StudentObligation]
+    D --> E
+    E --> F[Kewajiban per siswa per bulan]
+flowchart LR
+    A[ArrearsService] --> B{Student Fee Mapping?}
+    B -->|Ada| C[Gunakan mapping individual]
+    B -->|Tidak ada| D[Gunakan Fee Matrix]
+    C --> E[Buat StudentObligation]
+    D --> E
+    E --> F[Kewajiban per siswa per bulan]

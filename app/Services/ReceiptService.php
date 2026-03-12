@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ReceiptService
@@ -15,52 +16,76 @@ class ReceiptService
 
     public function generate(Transaction $transaction): string
     {
-        $transaction->load('items.feeType', 'student.schoolClass', 'creator');
-        $verificationCode = $this->verificationService->makeCode($transaction);
-        $school = $this->schoolIdentityService->resolve($transaction->unit_id);
-
-        $data = [
-            'transaction' => $transaction,
-            'footer_text' => getSetting('receipt_footer_text', ''),
-            'show_logo' => getSetting('receipt_show_logo', true),
-            'terbilang' => $this->terbilang($transaction->total_amount),
-            'verification_code' => $verificationCode,
-            'verification_url' => $this->verificationService->makeVerifyUrl($verificationCode),
-            'watermark_text' => $this->verificationService->makeWatermark($verificationCode, 'ORIGINAL'),
-            'cancelled' => false,
-            ...$school,
-        ];
-
-        $pdf = Pdf::loadView('receipts.template', $data);
         $path = "receipts/{$transaction->transaction_number}.pdf";
-        Storage::disk('public')->put($path, $pdf->output());
 
-        $transaction->update(['receipt_path' => $path]);
+        try {
+            $transaction->load('items.feeType', 'student.schoolClass', 'creator');
+            $verificationCode = $this->verificationService->makeCode($transaction);
+            $school = $this->schoolIdentityService->resolve($transaction->unit_id);
+
+            $data = [
+                'transaction' => $transaction,
+                'footer_text' => getSetting('receipt_footer_text', ''),
+                'show_logo' => getSetting('receipt_show_logo', true),
+                'terbilang' => $this->terbilang($transaction->total_amount),
+                'verification_code' => $verificationCode,
+                'verification_url' => $this->verificationService->makeVerifyUrl($verificationCode),
+                'watermark_text' => $this->verificationService->makeWatermark($verificationCode, 'ORIGINAL'),
+                'cancelled' => false,
+                ...$school,
+            ];
+
+            $pdf = Pdf::loadView('receipts.template', $data);
+            Storage::disk('public')->put($path, $pdf->output());
+
+            $transaction->update(['receipt_path' => $path]);
+        } catch (\Throwable $e) {
+            Log::error('Receipt generation failed', [
+                'transaction_id' => $transaction->id,
+                'transaction_number' => $transaction->transaction_number,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Re-throw so callers aware of the failure; callers wrapped in
+            // DB::afterCommit should catch this to avoid crashing the response.
+            throw $e;
+        }
 
         return $path;
     }
 
     public function generateCancelled(Transaction $transaction): string
     {
-        $transaction->load('items.feeType', 'student.schoolClass', 'creator');
-        $verificationCode = $this->verificationService->makeCode($transaction);
-        $school = $this->schoolIdentityService->resolve($transaction->unit_id);
-
-        $data = [
-            'transaction' => $transaction,
-            'footer_text' => getSetting('receipt_footer_text', ''),
-            'show_logo' => getSetting('receipt_show_logo', true),
-            'terbilang' => $this->terbilang($transaction->total_amount),
-            'verification_code' => $verificationCode,
-            'verification_url' => $this->verificationService->makeVerifyUrl($verificationCode),
-            'watermark_text' => $this->verificationService->makeWatermark($verificationCode, 'CANCELLED'),
-            'cancelled' => true,
-            ...$school,
-        ];
-
-        $pdf = Pdf::loadView('receipts.template', $data);
         $path = "receipts/{$transaction->transaction_number}.pdf";
-        Storage::disk('public')->put($path, $pdf->output());
+
+        try {
+            $transaction->load('items.feeType', 'student.schoolClass', 'creator');
+            $verificationCode = $this->verificationService->makeCode($transaction);
+            $school = $this->schoolIdentityService->resolve($transaction->unit_id);
+
+            $data = [
+                'transaction' => $transaction,
+                'footer_text' => getSetting('receipt_footer_text', ''),
+                'show_logo' => getSetting('receipt_show_logo', true),
+                'terbilang' => $this->terbilang($transaction->total_amount),
+                'verification_code' => $verificationCode,
+                'verification_url' => $this->verificationService->makeVerifyUrl($verificationCode),
+                'watermark_text' => $this->verificationService->makeWatermark($verificationCode, 'CANCELLED'),
+                'cancelled' => true,
+                ...$school,
+            ];
+
+            $pdf = Pdf::loadView('receipts.template', $data);
+            Storage::disk('public')->put($path, $pdf->output());
+        } catch (\Throwable $e) {
+            Log::error('Cancelled receipt generation failed', [
+                'transaction_id' => $transaction->id,
+                'transaction_number' => $transaction->transaction_number,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
 
         return $path;
     }

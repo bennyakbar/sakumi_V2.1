@@ -16,7 +16,11 @@ class ReceiptVerificationService
             $issuedAt->format('Y-m-d H:i:s'),
         ]);
 
-        $hmacKey = (string) (config('sakumi.receipt_hmac_key') ?: config('app.key', 'sakumi-default-key'));
+        $hmacKey = (string) (config('sakumi.receipt_hmac_key') ?: config('app.key'));
+        if ($hmacKey === '' && app()->environment('production')) {
+            throw new \RuntimeException('Receipt HMAC key is not configured. Set RECEIPT_HMAC_KEY or APP_KEY in environment.');
+        }
+        $hmacKey = $hmacKey ?: 'sakumi-default-key';
         $raw = hash_hmac('sha256', $payload, $hmacKey);
 
         return strtoupper(substr($raw, 0, 16));

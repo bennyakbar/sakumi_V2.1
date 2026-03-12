@@ -1,0 +1,20 @@
+flowchart TD
+    A[Pilih Siswa] --> B[Tampilkan Invoice Outstanding]
+    B --> C[Pilih Invoice]
+    C --> D[Input Jumlah & Metode Bayar]
+    D --> E{Amount <= Outstanding?}
+    E -->|Ya| F[Buat Settlement + Allocation]
+    E -->|Tidak| G[Error: melebihi sisa]
+    F --> H[Recalculate Invoice]
+    H --> I[Mark Obligations as Paid]
+    I --> J[AccountingEngine: settlement.applied]
+flowchart TD
+    A[Pilih Siswa] --> B[Tampilkan Invoice Outstanding]
+    B --> C[Pilih Invoice]
+    C --> D[Input Jumlah & Metode Bayar]
+    D --> E{Amount <= Outstanding?}
+    E -->|Ya| F[Buat Settlement + Allocation]
+    E -->|Tidak| G[Error: melebihi sisa]
+    F --> H[Recalculate Invoice]
+    H --> I[Mark Obligations as Paid]
+    I --> J[AccountingEngine: settlement.applied]

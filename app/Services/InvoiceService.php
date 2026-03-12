@@ -143,7 +143,7 @@ class InvoiceService
                     'invoice_id' => $invoice->id,
                     'student_obligation_id' => $obligation->id,
                     'fee_type_id' => $obligation->fee_type_id,
-                    'description' => $obligation->feeType->name,
+                    'description' => $obligation->feeType?->name ?? __('message.unknown_fee_type'),
                     'amount' => $obligation->amount,
                     'month' => $obligation->month,
                     'year' => $obligation->year,
@@ -220,7 +220,7 @@ class InvoiceService
                     'invoice_id' => $invoice->id,
                     'student_obligation_id' => $obligation->id,
                     'fee_type_id' => $obligation->fee_type_id,
-                    'description' => $obligation->feeType->name,
+                    'description' => $obligation->feeType?->name ?? __('message.unknown_fee_type'),
                     'amount' => $obligation->amount,
                     'month' => $obligation->month,
                     'year' => $obligation->year,
@@ -266,9 +266,13 @@ class InvoiceService
 
     private function voidWithPayments(Invoice $invoice, int $userId, ?string $reason = null): Invoice
     {
-        // Ensure the acting user has settlement void permission before cascading
+        // Ensure the acting user has settlement void permission before cascading.
+        // Require authenticated user — prevent bypass in CLI/queue context.
         $user = Auth::user();
-        if ($user && !$user->can('settlements.void')) {
+        if (! $user) {
+            throw new \RuntimeException('Authenticated user is required to void settlements from invoice cancellation.');
+        }
+        if (! $user->can('settlements.void')) {
             throw new \RuntimeException(__('message.cancel_paid_invoice_requires_void_permission'));
         }
 

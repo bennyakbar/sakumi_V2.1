@@ -1,0 +1,28 @@
+stateDiagram-v2
+    [*] --> FeeSetup: Awal Tahun Ajaran
+    FeeSetup --> ObligationGenerated: ArrearsService
+    ObligationGenerated --> InvoiceCreated: InvoiceService
+    InvoiceCreated --> PaymentReceived: SettlementService
+    PaymentReceived --> InvoicePartial: Bayar Sebagian
+    PaymentReceived --> InvoicePaid: Lunas
+    InvoicePartial --> PaymentReceived: Bayar Lagi
+    InvoicePaid --> ReceiptPrinted: ReceiptService
+    ReceiptPrinted --> Reported: ReportController
+
+    InvoiceCreated --> InvoiceCancelled: Cancel
+    PaymentReceived --> SettlementVoided: Void
+    SettlementVoided --> InvoiceCreated: Invoice kembali unpaid
+stateDiagram-v2
+    [*] --> FeeSetup: Awal Tahun Ajaran
+    FeeSetup --> ObligationGenerated: ArrearsService
+    ObligationGenerated --> InvoiceCreated: InvoiceService
+    InvoiceCreated --> PaymentReceived: SettlementService
+    PaymentReceived --> InvoicePartial: Bayar Sebagian
+    PaymentReceived --> InvoicePaid: Lunas
+    InvoicePartial --> PaymentReceived: Bayar Lagi
+    InvoicePaid --> ReceiptPrinted: ReceiptService
+    ReceiptPrinted --> Reported: ReportController
+
+    InvoiceCreated --> InvoiceCancelled: Cancel
+    PaymentReceived --> SettlementVoided: Void
+    SettlementVoided --> InvoiceCreated: Invoice kembali unpaid

@@ -187,7 +187,7 @@ class AdmissionService
 
             // 4. Create registration invoice if there are obligations
             if (! empty($obligationIds)) {
-                $academicYear = $applicant->admissionPeriod->academic_year ?? $year;
+                $academicYear = $applicant->admissionPeriod?->academic_year ?? $year;
                 $this->invoiceService->createInvoice(
                     $student->id,
                     $obligationIds,

@@ -9,6 +9,7 @@ use App\Models\StudentObligation;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransactionService
 {
@@ -70,10 +71,27 @@ class TransactionService
             return $transaction;
         });
 
-        // Phase 2: After-commit side effects
+        // Phase 2: After-commit side effects — wrapped in try-catch because
+        // the transaction is already committed; a receipt failure must not
+        // crash the user's response.
         DB::afterCommit(function () use ($transaction) {
-            $this->receiptService->generate($transaction);
-            TransactionCreated::dispatch($transaction);
+            try {
+                $this->receiptService->generate($transaction);
+            } catch (\Throwable $e) {
+                Log::error('Post-commit receipt generation failed', [
+                    'transaction_id' => $transaction->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            try {
+                TransactionCreated::dispatch($transaction);
+            } catch (\Throwable $e) {
+                Log::error('Post-commit event dispatch failed', [
+                    'transaction_id' => $transaction->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
 
         return $transaction->load('items.feeType', 'student');
@@ -165,7 +183,14 @@ class TransactionService
 
                 // Regenerate receipt with cancellation watermark
                 DB::afterCommit(function () use ($transaction) {
-                    $this->receiptService->generateCancelled($transaction);
+                    try {
+                        $this->receiptService->generateCancelled($transaction);
+                    } catch (\Throwable $e) {
+                        Log::error('Post-commit cancelled receipt generation failed', [
+                            'transaction_id' => $transaction->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 });
             }
 

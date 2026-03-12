@@ -36,7 +36,7 @@ class ReportService
                 ->flatMap->items
                 ->groupBy('fee_type_id')
                 ->map(fn ($group) => [
-                    'fee_type' => $group->first()->feeType->name,
+                    'fee_type' => $group->first()->feeType?->name ?? __('message.unknown_fee_type'),
                     'total' => $group->sum('amount'),
                     'count' => $group->count(),
                 ]),

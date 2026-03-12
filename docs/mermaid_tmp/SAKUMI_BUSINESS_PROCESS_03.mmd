@@ -1,0 +1,18 @@
+flowchart TD
+    A[Pilih Periode & Filter] --> B[Generate Obligations]
+    B --> C[Loop setiap siswa aktif]
+    C --> D{Ada kewajiban unpaid?}
+    D -->|Ya| E{Sudah di-invoice?}
+    D -->|Tidak| F[Skip]
+    E -->|Belum| G[Buat Invoice + Items]
+    E -->|Sudah| F
+    G --> H[AccountingEngine: invoice.created]
+flowchart TD
+    A[Pilih Periode & Filter] --> B[Generate Obligations]
+    B --> C[Loop setiap siswa aktif]
+    C --> D{Ada kewajiban unpaid?}
+    D -->|Ya| E{Sudah di-invoice?}
+    D -->|Tidak| F[Skip]
+    E -->|Belum| G[Buat Invoice + Items]
+    E -->|Sudah| F
+    G --> H[AccountingEngine: invoice.created]

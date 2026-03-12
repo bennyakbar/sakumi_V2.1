@@ -95,13 +95,19 @@ class WhatsAppService
         return $notification;
     }
 
-    public function retry(NotificationModel $notification): NotificationModel
+    public function retry(NotificationModel $notification): ?NotificationModel
     {
-        return $this->send(
-            $notification->student,
-            $notification->type,
-            $notification->message
-        );
+        $student = $notification->student;
+        if (! $student) {
+            Log::warning('Cannot retry notification: student no longer exists', [
+                'notification_id' => $notification->id,
+                'student_id' => $notification->student_id,
+            ]);
+
+            return null;
+        }
+
+        return $this->send($student, $notification->type, $notification->message);
     }
 
     public function isValidPhone(string $phone): bool

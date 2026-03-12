@@ -1,0 +1,12 @@
+flowchart TD
+    A[Void Request + Reason] --> B[Update status = void]
+    B --> C[Recalculate affected invoices]
+    C --> D[Revert obligation payments]
+    D --> E[Recalculate allocated_amount]
+    E --> F[AccountingEngine: reversal.posted]
+flowchart TD
+    A[Void Request + Reason] --> B[Update status = void]
+    B --> C[Recalculate affected invoices]
+    C --> D[Revert obligation payments]
+    D --> E[Recalculate allocated_amount]
+    E --> F[AccountingEngine: reversal.posted]

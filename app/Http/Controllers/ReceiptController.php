@@ -133,7 +133,18 @@ class ReceiptController extends Controller
             ->firstOrFail();
 
         $transaction = $receipt->transaction;
-        $isVoided = ! $transaction || $transaction->status === 'cancelled';
+        $settlement = $receipt->settlement ?? null;
+
+        // Determine validity from whichever source is linked
+        $isVoided = false;
+        if ($transaction) {
+            $isVoided = $transaction->status === 'cancelled';
+        } elseif ($settlement) {
+            $isVoided = in_array($settlement->status, ['void', 'cancelled'], true);
+        } else {
+            $isVoided = true; // orphaned receipt — no source
+        }
+
         $status = $isVoided ? 'VOIDED' : 'VALID';
 
         return view('receipts.verify-public', [

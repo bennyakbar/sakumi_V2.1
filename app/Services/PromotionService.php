@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PromotionBatch;
 use App\Models\StudentEnrollment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class PromotionService
@@ -53,6 +54,15 @@ class PromotionService
                     },
                     'promotion_batch_id' => $batch->id,
                 ]);
+
+                if (! $item->student) {
+                    Log::warning('Promotion item references missing student, skipping', [
+                        'item_id' => $item->id,
+                        'student_id' => $item->student_id,
+                        'batch_id' => $batchId,
+                    ]);
+                    continue;
+                }
 
                 if (in_array($item->action, ['promote', 'retain'], true)) {
                     if (! $item->to_class_id) {
