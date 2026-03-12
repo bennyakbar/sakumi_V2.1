@@ -24,3 +24,8 @@ yarn-error.log
 /.vscode
 /.zed
 /_portable_exports
+
+# Environment backups
+storage/env-backups/
+*.bak
+*.backup
