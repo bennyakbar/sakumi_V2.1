@@ -15,7 +15,7 @@ class StoreStudentRequest extends BaseRequest
     {
         return [
             'nis' => ['required', 'string', 'max:20', $this->unitUnique('students', 'nis')],
-            'nisn' => ['nullable', 'string', 'max:20', $this->unitUnique('students', 'nisn')],
+            'nisn' => ['required', 'string', 'max:20', $this->unitUnique('students', 'nisn')],
             'name' => ['required', 'string', 'max:255'],
             'class_id' => ['required', $this->unitExists('classes')],
             'category_id' => ['required', $this->unitExists('student_categories')],

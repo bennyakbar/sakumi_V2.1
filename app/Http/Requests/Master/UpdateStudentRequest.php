@@ -17,7 +17,7 @@ class UpdateStudentRequest extends BaseRequest
 
         return [
             'nis' => ['required', 'string', 'max:20', $this->unitUnique('students', 'nis')->ignore($studentId)],
-            'nisn' => ['nullable', 'string', 'max:20', $this->unitUnique('students', 'nisn')->ignore($studentId)],
+            'nisn' => ['required', 'string', 'max:20', $this->unitUnique('students', 'nisn')->ignore($studentId)],
             'name' => ['required', 'string', 'max:255'],
             'class_id' => ['required', $this->unitExists('classes')],
             'category_id' => ['required', $this->unitExists('student_categories')],

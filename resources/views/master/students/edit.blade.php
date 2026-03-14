@@ -34,7 +34,7 @@
                             <div>
                                 <x-input-label for="nisn" :value="__('NISN')" />
                                 <x-text-input id="nisn" class="block mt-1 w-full" type="text" name="nisn"
-                                    :value="old('nisn', $student->nisn)" />
+                                    :value="old('nisn', $student->nisn)" required />
                                 <x-input-error :messages="$errors->get('nisn')" class="mt-2" />
                             </div>
 

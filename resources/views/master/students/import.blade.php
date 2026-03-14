@@ -41,6 +41,10 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
                                 <span><strong>status</strong> &mdash; Aktif / Nonaktif / Lulus / Pindah / Keluar</span>
                             </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
+                                <span><strong>nisn</strong> &mdash; Nomor Induk Siswa Nasional</span>
+                            </li>
                         </ul>
                     </div>
 
@@ -51,10 +55,6 @@
                             <li class="flex items-center gap-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0"></span>
                                 <span><strong>nis</strong> &mdash; Nomor Induk Siswa</span>
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0"></span>
-                                <span><strong>nisn</strong> &mdash; Nomor Induk Siswa Nasional</span>
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0"></span>

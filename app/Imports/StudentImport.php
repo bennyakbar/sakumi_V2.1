@@ -58,9 +58,9 @@ class StudentImport implements ToCollection, WithHeadingRow
                 'gender' => ['required', 'in:L,P,l,p'],
                 'enrollment_date' => ['required', 'date'],
                 'status' => ['required', 'string'],
+                'nisn' => ['required', 'string', 'max:20'],
                 // === OPTIONAL ===
                 'nis' => ['nullable', 'string', 'max:20'],
-                'nisn' => ['nullable', 'string', 'max:20'],
                 'birth_place' => ['nullable', 'string', 'max:100'],
                 'birth_date' => ['nullable', 'date'],
                 'parent_name' => ['nullable', 'string', 'max:255'],
@@ -75,6 +75,7 @@ class StudentImport implements ToCollection, WithHeadingRow
                 'gender.in' => 'Jenis kelamin harus L atau P.',
                 'enrollment_date.required' => 'Tanggal masuk wajib diisi.',
                 'enrollment_date.date' => 'Format tanggal masuk tidak valid (gunakan YYYY-MM-DD).',
+                'nisn.required' => 'NISN wajib diisi.',
                 'status.required' => 'Status wajib diisi.',
                 'birth_date.date' => 'Format tanggal lahir tidak valid (gunakan YYYY-MM-DD).',
                 'parent_whatsapp.regex' => 'Format WhatsApp tidak valid (contoh: 6281234567890).',
