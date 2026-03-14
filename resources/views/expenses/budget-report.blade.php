@@ -17,6 +17,9 @@
                     </div>
                     <x-primary-button>{{ __('app.button.filter') }}</x-primary-button>
                     <a href="{{ route('expenses.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-xs font-semibold uppercase">Back to Expenses</a>
+                    @can('expenses.report.view')
+                        <a href="{{ route('expenses.budget-report.export', ['month' => $month, 'year' => $year]) }}" class="px-4 py-2 bg-green-600 text-white rounded-md text-xs font-semibold uppercase">Export Excel</a>
+                    @endcan
                 </form>
             </div>
 

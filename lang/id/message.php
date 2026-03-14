@@ -67,6 +67,18 @@ return [
     'fee_type_permanently_deleted' => 'Jenis biaya berhasil dihapus permanen.',
     'fee_matrix_permanently_deleted' => 'Matriks biaya berhasil dihapus permanen.',
 
+    // Pengeluaran
+    'expense_draft_created'        => 'Draft pengeluaran berhasil dibuat.',
+    'expense_approved'             => 'Pengeluaran berhasil disetujui dan diposting.',
+    'expense_cancelled'            => 'Draft pengeluaran dibatalkan.',
+    'expense_voided'               => 'Pengeluaran di-reverse dan transaksi di-void.',
+    'expense_attachment_uploaded'   => 'Lampiran berhasil diunggah.',
+    'expense_attachment_deleted'    => 'Lampiran dihapus.',
+    'expense_cancel_reason_required' => 'Alasan diperlukan untuk membatalkan pengeluaran yang sudah diposting.',
+    'expense_maker_checker_violation' => 'Anda tidak dapat menyetujui pengeluaran yang Anda buat sendiri. Pengguna lain harus menyetujuinya.',
+    'expense_budget_exceeded'      => 'Peringatan: Pengeluaran ini melebihi sisa anggaran. Sisa: Rp :remaining, kelebihan: Rp :over.',
+    'expense_locked'               => 'Pengeluaran ini terkunci dan tidak dapat diubah. Gunakan reversal untuk mengoreksi entri yang sudah diposting.',
+
     // Master: Jenis Biaya
     'fee_type_created'             => 'Jenis Biaya berhasil dibuat.',
     'fee_type_updated'             => 'Jenis Biaya berhasil diperbarui.',

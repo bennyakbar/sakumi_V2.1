@@ -67,6 +67,18 @@ return [
     'fee_type_permanently_deleted' => 'Fee type permanently deleted.',
     'fee_matrix_permanently_deleted' => 'Fee matrix permanently deleted.',
 
+    // Expense
+    'expense_draft_created'        => 'Expense draft created successfully.',
+    'expense_approved'             => 'Expense approved and posted successfully.',
+    'expense_cancelled'            => 'Expense draft cancelled.',
+    'expense_voided'               => 'Expense entry reversed and transaction voided.',
+    'expense_attachment_uploaded'   => 'Attachment uploaded successfully.',
+    'expense_attachment_deleted'    => 'Attachment deleted.',
+    'expense_cancel_reason_required' => 'Reason is required to void a posted expense.',
+    'expense_maker_checker_violation' => 'You cannot approve an expense that you created. A different user must approve it.',
+    'expense_budget_exceeded'      => 'Warning: This expense exceeds the remaining budget. Remaining: Rp :remaining, over by: Rp :over.',
+    'expense_locked'               => 'This expense is locked and cannot be modified. Use reversal to correct posted entries.',
+
     // Master: Fee Type
     'fee_type_created'             => 'Fee Type created successfully.',
     'fee_type_updated'             => 'Fee Type updated successfully.',

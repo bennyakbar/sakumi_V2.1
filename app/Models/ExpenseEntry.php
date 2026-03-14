@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToUnit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExpenseEntry extends Model
 {
@@ -20,6 +21,7 @@ class ExpenseEntry extends Model
         'vendor_name',
         'amount',
         'description',
+        'internal_notes',
         'status',
         'posted_transaction_id',
         'approved_by',
@@ -55,5 +57,25 @@ class ExpenseEntry extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ExpenseAttachment::class);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(ExpenseAuditLog::class);
+    }
+
+    public function isLocked(): bool
+    {
+        return in_array($this->status, ['posted', 'reversed', 'cancelled']);
     }
 }

@@ -371,15 +371,39 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ExpenseController::class, 'index'])
             ->middleware('can:expenses.view')
             ->name('index');
-        Route::post('/', [ExpenseController::class, 'store'])
-            ->middleware('can:expenses.create')
-            ->name('store');
-        Route::post('/{expense}/approve', [ExpenseController::class, 'approve'])
-            ->middleware('can:expenses.approve')
-            ->name('approve');
+        Route::get('/export', [ExpenseController::class, 'export'])
+            ->middleware('can:expenses.report.view')
+            ->name('export');
         Route::get('/budget-report', [ExpenseController::class, 'budgetVsRealization'])
             ->middleware('can:expenses.report.view')
             ->name('budget-report');
+        Route::get('/budget-report/export', [ExpenseController::class, 'exportBudgetReport'])
+            ->middleware('can:expenses.report.view')
+            ->name('budget-report.export');
+        Route::post('/', [ExpenseController::class, 'store'])
+            ->middleware('can:expenses.create')
+            ->name('store');
+        Route::get('/{expense}', [ExpenseController::class, 'show'])
+            ->middleware('can:expenses.view')
+            ->name('show');
+        Route::post('/{expense}/approve', [ExpenseController::class, 'approve'])
+            ->middleware('can:expenses.approve')
+            ->name('approve');
+        Route::post('/{expense}/cancel', [ExpenseController::class, 'cancel'])
+            ->middleware('can:expenses.approve')
+            ->name('cancel');
+        Route::post('/{expense}/cancel-posted', [ExpenseController::class, 'cancelPosted'])
+            ->middleware('can:expenses.approve')
+            ->name('cancel-posted');
+        Route::post('/{expense}/attachments', [ExpenseController::class, 'uploadAttachment'])
+            ->middleware('can:expenses.create')
+            ->name('attachments.store');
+        Route::delete('/attachments/{attachment}', [ExpenseController::class, 'deleteAttachment'])
+            ->middleware('can:expenses.create')
+            ->name('attachments.destroy');
+        Route::get('/attachments/{attachment}/download', [ExpenseController::class, 'downloadAttachment'])
+            ->middleware('can:expenses.view')
+            ->name('attachments.download');
         Route::post('/budgets', [ExpenseController::class, 'storeBudget'])
             ->middleware('can:expenses.budget.manage')
             ->name('budgets.store');
