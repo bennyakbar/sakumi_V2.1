@@ -17,6 +17,7 @@ class InvoiceService
     public function __construct(
         private readonly ArrearsService $arrearsService,
         private readonly SettlementService $settlementService,
+        private readonly FinancialEventLogger $financialEventLogger,
     ) {
     }
 
@@ -163,6 +164,14 @@ class InvoiceService
                 'idempotency_key' => 'invoice.created:'.$invoice->id,
             ]);
 
+            $this->financialEventLogger->record($invoice, 'invoice_created', [
+                'invoice_number' => $number,
+                'student_id' => $student->id,
+                'total_amount' => (float) $totalAmount,
+                'obligation_count' => $obligations->count(),
+                'source' => 'batch_generate',
+            ], $userId);
+
             $result['created']++;
         });
     }
@@ -203,6 +212,9 @@ class InvoiceService
             $academicYearId = $obligations->pluck('academic_year_id')->filter()->unique();
             $enrollmentId = $obligations->pluck('student_enrollment_id')->filter()->unique();
 
+            $requiresApproval = (bool) getSetting('maker_checker.invoices_enabled', false);
+            $initialStatus = $requiresApproval ? 'pending_approval' : 'unpaid';
+
             $invoice = Invoice::create([
                 'invoice_number' => $number,
                 'student_id' => $studentId,
@@ -214,7 +226,7 @@ class InvoiceService
                 'due_date' => $data['due_date'],
                 'total_amount' => $totalAmount,
                 'paid_amount' => 0,
-                'status' => 'unpaid',
+                'status' => $initialStatus,
                 'notes' => $data['notes'] ?? null,
                 'created_by' => $userId,
             ]);
@@ -231,6 +243,52 @@ class InvoiceService
                 ]);
             }
 
+            // Only post accounting event if not pending approval
+            if (!$requiresApproval) {
+                AccountingEngine::fromEvent('invoice.created', [
+                    'unit_id' => $invoice->unit_id,
+                    'source_type' => 'invoice',
+                    'source_id' => $invoice->id,
+                    'total_amount' => (float) $invoice->total_amount,
+                    'effective_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'idempotency_key' => 'invoice.created:'.$invoice->id,
+                ]);
+            }
+
+            $this->financialEventLogger->record($invoice, 'invoice_created', [
+                'invoice_number' => $number,
+                'student_id' => $studentId,
+                'total_amount' => (float) $totalAmount,
+                'obligation_count' => $obligations->count(),
+                'source' => 'manual',
+                'requires_approval' => $requiresApproval,
+            ], $userId);
+
+            return $invoice->load('items.feeType', 'student');
+        });
+    }
+
+    /**
+     * Approve a pending invoice (maker-checker).
+     */
+    public function approveInvoice(Invoice $invoice, int $userId): Invoice
+    {
+        if ($invoice->status !== 'pending_approval') {
+            throw new \RuntimeException(__('message.invoice_not_pending'));
+        }
+
+        if ($invoice->created_by === $userId) {
+            throw new \RuntimeException(__('message.invoice_maker_checker_violation'));
+        }
+
+        return DB::transaction(function () use ($invoice, $userId) {
+            $invoice->update([
+                'status' => 'unpaid',
+                'approved_by' => $userId,
+                'approved_at' => now(),
+            ]);
+
             AccountingEngine::fromEvent('invoice.created', [
                 'unit_id' => $invoice->unit_id,
                 'source_type' => 'invoice',
@@ -241,7 +299,12 @@ class InvoiceService
                 'idempotency_key' => 'invoice.created:'.$invoice->id,
             ]);
 
-            return $invoice->load('items.feeType', 'student');
+            $this->financialEventLogger->record($invoice, 'invoice_approved', [
+                'invoice_number' => $invoice->invoice_number,
+                'approved_by' => $userId,
+            ], $userId);
+
+            return $invoice->fresh();
         });
     }
 
@@ -264,6 +327,10 @@ class InvoiceService
         }
 
         $invoice->update(['status' => 'cancelled']);
+
+        $this->financialEventLogger->record($invoice, 'invoice_cancelled', [
+            'invoice_number' => $invoice->invoice_number,
+        ]);
 
         return $invoice->fresh();
     }
@@ -303,6 +370,12 @@ class InvoiceService
                 'status' => 'cancelled',
                 'notes' => trim((string) ($invoice->notes ? $invoice->notes . "\n" : '') . 'VOID: ' . $reason),
             ]);
+
+            $this->financialEventLogger->record($invoice, 'invoice_voided', [
+                'invoice_number' => $invoice->invoice_number,
+                'reason' => $reason,
+                'voided_settlements' => $settlements->pluck('settlement_number')->all(),
+            ], $userId);
 
             return $invoice->fresh();
         });

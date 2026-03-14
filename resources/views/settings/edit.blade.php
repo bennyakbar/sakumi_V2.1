@@ -53,6 +53,36 @@
                             <x-input-error class="mt-2" :messages="$errors->get('dangerous_permanent_delete_enabled')" />
                         </div>
 
+                        {{-- Maker-Checker Settings --}}
+                        <div class="rounded-md border border-blue-200 bg-blue-50 p-4 space-y-3">
+                            <p class="text-sm font-semibold text-blue-900">Maker-Checker (Persetujuan Ganda)</p>
+                            <p class="text-xs text-blue-700">Saat aktif, invoice/settlement baru memerlukan persetujuan dari pengguna lain sebelum efektif. Pembuat tidak bisa menyetujui dokumennya sendiri.</p>
+
+                            <label for="maker_checker_invoices_enabled" class="flex items-center gap-3">
+                                <input
+                                    id="maker_checker_invoices_enabled"
+                                    name="maker_checker_invoices_enabled"
+                                    type="checkbox"
+                                    value="1"
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    @checked(old('maker_checker_invoices_enabled', $makerCheckerInvoicesEnabled))
+                                />
+                                <span class="text-sm text-blue-900">Aktifkan maker-checker untuk Invoice</span>
+                            </label>
+
+                            <label for="maker_checker_settlements_enabled" class="flex items-center gap-3">
+                                <input
+                                    id="maker_checker_settlements_enabled"
+                                    name="maker_checker_settlements_enabled"
+                                    type="checkbox"
+                                    value="1"
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    @checked(old('maker_checker_settlements_enabled', $makerCheckerSettlementsEnabled))
+                                />
+                                <span class="text-sm text-blue-900">Aktifkan maker-checker untuk Settlement</span>
+                            </label>
+                        </div>
+
                         <div class="flex justify-end">
                             <x-primary-button>{{ __('app.button.save') }}</x-primary-button>
                         </div>

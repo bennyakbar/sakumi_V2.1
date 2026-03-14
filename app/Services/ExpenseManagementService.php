@@ -12,6 +12,7 @@ class ExpenseManagementService
 {
     public function __construct(
         private readonly TransactionService $transactionService,
+        private readonly FinancialEventLogger $financialEventLogger,
     ) {
     }
 
@@ -80,7 +81,7 @@ class ExpenseManagementService
         });
     }
 
-    public function approveAndPost(ExpenseEntry $entry, int $userId): ExpenseEntry
+    public function approveAndPost(ExpenseEntry $entry, int $userId, bool $budgetOverride = false, ?string $overrideReason = null): ExpenseEntry
     {
         if ($entry->status !== 'draft') {
             throw new \RuntimeException('Only draft entry can be approved.');
@@ -91,10 +92,26 @@ class ExpenseManagementService
             throw new \RuntimeException(__('message.expense_maker_checker_violation'));
         }
 
-        // Budget validation
+        // Budget validation with override gate
         $budgetWarning = $this->checkBudget($entry);
 
-        return DB::transaction(function () use ($entry, $userId, $budgetWarning) {
+        if ($budgetWarning && !$budgetOverride) {
+            throw new \App\Exceptions\BudgetExceededException($budgetWarning);
+        }
+
+        if ($budgetWarning && $budgetOverride) {
+            // Verify override permission
+            $user = \App\Models\User::find($userId);
+            if (!$user || !$user->can('expenses.budget-override')) {
+                throw new \RuntimeException(__('message.expense_budget_override_not_authorized'));
+            }
+
+            if (empty($overrideReason)) {
+                throw new \RuntimeException(__('message.expense_budget_override_reason_required'));
+            }
+        }
+
+        return DB::transaction(function () use ($entry, $userId, $budgetWarning, $budgetOverride, $overrideReason) {
             $feeType = FeeType::query()->findOrFail($entry->fee_type_id);
 
             $transaction = $this->transactionService->createExpense(
@@ -123,7 +140,15 @@ class ExpenseManagementService
                 'transaction_id' => $transaction->id,
                 'transaction_number' => $transaction->transaction_number,
                 'budget_warning' => $budgetWarning,
+                'budget_override' => $budgetOverride,
             ]);
+
+            if ($budgetOverride && $budgetWarning) {
+                $this->log($entry, $userId, 'budget_override', [
+                    'reason' => $overrideReason,
+                    'warning' => $budgetWarning,
+                ]);
+            }
 
             $this->log($entry, $userId, 'expense_posted', [
                 'transaction_id' => $transaction->id,
@@ -190,11 +215,15 @@ class ExpenseManagementService
 
     private function log(ExpenseEntry $entry, int $userId, string $eventType, array $metadata = []): void
     {
+        // Existing expense-specific audit log (preserved for backward compatibility)
         ExpenseAuditLog::create([
             'expense_entry_id' => $entry->id,
             'user_id' => $userId,
             'event_type' => $eventType,
             'metadata' => $metadata ?: null,
         ]);
+
+        // Unified financial event log
+        $this->financialEventLogger->record($entry, $eventType, $metadata, $userId);
     }
 }

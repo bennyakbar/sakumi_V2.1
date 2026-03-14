@@ -26,6 +26,9 @@ return [
     'settlement_created'           => 'Settlement created: :number',
     'settlement_create_failed'     => 'Failed to create settlement: :error',
     'settlement_cancelled'         => 'Settlement cancelled successfully.',
+    'settlement_approved'          => 'Settlement approved successfully.',
+    'settlement_not_pending'       => 'Only pending settlements can be approved.',
+    'settlement_maker_checker_violation' => 'You cannot approve a settlement that you created. A different user must approve it.',
     'settlement_already_cancelled' => 'Settlement is already cancelled.',
     'settlement_min_allocation'    => 'Settlement must have at least one allocation with amount > 0',
     'allocation_exceeds_settlement' => 'Total allocation (Rp :allocated) exceeds settlement amount (Rp :total).',
@@ -42,6 +45,9 @@ return [
     'invoice_created'              => 'Invoice created: :number',
     'invoice_create_failed'        => 'Failed to create invoice: :error',
     'invoice_cancelled'            => 'Invoice cancelled successfully.',
+    'invoice_approved'             => 'Invoice approved successfully.',
+    'invoice_not_pending'          => 'Only pending invoices can be approved.',
+    'invoice_maker_checker_violation' => 'You cannot approve an invoice that you created. A different user must approve it.',
     'invoice_generation_complete'  => 'Invoice generation complete: :created created, :skipped skipped.',
     'invoice_generation_errors'    => 'Errors: :count',
     'invoice_generation_failed'    => 'Generation failed: :error',
@@ -78,6 +84,8 @@ return [
     'expense_maker_checker_violation' => 'You cannot approve an expense that you created. A different user must approve it.',
     'expense_budget_exceeded'      => 'Warning: This expense exceeds the remaining budget. Remaining: Rp :remaining, over by: Rp :over.',
     'expense_locked'               => 'This expense is locked and cannot be modified. Use reversal to correct posted entries.',
+    'expense_budget_override_not_authorized' => 'You do not have permission to override budget limits. Contact a supervisor.',
+    'expense_budget_override_reason_required' => 'A reason is required when overriding the budget limit.',
 
     // Master: Fee Type
     'fee_type_created'             => 'Fee Type created successfully.',

@@ -39,6 +39,8 @@ class Settlement extends Model
         'voided_at',
         'voided_by',
         'void_reason',
+        'approved_by',
+        'approved_at',
     ];
 
     protected function casts(): array
@@ -49,6 +51,7 @@ class Settlement extends Model
             'allocated_amount' => 'decimal:2',
             'cancelled_at' => 'datetime',
             'voided_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -70,6 +73,11 @@ class Settlement extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function canceller(): BelongsTo

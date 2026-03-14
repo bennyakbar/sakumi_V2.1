@@ -155,11 +155,22 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.index')->with('success', __('message.expense_draft_created'));
     }
 
-    public function approve(ExpenseEntry $expense): RedirectResponse
+    public function approve(Request $request, ExpenseEntry $expense): RedirectResponse
     {
         try {
-            $this->expenseManagementService->approveAndPost($expense, (int) auth()->id());
+            $budgetOverride = (bool) $request->input('budget_override', false);
+            $overrideReason = $request->input('override_reason');
+
+            $this->expenseManagementService->approveAndPost(
+                $expense,
+                (int) auth()->id(),
+                $budgetOverride,
+                $overrideReason,
+            );
+
             return redirect()->route('expenses.index')->with('success', __('message.expense_approved'));
+        } catch (\App\Exceptions\BudgetExceededException $e) {
+            return back()->with('budget_exceeded', $e->getMessage());
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }

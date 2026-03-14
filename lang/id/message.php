@@ -26,6 +26,9 @@ return [
     'settlement_created'           => 'Pembayaran berhasil dibuat: :number',
     'settlement_create_failed'     => 'Gagal membuat pembayaran: :error',
     'settlement_cancelled'         => 'Pembayaran berhasil dibatalkan.',
+    'settlement_approved'          => 'Pembayaran berhasil disetujui.',
+    'settlement_not_pending'       => 'Hanya pembayaran yang menunggu persetujuan yang dapat disetujui.',
+    'settlement_maker_checker_violation' => 'Anda tidak dapat menyetujui pembayaran yang Anda buat sendiri. Pengguna lain harus menyetujuinya.',
     'settlement_already_cancelled' => 'Pembayaran sudah dibatalkan.',
     'settlement_min_allocation'    => 'Pembayaran harus memiliki setidaknya satu alokasi dengan jumlah > 0',
     'allocation_exceeds_settlement' => 'Total alokasi (Rp :allocated) melebihi jumlah pembayaran (Rp :total).',
@@ -42,6 +45,9 @@ return [
     'invoice_created'              => 'Tagihan berhasil dibuat: :number',
     'invoice_create_failed'        => 'Gagal membuat tagihan: :error',
     'invoice_cancelled'            => 'Tagihan berhasil dibatalkan.',
+    'invoice_approved'             => 'Tagihan berhasil disetujui.',
+    'invoice_not_pending'          => 'Hanya tagihan yang menunggu persetujuan yang dapat disetujui.',
+    'invoice_maker_checker_violation' => 'Anda tidak dapat menyetujui tagihan yang Anda buat sendiri. Pengguna lain harus menyetujuinya.',
     'invoice_generation_complete'  => 'Generasi tagihan selesai: :created dibuat, :skipped dilewati.',
     'invoice_generation_errors'    => 'Error: :count',
     'invoice_generation_failed'    => 'Generasi gagal: :error',
@@ -78,6 +84,8 @@ return [
     'expense_maker_checker_violation' => 'Anda tidak dapat menyetujui pengeluaran yang Anda buat sendiri. Pengguna lain harus menyetujuinya.',
     'expense_budget_exceeded'      => 'Peringatan: Pengeluaran ini melebihi sisa anggaran. Sisa: Rp :remaining, kelebihan: Rp :over.',
     'expense_locked'               => 'Pengeluaran ini terkunci dan tidak dapat diubah. Gunakan reversal untuk mengoreksi entri yang sudah diposting.',
+    'expense_budget_override_not_authorized' => 'Anda tidak memiliki izin untuk melampaui batas anggaran. Hubungi supervisor.',
+    'expense_budget_override_reason_required' => 'Alasan wajib diisi saat melampaui batas anggaran.',
 
     // Master: Jenis Biaya
     'fee_type_created'             => 'Jenis Biaya berhasil dibuat.',

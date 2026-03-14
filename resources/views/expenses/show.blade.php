@@ -92,10 +92,31 @@
                     <a href="{{ route('expenses.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-xs font-semibold uppercase">Back</a>
 
                     @if($expense->status === 'draft' && auth()->user()->can('expenses.approve'))
-                        <form method="POST" action="{{ route('expenses.approve', $expense) }}" onsubmit="return confirm('Approve and post this expense?');">
-                            @csrf
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md text-xs font-semibold uppercase">Approve & Post</button>
-                        </form>
+                        @if(session('budget_exceeded'))
+                            {{-- Budget exceeded: show override form if authorized --}}
+                            <div class="w-full mt-2 p-4 bg-amber-50 border border-amber-300 rounded-md">
+                                <p class="text-sm text-amber-800 font-medium mb-2">{{ session('budget_exceeded') }}</p>
+                                @can('expenses.budget-override')
+                                    <form method="POST" action="{{ route('expenses.approve', $expense) }}" onsubmit="return confirm('Approve with budget override?');" class="space-y-2">
+                                        @csrf
+                                        <input type="hidden" name="budget_override" value="1" />
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Override Reason (required)</label>
+                                            <input type="text" name="override_reason" required placeholder="Reason for exceeding budget..."
+                                                class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm" />
+                                        </div>
+                                        <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-md text-xs font-semibold uppercase">Approve with Override</button>
+                                    </form>
+                                @else
+                                    <p class="text-xs text-red-600">{{ __('message.expense_budget_override_not_authorized') }}</p>
+                                @endcan
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('expenses.approve', $expense) }}" onsubmit="return confirm('Approve and post this expense?');">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md text-xs font-semibold uppercase">Approve & Post</button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('expenses.cancel', $expense) }}" onsubmit="return confirm('Cancel this draft?');">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md text-xs font-semibold uppercase">Cancel Draft</button>
@@ -228,6 +249,7 @@
                                         'expense_approved', 'expense_posted' => 'bg-green-500',
                                         'expense_cancelled' => 'bg-red-500',
                                         'expense_reversed' => 'bg-orange-500',
+                                        'budget_override' => 'bg-amber-500',
                                         'attachment_uploaded' => 'bg-indigo-500',
                                         'attachment_deleted' => 'bg-gray-500',
                                         default => 'bg-gray-400',

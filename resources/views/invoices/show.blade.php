@@ -19,7 +19,9 @@
                             </p>
                         </div>
                         <div class="text-right">
-                            @if($invoice->status === 'unpaid')
+                            @if($invoice->status === 'pending_approval')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">{{ __('Pending Approval') }}</span>
+                            @elseif($invoice->status === 'unpaid')
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ __('app.status.unpaid') }}</span>
                             @elseif($invoice->status === 'partially_paid')
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{{ __('app.status.partial') }}</span>
@@ -149,6 +151,17 @@
                             class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
                             {{ __('app.button.back') }}
                         </a>
+                        @can('invoices.approve')
+                            @if($invoice->status === 'pending_approval')
+                                <form method="POST" action="{{ route('invoices.approve', $invoice) }}" onsubmit="return confirm('{{ __('Approve this invoice?') }}')">
+                                    @csrf
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                                        {{ __('Approve Invoice') }}
+                                    </button>
+                                </form>
+                            @endif
+                        @endcan
                         @can('invoices.print')
                             <a href="{{ route('invoices.print', $invoice) }}" target="_blank"
                                 class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">

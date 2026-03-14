@@ -290,6 +290,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{invoice}/print', [\App\Http\Controllers\Invoice\InvoiceController::class, 'print'])
             ->middleware('can:invoices.print')
             ->name('print');
+        Route::post('/{invoice}/approve', [\App\Http\Controllers\Invoice\InvoiceController::class, 'approve'])
+            ->middleware('can:invoices.approve')
+            ->name('approve');
         Route::delete('/{invoice}', [\App\Http\Controllers\Invoice\InvoiceController::class, 'destroy'])
             ->middleware('can:invoices.cancel')
             ->name('destroy');
@@ -312,6 +315,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{settlement}/print', [\App\Http\Controllers\Settlement\SettlementController::class, 'print'])
             ->middleware('can:settlements.view')
             ->name('print');
+        Route::post('/{settlement}/approve', [\App\Http\Controllers\Settlement\SettlementController::class, 'approve'])
+            ->middleware('can:settlements.approve')
+            ->name('approve');
         Route::post('/{settlement}/void', [\App\Http\Controllers\Settlement\SettlementController::class, 'void'])
             ->middleware('can:settlements.void')
             ->name('void');

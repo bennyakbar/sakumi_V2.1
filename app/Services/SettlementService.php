@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class SettlementService
 {
+    public function __construct(
+        private readonly FinancialEventLogger $financialEventLogger,
+    ) {
+    }
+
     public function generateSettlementNumber(): string
     {
         $year = now()->year;
@@ -89,6 +94,9 @@ class SettlementService
                 }
             }
 
+            $requiresApproval = (bool) getSetting('maker_checker.settlements_enabled', false);
+            $initialStatus = $requiresApproval ? 'pending_approval' : 'completed';
+
             $settlement = Settlement::create([
                 'settlement_number' => $number,
                 'student_id' => $data['student_id'],
@@ -98,11 +106,11 @@ class SettlementService
                 'allocated_amount' => $totalAllocated,
                 'reference_number' => $data['reference_number'] ?? null,
                 'notes' => $data['notes'] ?? null,
-                'status' => 'completed',
+                'status' => $initialStatus,
                 'created_by' => $userId,
             ]);
 
-            // Create allocations and update invoice statuses
+            // Create allocations
             foreach ($allocations as $invoiceId => $amount) {
                 if ($amount <= 0) {
                     continue;
@@ -114,12 +122,81 @@ class SettlementService
                     'amount' => $amount,
                 ]);
 
-                $invoice = Invoice::find($invoiceId);
-                $invoice->recalculateFromAllocations();
+                // Only update invoice status if settlement is completed (not pending)
+                if (!$requiresApproval) {
+                    $invoice = Invoice::find($invoiceId);
+                    $invoice->recalculateFromAllocations();
+                }
             }
 
-            // Also update linked StudentObligations as paid
+            // Only mark obligations if settlement is completed
+            if (!$requiresApproval) {
+                $this->markObligationsFromAllocations($settlement);
+
+                AccountingEngine::fromEvent('settlement.applied', [
+                    'unit_id' => $settlement->unit_id,
+                    'source_type' => 'settlement',
+                    'source_id' => $settlement->id,
+                    'total_amount' => (float) $settlement->allocated_amount,
+                    'effective_date' => $settlement->payment_date?->toDateString() ?? now()->toDateString(),
+                    'created_by' => $userId,
+                    'allocations' => collect($allocations)
+                        ->map(fn ($amount, $invoiceId) => ['invoice_id' => (int) $invoiceId, 'amount' => (float) $amount])
+                        ->values()
+                        ->all(),
+                    'idempotency_key' => 'settlement.applied:'.$settlement->id,
+                ]);
+            }
+
+            $this->financialEventLogger->record($settlement, 'settlement_created', [
+                'settlement_number' => $settlement->settlement_number,
+                'student_id' => $settlement->student_id,
+                'total_amount' => (float) $settlement->total_amount,
+                'allocated_amount' => (float) $settlement->allocated_amount,
+                'payment_method' => $settlement->payment_method,
+                'allocation_count' => count(array_filter($allocations, fn ($a) => $a > 0)),
+                'requires_approval' => $requiresApproval,
+            ], $userId);
+
+            return $settlement->load('allocations.invoice', 'student');
+        });
+    }
+
+    /**
+     * Approve a pending settlement (maker-checker).
+     */
+    public function approveSettlement(Settlement $settlement, int $userId): Settlement
+    {
+        if ($settlement->status !== 'pending_approval') {
+            throw new \RuntimeException(__('message.settlement_not_pending'));
+        }
+
+        if ($settlement->created_by === $userId) {
+            throw new \RuntimeException(__('message.settlement_maker_checker_violation'));
+        }
+
+        return DB::transaction(function () use ($settlement, $userId) {
+            $settlement->update([
+                'status' => 'completed',
+                'approved_by' => $userId,
+                'approved_at' => now(),
+            ]);
+
+            // Now apply the settlement effects: update invoices, mark obligations, post accounting
+            $allocations = $settlement->allocations()->get();
+            foreach ($allocations as $allocation) {
+                $invoice = Invoice::find($allocation->invoice_id);
+                if ($invoice) {
+                    $invoice->recalculateFromAllocations();
+                }
+            }
+
             $this->markObligationsFromAllocations($settlement);
+
+            $allocationData = $allocations
+                ->map(fn ($a) => ['invoice_id' => (int) $a->invoice_id, 'amount' => (float) $a->amount])
+                ->values()
+                ->all();
 
             AccountingEngine::fromEvent('settlement.applied', [
                 'unit_id' => $settlement->unit_id,
@@ -128,14 +205,16 @@ class SettlementService
                 'total_amount' => (float) $settlement->allocated_amount,
                 'effective_date' => $settlement->payment_date?->toDateString() ?? now()->toDateString(),
                 'created_by' => $userId,
-                'allocations' => collect($allocations)
-                    ->map(fn ($amount, $invoiceId) => ['invoice_id' => (int) $invoiceId, 'amount' => (float) $amount])
-                    ->values()
-                    ->all(),
+                'allocations' => $allocationData,
                 'idempotency_key' => 'settlement.applied:'.$settlement->id,
             ]);
 
-            return $settlement->load('allocations.invoice', 'student');
+            $this->financialEventLogger->record($settlement, 'settlement_approved', [
+                'settlement_number' => $settlement->settlement_number,
+                'approved_by' => $userId,
+            ], $userId);
+
+            return $settlement->fresh('allocations.invoice', 'student');
         });
     }
 
@@ -181,6 +260,12 @@ class SettlementService
                 'reason' => $reason,
                 'idempotency_key' => 'settlement.void.reversal:'.$settlement->id,
             ]);
+
+            $this->financialEventLogger->record($settlement, 'settlement_voided', [
+                'settlement_number' => $settlement->settlement_number,
+                'reason' => $reason,
+                'affected_invoices' => $invoiceIds->values()->all(),
+            ], $userId);
 
             return $settlement->fresh();
         });
@@ -228,6 +313,12 @@ class SettlementService
                 'reason' => $reason,
                 'idempotency_key' => 'settlement.cancel.reversal:'.$settlement->id,
             ]);
+
+            $this->financialEventLogger->record($settlement, 'settlement_cancelled', [
+                'settlement_number' => $settlement->settlement_number,
+                'reason' => $reason,
+                'affected_invoices' => $invoiceIds->values()->all(),
+            ], $userId);
 
             return $settlement->fresh();
         });

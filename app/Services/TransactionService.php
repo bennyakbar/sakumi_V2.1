@@ -14,6 +14,7 @@ class TransactionService
 {
     public function __construct(
         private ReceiptService $receiptService,
+        private FinancialEventLogger $financialEventLogger,
     ) {}
 
     public function generateTransactionNumber(string $type): string
@@ -67,6 +68,14 @@ class TransactionService
                 'idempotency_key' => "{$eventType}:transaction:{$transaction->id}",
             ]);
 
+            $this->financialEventLogger->record($transaction, 'transaction_created', [
+                'type' => 'income',
+                'transaction_number' => $number,
+                'total_amount' => (float) $transaction->total_amount,
+                'payment_method' => $transaction->payment_method,
+                'student_id' => $transaction->student_id,
+            ], $userId);
+
             return $transaction;
         });
 
@@ -115,6 +124,13 @@ class TransactionService
                 'created_by' => $userId,
                 'idempotency_key' => 'expense.posted:transaction:'.$transaction->id,
             ]);
+
+            $this->financialEventLogger->record($transaction, 'transaction_created', [
+                'type' => 'expense',
+                'transaction_number' => $number,
+                'total_amount' => (float) $transaction->total_amount,
+                'payment_method' => $transaction->payment_method,
+            ], $userId);
 
             return $transaction->load('items.feeType');
         });
@@ -178,6 +194,12 @@ class TransactionService
                 'reason' => $reason,
                 'idempotency_key' => 'transaction.cancel.reversal:'.$transaction->id,
             ]);
+
+            $this->financialEventLogger->record($transaction, 'transaction_cancelled', [
+                'reason' => $reason,
+                'transaction_number' => $transaction->transaction_number,
+                'type' => $transaction->type,
+            ], $userId);
 
             return $transaction->fresh();
         });

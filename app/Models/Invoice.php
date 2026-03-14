@@ -36,6 +36,8 @@ class Invoice extends Model
         'status',
         'notes',
         'created_by',
+        'approved_by',
+        'approved_at',
     ];
 
     protected function casts(): array
@@ -45,6 +47,7 @@ class Invoice extends Model
             'due_date' => 'date',
             'total_amount' => 'decimal:2',
             'paid_amount' => 'decimal:2',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -76,6 +79,11 @@ class Invoice extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function items(): HasMany

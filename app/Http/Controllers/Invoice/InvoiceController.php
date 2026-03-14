@@ -181,6 +181,17 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function approve(Invoice $invoice): RedirectResponse
+    {
+        try {
+            $this->invoiceService->approveInvoice($invoice, (int) auth()->id());
+            return redirect()->route('invoices.show', $invoice)
+                ->with('success', __('message.invoice_approved'));
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function destroy(Request $request, Invoice $invoice): RedirectResponse
     {
         // Paid or partially paid invoices require escalated permission

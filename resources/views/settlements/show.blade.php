@@ -16,7 +16,9 @@
                             <p class="text-sm text-gray-500">{{ $settlement->payment_date->format('d F Y') }}</p>
                         </div>
                         <div class="text-right">
-                            @if($settlement->status === 'completed')
+                            @if($settlement->status === 'pending_approval')
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">{{ __('Pending Approval') }}</span>
+                            @elseif($settlement->status === 'completed')
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ __('app.status.completed') }}</span>
                             @else
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">{{ __('app.status.cancelled') }}</span>
@@ -127,6 +129,17 @@
                             class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
                             {{ __('app.button.back') }}
                         </a>
+                        @can('settlements.approve')
+                            @if($settlement->status === 'pending_approval')
+                                <form method="POST" action="{{ route('settlements.approve', $settlement) }}" onsubmit="return confirm('{{ __('Approve this settlement?') }}')">
+                                    @csrf
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                                        {{ __('Approve Settlement') }}
+                                    </button>
+                                </form>
+                            @endif
+                        @endcan
                         @if($settlement->status === 'completed')
                             <a href="{{ route('settlements.print', $settlement) }}" target="_blank"
                                 class="px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">

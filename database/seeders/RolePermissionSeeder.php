@@ -49,15 +49,15 @@ class RolePermissionSeeder extends Seeder
             // Transactions
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
             // Expense v2
-            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.budget-override', 'expenses.report.view',
             // Bank Reconciliation
             'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             // Receipts
             'receipts.view', 'receipts.print', 'receipts.reprint',
             // Invoices
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid', 'invoices.approve',
             // Settlements
-            'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
+            'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void', 'settlements.approve',
             // Reports
             'reports.daily', 'reports.monthly', 'reports.arrears',
             'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
@@ -105,11 +105,11 @@ class RolePermissionSeeder extends Seeder
             'master.classes.view',
             'master.categories.view',
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
-            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.budget-override', 'expenses.report.view',
             'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             'receipts.view', 'receipts.print', 'receipts.reprint',
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid',
-            'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.cancel_paid', 'invoices.approve',
+            'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.void', 'settlements.approve',
             'reports.daily', 'reports.monthly', 'reports.arrears',
             'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
             'reports.export',
@@ -181,11 +181,11 @@ class RolePermissionSeeder extends Seeder
             'master.fee-matrix.view', 'master.fee-matrix.create', 'master.fee-matrix.edit', 'master.fee-matrix.delete',
             'master.student-fee-mappings.view', 'master.student-fee-mappings.create', 'master.student-fee-mappings.edit', 'master.student-fee-mappings.delete',
             'transactions.view', 'transactions.create', 'transactions.expense.create', 'transactions.cancel',
-            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.report.view',
+            'expenses.view', 'expenses.create', 'expenses.approve', 'expenses.budget.manage', 'expenses.budget-override', 'expenses.report.view',
             'bank-reconciliation.view', 'bank-reconciliation.manage', 'bank-reconciliation.close',
             'receipts.view', 'receipts.print', 'receipts.reprint',
-            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel',
-            'settlements.view', 'settlements.create', 'settlements.cancel',
+            'invoices.view', 'invoices.create', 'invoices.generate', 'invoices.print', 'invoices.cancel', 'invoices.approve',
+            'settlements.view', 'settlements.create', 'settlements.cancel', 'settlements.approve',
             'reports.daily', 'reports.monthly', 'reports.arrears',
             'reports.ar-outstanding', 'reports.collection', 'reports.student-statement', 'reports.cash-book',
             'reports.export',

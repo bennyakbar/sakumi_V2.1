@@ -258,6 +258,17 @@ class SettlementController extends Controller
         return $reasonType;
     }
 
+    public function approve(Settlement $settlement): RedirectResponse
+    {
+        try {
+            $this->settlementService->approveSettlement($settlement, (int) auth()->id());
+            return redirect()->route('settlements.show', $settlement)
+                ->with('success', __('message.settlement_approved'));
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function void(Request $request, Settlement $settlement): RedirectResponse
     {
         $request->validate([

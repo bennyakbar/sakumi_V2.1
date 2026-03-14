@@ -15,6 +15,8 @@ class SettingsController extends Controller
         return view('settings.edit', [
             'academicYearCurrent' => (string) Setting::get('academic_year_current', ''),
             'dangerousPermanentDeleteEnabled' => filter_var(Setting::get('dangerous_permanent_delete_enabled', false), FILTER_VALIDATE_BOOLEAN),
+            'makerCheckerInvoicesEnabled' => filter_var(Setting::get('maker_checker.invoices_enabled', false), FILTER_VALIDATE_BOOLEAN),
+            'makerCheckerSettlementsEnabled' => filter_var(Setting::get('maker_checker.settlements_enabled', false), FILTER_VALIDATE_BOOLEAN),
         ]);
     }
 
@@ -37,6 +39,8 @@ class SettingsController extends Controller
                 },
             ],
             'dangerous_permanent_delete_enabled' => ['nullable', 'boolean'],
+            'maker_checker_invoices_enabled' => ['nullable', 'boolean'],
+            'maker_checker_settlements_enabled' => ['nullable', 'boolean'],
         ]);
 
         Setting::updateOrCreate(
@@ -55,6 +59,24 @@ class SettingsController extends Controller
                 'type' => 'boolean',
                 'group' => 'system',
                 'description' => 'Izinkan superadmin melakukan permanent delete pada data tertentu',
+            ]
+        );
+        Setting::updateOrCreate(
+            ['key' => 'maker_checker.invoices_enabled'],
+            [
+                'value' => $request->boolean('maker_checker_invoices_enabled') ? 'true' : 'false',
+                'type' => 'boolean',
+                'group' => 'system',
+                'description' => 'Aktifkan persetujuan maker-checker untuk invoice baru',
+            ]
+        );
+        Setting::updateOrCreate(
+            ['key' => 'maker_checker.settlements_enabled'],
+            [
+                'value' => $request->boolean('maker_checker_settlements_enabled') ? 'true' : 'false',
+                'type' => 'boolean',
+                'group' => 'system',
+                'description' => 'Aktifkan persetujuan maker-checker untuk settlement baru',
             ]
         );
         Setting::clearCache();
