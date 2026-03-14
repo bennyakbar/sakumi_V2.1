@@ -104,6 +104,7 @@ return [
     'student_updated'              => 'Student updated successfully.',
     'student_deleted'              => 'Student deleted successfully.',
     'student_import_success'       => 'Student import finished successfully.',
+    'student_import_result'        => 'Import complete: :success students imported, :skip rows skipped.',
     'student_fee_mapping_created'  => 'Student fee mapping created successfully.',
     'student_fee_mapping_updated'  => 'Student fee mapping updated successfully.',
     'student_fee_mapping_deactivated' => 'Student fee mapping deactivated successfully.',

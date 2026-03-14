@@ -104,6 +104,7 @@ return [
     'student_updated'              => 'Siswa berhasil diperbarui.',
     'student_deleted'              => 'Siswa berhasil dihapus.',
     'student_import_success'       => 'Impor siswa berhasil diselesaikan.',
+    'student_import_result'        => 'Impor selesai: :success siswa berhasil diimport, :skip baris dilewati.',
     'student_fee_mapping_created'  => 'Mapping biaya siswa berhasil ditambahkan.',
     'student_fee_mapping_updated'  => 'Mapping biaya siswa berhasil diperbarui.',
     'student_fee_mapping_deactivated' => 'Mapping biaya siswa berhasil dinonaktifkan.',

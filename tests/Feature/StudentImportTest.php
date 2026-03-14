@@ -43,45 +43,62 @@ class StudentImportTest extends TestCase
         $response->assertHeader('content-disposition');
     }
 
-    public function test_valid_csv_imports_students()
+    public function test_valid_csv_imports_students_with_all_fields()
     {
-        $class = SchoolClass::create([
-            'name' => '1A',
-            'level' => 1,
-            'academic_year' => '2025/2026'
-        ]);
-        $category = StudentCategory::create(['name' => 'Regular', 'code' => 'REG']);
+        SchoolClass::create(['name' => '1A', 'level' => 1, 'academic_year' => '2025/2026']);
+        StudentCategory::create(['name' => 'Regular', 'code' => 'REG']);
 
-        $header = 'name,nis,nisn,class_name,category_name,gender,birth_place,birth_date,parent_name,parent_phone,address,enrollment_date,status';
-        $row1 = "John Doe,12345,0012345678,1A,Regular,L,Jakarta,2015-01-01,Mr. Doe,08123456789,Address,2025-01-01,active";
+        $header = 'name,class_name,category_name,gender,enrollment_date,status,nis,nisn,birth_place,birth_date,parent_name,parent_phone,address';
+        $row = 'John Doe,1A,Regular,L,2025-01-01,Aktif,12345,0012345678,Jakarta,2015-01-01,Mr. Doe,08123456789,Address';
 
-        $content = "$header\n$row1";
+        $file = UploadedFile::fake()->createWithContent('students.csv', "$header\n$row");
 
-        $file = UploadedFile::fake()->createWithContent('students.csv', $content);
-
-        $response = $this->post(route('master.students.processImport'), [
-            'file' => $file,
-        ]);
+        $response = $this->post(route('master.students.processImport'), ['file' => $file]);
 
         $response->assertRedirect(route('master.students.index'));
         $response->assertSessionHas('success');
         $this->assertDatabaseHas('students', ['name' => 'John Doe', 'nis' => '12345']);
     }
 
-    public function test_invalid_rows_are_reported()
+    public function test_valid_csv_imports_students_with_mandatory_only()
     {
-        $header = 'name,nis,nisn,class_name,category_name,gender,birth_place,birth_date,parent_name,parent_phone,address,enrollment_date,status';
-        $row1 = "Jane Doe,54321,8765432100,InvalidClass,InvalidCategory,P,,,,,,,,,active"; // Invalid class/category
+        SchoolClass::create(['name' => '1B', 'level' => 1, 'academic_year' => '2025/2026']);
+        StudentCategory::create(['name' => 'Regular', 'code' => 'REG']);
 
-        $content = "$header\n$row1";
-        $file = UploadedFile::fake()->createWithContent('students.csv', $content);
+        $header = 'name,class_name,category_name,gender,enrollment_date,status,nis,birth_place,birth_date,address,parent_name,parent_phone';
+        $row = 'Siti Aminah,1B,Regular,P,2025-07-14,Aktif,,,,,,';
 
-        $response = $this->post(route('master.students.processImport'), [
-            'file' => $file,
+        $file = UploadedFile::fake()->createWithContent('students.csv', "$header\n$row");
+
+        $response = $this->post(route('master.students.processImport'), ['file' => $file]);
+
+        $response->assertRedirect(route('master.students.index'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('students', [
+            'name' => 'Siti Aminah',
+            'nis' => null,
+            'birth_place' => null,
+            'status' => 'active',
         ]);
+    }
+
+    public function test_invalid_rows_are_reported_per_row()
+    {
+        SchoolClass::create(['name' => '1A', 'level' => 1, 'academic_year' => '2025/2026']);
+        StudentCategory::create(['name' => 'Regular', 'code' => 'REG']);
+
+        $header = 'name,class_name,category_name,gender,enrollment_date,status';
+        $validRow = 'Good Student,1A,Regular,L,2025-01-01,Aktif';
+        $invalidRow = ',InvalidClass,InvalidCategory,,2025-01-01,Aktif'; // Missing name and gender
+
+        $file = UploadedFile::fake()->createWithContent('students.csv', "$header\n$validRow\n$invalidRow");
+
+        $response = $this->post(route('master.students.processImport'), ['file' => $file]);
 
         $response->assertRedirect(route('master.students.index'));
         $response->assertSessionHas('error_list');
+        // Valid row should still be imported
+        $this->assertDatabaseHas('students', ['name' => 'Good Student']);
     }
 
     public function test_students_can_be_exported()

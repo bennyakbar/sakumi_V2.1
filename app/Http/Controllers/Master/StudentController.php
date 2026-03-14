@@ -68,7 +68,28 @@ class StudentController extends Controller
 
     public function downloadTemplate()
     {
-        return response()->download(base_path('database/schema/student-import-template.csv'));
+        $headers = ['name*', 'class_name*', 'category_name*', 'gender*', 'enrollment_date*', 'status*', 'nis', 'nisn', 'birth_place', 'birth_date', 'parent_name', 'parent_phone', 'parent_whatsapp', 'address'];
+
+        // Row 1: complete data example
+        $row1 = ['Budi Santoso', '1A', 'Reguler', 'L', '2025-07-14', 'Aktif', 'NIS001', '0012345678', 'Jakarta', '2015-01-15', 'Bapak Budi', '08123456789', '628123456789', 'Jl. Contoh No. 123'];
+
+        // Row 2: minimal mandatory-only example
+        $row2 = ['Siti Aminah', '1B', 'Reguler', 'P', '2025-07-14', 'Aktif', '', '', '', '', '', '', '', ''];
+
+        $callback = function () use ($headers, $row1, $row2) {
+            $handle = fopen('php://output', 'wb');
+            // Strip the * markers from actual headers (they're just for display in comments)
+            $cleanHeaders = array_map(fn ($h) => rtrim($h, '*'), $headers);
+            fputcsv($handle, $cleanHeaders);
+            fputcsv($handle, $row1);
+            fputcsv($handle, $row2);
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="student-import-template.csv"',
+        ]);
     }
 
     public function processImport(ImportStudentRequest $request): RedirectResponse
@@ -84,8 +105,13 @@ class StudentController extends Controller
             $import->import($file);
         }
 
+        $message = __('message.student_import_result', [
+            'success' => $import->successCount,
+            'skip' => $import->skipCount,
+        ]);
+
         return redirect()->route('master.students.index')
-            ->with('success', __('message.student_import_success'))
+            ->with('success', $message)
             ->with('error_list', $import->errors);
     }
 

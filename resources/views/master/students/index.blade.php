@@ -40,15 +40,22 @@
                     </div>
 
                     {{-- Import error list --}}
-                    @if (session('error_list'))
-                        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    @if (session('error_list') && count(session('error_list')) > 0)
+                        <div class="mb-4 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-md" role="alert">
                             <strong class="font-bold">Import Warning!</strong>
-                            <span class="block sm:inline">Some rows failed to import:</span>
-                            <ul class="list-disc list-inside mt-2 text-sm">
+                            <span class="block sm:inline text-sm">{{ count(session('error_list')) }} baris gagal diimport:</span>
+                            <div class="mt-2 space-y-1 text-sm max-h-60 overflow-y-auto">
                                 @foreach (session('error_list') as $error)
-                                    <li>{{ $error }}</li>
+                                    @if (is_array($error))
+                                        <div class="bg-red-100 rounded px-3 py-1.5">
+                                            <span class="font-semibold">Baris {{ $error['row'] }}:</span>
+                                            {{ implode(' | ', $error['messages']) }}
+                                        </div>
+                                    @else
+                                        <div class="bg-red-100 rounded px-3 py-1.5">{{ $error }}</div>
+                                    @endif
                                 @endforeach
-                            </ul>
+                            </div>
                         </div>
                     @endif
 
