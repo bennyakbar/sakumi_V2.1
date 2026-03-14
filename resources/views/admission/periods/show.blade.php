@@ -85,6 +85,49 @@
                         </div>
                     @endif
 
+                    <div class="mt-8 border-t pt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-semibold text-gray-900">
+                                {{ __('app.nav.applicants') }} ({{ $period->applicants_count }})
+                            </h3>
+                            @if($period->status === 'open')
+                                <a href="{{ route('admission.applicants.create', ['admission_period_id' => $period->id]) }}"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                    {{ __('app.button.create') }}
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Registrasi</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('app.label.name') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('app.label.class') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('app.label.status') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($period->applicants as $applicant)
+                                        <tr>
+                                            <td class="px-4 py-3 text-sm text-gray-600">{{ $applicant->registration_number }}</td>
+                                            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $applicant->name }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">{{ $applicant->targetClass?->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">{{ __('app.status.' . $applicant->status) }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">
+                                                {{ __('app.empty.applicants') }}
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="mt-6 flex gap-2">
                         <a href="{{ route('admission.periods.index') }}"
                             class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">

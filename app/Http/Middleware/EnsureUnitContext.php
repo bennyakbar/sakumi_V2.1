@@ -23,17 +23,39 @@ class EnsureUnitContext
             return $next($request);
         }
 
-        // Resolve unit from session (existing flow) or fall back to user's unit
-        if (! $this->unitContext->id()) {
-            if (! $user->unit_id) {
-                abort(403, __('message.no_unit_assigned'));
-            }
-            $this->unitContext->set($user->unit_id);
+        $sessionUnitId = session('current_unit_id');
+        $fallbackUnitId = $user->unit_id;
+        $resolvedUnitId = $sessionUnitId ?: $fallbackUnitId;
+
+        // Auto-heal: persist fallback into session so subsequent requests don't
+        // repeat the lookup and the value survives across the request lifecycle.
+        if (! $sessionUnitId && $resolvedUnitId) {
+            session(['current_unit_id' => (int) $resolvedUnitId]);
         }
 
-        $currentUnit = Unit::find($this->unitContext->id());
+        if (! $resolvedUnitId) {
+            abort(403, __('message.no_unit_assigned'));
+        }
 
-        $switchableUnits = $user->hasRole(['super_admin', 'bendahara'])
+        $canSwitchUnit = $user->hasAnyRole(['super_admin', 'superadmin', 'bendahara']);
+        if (! $canSwitchUnit && (int) $resolvedUnitId !== (int) $fallbackUnitId) {
+            $resolvedUnitId = $fallbackUnitId;
+            session(['current_unit_id' => $resolvedUnitId]);
+        }
+
+        $currentUnit = Unit::query()
+            ->whereKey($resolvedUnitId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $currentUnit) {
+            session()->forget('current_unit_id');
+            abort(403, __('message.no_unit_assigned'));
+        }
+
+        $this->unitContext->set((int) $currentUnit->id);
+
+        $switchableUnits = $canSwitchUnit
             ? Unit::where('is_active', true)->orderBy('code')->get()
             : collect();
 

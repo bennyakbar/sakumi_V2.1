@@ -81,7 +81,7 @@
                                     </div>
                                     <div>
                                         <x-input-label value="Kuota" />
-                                        <x-text-input :type="'number'" :name="'quotas[' + index + '][quota]'" x-model="row.quota"
+                                        <x-text-input type="number" x-bind:name="'quotas[' + index + '][quota]'" x-model="row.quota"
                                             class="block mt-1 w-full" min="1" />
                                     </div>
                                     <div>

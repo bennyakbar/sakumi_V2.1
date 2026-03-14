@@ -20,7 +20,7 @@
                                     required>
                                     <option value="">-- Pilih Periode --</option>
                                     @foreach($periods as $period)
-                                        <option value="{{ $period->id }}" {{ old('admission_period_id') == $period->id ? 'selected' : '' }}>{{ $period->name }}</option>
+                                        <option value="{{ $period->id }}" {{ (string) old('admission_period_id', request('admission_period_id')) === (string) $period->id ? 'selected' : '' }}>{{ $period->name }}</option>
                                     @endforeach
                                 </select>
                                 <x-input-error :messages="$errors->get('admission_period_id')" class="mt-2" />

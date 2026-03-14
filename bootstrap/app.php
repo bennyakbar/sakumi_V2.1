@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'spatie.role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'spatie.permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'spatie.role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'audit' => \App\Http\Middleware\AuditLog::class,
             'force.https' => \App\Http\Middleware\ForceHttps::class,
             'restrict.roles' => \App\Http\Middleware\RestrictRoleManagement::class,

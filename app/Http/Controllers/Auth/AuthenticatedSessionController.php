@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Set unit context AFTER session regeneration so the value
+        // is written to the new (regenerated) session reliably.
+        if ($unitId = Auth::user()?->unit_id) {
+            session(['current_unit_id' => (int) $unitId]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

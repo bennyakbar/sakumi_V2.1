@@ -56,7 +56,12 @@
                                                 {{ __('app.status.' . $period->status) }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $period->applicants_count }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <a href="{{ route('admission.applicants.index', ['admission_period_id' => $period->id]) }}"
+                                                class="text-indigo-600 hover:text-indigo-900">
+                                                {{ $period->applicants_count }}
+                                            </a>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="{{ route('admission.periods.show', $period) }}"
                                                 class="text-slate-600 hover:text-slate-900 mr-3">{{ __('app.button.view') }}</a>

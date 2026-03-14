@@ -58,7 +58,11 @@ class AdmissionPeriodController extends Controller
 
     public function show(AdmissionPeriod $period): View
     {
-        $period->load(['quotas.schoolClass', 'applicants' => fn ($q) => $q->latest()->limit(20)]);
+        $period->loadCount('applicants')
+            ->load([
+                'quotas.schoolClass',
+                'applicants' => fn ($q) => $q->with('targetClass:id,name')->latest()->limit(20),
+            ]);
 
         $quotaStats = [];
         foreach ($period->quotas as $quota) {

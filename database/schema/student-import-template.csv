@@ -1,2 +1,6 @@
-name,nis,nisn,class_name,category_name,gender,birth_place,birth_date,parent_name,parent_phone,parent_whatsapp,address,enrollment_date,status
-John Doe,12345,0012345678,1A,Regular,L,Jakarta,2015-01-01,Mr Doe,081234567890,6281234567890,Sample Address,2025-07-01,active
+nama,nisn,kelas,kategori,status,tanggal_masuk,nis,jenis_kelamin,tempat_lahir,tanggal_lahir,nama_orang_tua,no_telepon,no_whatsapp,alamat
+Budi Santoso,1234567890,X IPA 1,Reguler,Aktif,12/03/2026,NIS001,L,Jakarta,01/01/2010,Bapak Budi,08123456789,628123456789,Jl. Contoh No. 123
+Siti Aminah,1234567891,X IPA 2,Reguler,Aktif,12/03/2026,,,,,,,,
+Ahmad Fauzi,1234567892,X IPA 1,Non-Reguler,Aktif,12/03/2026,NIS003,L,,,Ibu Ahmad,,,
+Dewi Lestari,1234567893,X IPA 3,Reguler,Aktif,12/03/2026,,,,,,,,
+Rudi Hartono,1234567894,X IPA 1,Reguler,Aktif,12/03/2026,NIS005,L,Bandung,15/05/2010,Bapak Rudi,081298765432,6281298765432,Jl. Merdeka No. 45

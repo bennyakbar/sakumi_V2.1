@@ -12,6 +12,8 @@ class FixedLoginSeeder extends Seeder
 {
     public function run(): void
     {
+        $guard = 'web';
+
         // Ensure all permissions/roles exist before assigning them to users.
         $this->call(RolePermissionSeeder::class);
 
@@ -25,11 +27,11 @@ class FixedLoginSeeder extends Seeder
             'DTA' => Unit::query()->where('code', 'DTA')->value('id') ?? $defaultUnitId,
         ];
 
-        $staffRole = Role::firstOrCreate(['name' => 'staff']);
-        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
-        $adminTuMiRole = Role::firstOrCreate(['name' => 'admin_tu_mi']);
-        $adminTuRaRole = Role::firstOrCreate(['name' => 'admin_tu_ra']);
-        $adminTuDtaRole = Role::firstOrCreate(['name' => 'admin_tu_dta']);
+        $staffRole = Role::firstOrCreate(['name' => 'staff', 'guard_name' => $guard]);
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => $guard]);
+        $adminTuMiRole = Role::firstOrCreate(['name' => 'admin_tu_mi', 'guard_name' => $guard]);
+        $adminTuRaRole = Role::firstOrCreate(['name' => 'admin_tu_ra', 'guard_name' => $guard]);
+        $adminTuDtaRole = Role::firstOrCreate(['name' => 'admin_tu_dta', 'guard_name' => $guard]);
 
         // Admin TU role permissions are managed centrally in RolePermissionSeeder.
 
